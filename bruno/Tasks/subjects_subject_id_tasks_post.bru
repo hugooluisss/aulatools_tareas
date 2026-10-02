@@ -1,0 +1,27 @@
+meta {
+  name: /subjects/{subject_id}/tasks (POST)
+  type: http
+  seq: 46
+}
+
+post {
+  url: {{baseUrl}}/subjects/{{subjectId}}/tasks
+}
+
+body:json {
+  {
+    "name": "Chapter 1",
+    "description": "Read and answer questions 1–5.",
+    "due_at": "2026-10-15T23:59:00-06:00"
+  }
+}
+
+docs {
+  POST `/subjects/subject_id/tasks` Roles: Admin, assigned teacher. Path ids: subject_id. JSON body: name, description, due_at; use valid IDs and dates accepted by the API. Response: 200/201 data with task or delivery. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}

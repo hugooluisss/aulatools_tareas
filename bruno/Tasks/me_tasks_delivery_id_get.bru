@@ -1,0 +1,19 @@
+meta {
+  name: /me/tasks/{delivery_id} (GET)
+  type: http
+  seq: 43
+}
+
+get {
+  url: {{baseUrl}}/me/tasks/{{deliveryId}}
+}
+
+docs {
+  GET `/me/tasks/delivery_id` Roles: Student (own delivery). Path ids: delivery_id. Response: 200 data containing task, subject, teacher, and delivery. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

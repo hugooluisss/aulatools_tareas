@@ -1,0 +1,28 @@
+meta {
+  name: /groups/{id} (PUT)
+  type: http
+  seq: 27
+}
+
+put {
+  url: {{baseUrl}}/groups/{{groupId}}
+}
+
+body:json {
+  {
+    "name": "Grade 7 A",
+    "subject_ids": [
+      "{{subjectId}}"
+    ]
+  }
+}
+
+docs {
+  PUT `/groups/id` Roles: Admin. Path ids: id. JSON body: name, subject_ids; use valid IDs and dates accepted by the API. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

@@ -1,0 +1,27 @@
+meta {
+  name: /cycles/{id} (PUT)
+  type: http
+  seq: 19
+}
+
+put {
+  url: {{baseUrl}}/cycles/{{cycleId}}
+}
+
+body:json {
+  {
+    "name": "2026–2027",
+    "starts_on": "2026-08-15",
+    "ends_on": "2027-06-30"
+  }
+}
+
+docs {
+  PUT `/cycles/id` Roles: Admin. Path ids: id. JSON body: name, starts_on, ends_on; use valid IDs and dates accepted by the API. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

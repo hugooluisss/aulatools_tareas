@@ -1,0 +1,19 @@
+meta {
+  name: /calendar/events/{id} (GET)
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/calendar/events/{{eventId}}
+}
+
+docs {
+  GET `/calendar/events/id` Roles: Admin. Path ids: id. Response: 200/201 data with event id, school_id, subject_id, title, description, starts_at, ends_at. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

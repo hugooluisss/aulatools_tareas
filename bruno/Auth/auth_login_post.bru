@@ -1,0 +1,33 @@
+meta {
+  name: /auth/login (POST)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+}
+
+body:json {
+  {
+    "email": "{{adminEmail}}",
+    "password": "{{adminPassword}}"
+  }
+}
+
+
+script:post-response {
+
+  bru.setEnvVar("token", res.body.token);
+
+}
+
+docs {
+  POST `/auth/login` Roles: Public. JSON body: email, password; use valid IDs and dates accepted by the API. Response: 200 `token`; post-response saves token to `token` env var. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

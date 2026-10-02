@@ -1,0 +1,30 @@
+meta {
+  name: /users/students/{id} (PUT)
+  type: http
+  seq: 55
+}
+
+put {
+  url: {{baseUrl}}/users/students/{{studentId}}
+}
+
+body:json {
+  {
+    "first_name": "Riley",
+    "last_name": "Student",
+    "email": "riley.student@example.test",
+    "enrollment_number": "STU-2026-001",
+    "birth_date": "2012-05-14",
+    "status": "active"
+  }
+}
+
+docs {
+  PUT `/users/students/id` Roles: Admin. Path ids: id. JSON body: first_name, last_name, email, enrollment_number, birth_date, status; use valid IDs and dates accepted by the API. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

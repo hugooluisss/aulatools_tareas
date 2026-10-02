@@ -1,0 +1,25 @@
+meta {
+  name: /school (PUT)
+  type: http
+  seq: 32
+}
+
+put {
+  url: {{baseUrl}}/school
+}
+
+body:json {
+  {
+    "name": "Northstar Academy"
+  }
+}
+
+docs {
+  PUT `/school` Roles: Admin. JSON body: name; use valid IDs and dates accepted by the API. Response: 200 data with school id and name. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

@@ -1,0 +1,27 @@
+meta {
+  name: /users/teachers/{id} (PUT)
+  type: http
+  seq: 61
+}
+
+put {
+  url: {{baseUrl}}/users/teachers/{{teacherId}}
+}
+
+body:json {
+  {
+    "first_name": "Jamie",
+    "last_name": "Teacher",
+    "email": "jamie.teacher@example.test"
+  }
+}
+
+docs {
+  PUT `/users/teachers/id` Roles: Admin. Path ids: id. JSON body: first_name, last_name, email; use valid IDs and dates accepted by the API. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

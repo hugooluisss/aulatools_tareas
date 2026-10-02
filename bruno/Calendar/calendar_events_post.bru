@@ -1,0 +1,29 @@
+meta {
+  name: /calendar/events (POST)
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/calendar/events
+}
+
+body:json {
+  {
+    "subject_id": "{{subjectId}}",
+    "title": "Science lab",
+    "description": "Bring lab notebook.",
+    "starts_at": "2026-10-15T10:00:00-06:00",
+    "ends_at": "2026-10-15T11:30:00-06:00"
+  }
+}
+
+docs {
+  POST `/calendar/events` Roles: Admin. JSON body: subject_id, title, description, starts_at, ends_at; use valid IDs and dates accepted by the API. Response: 200/201 data with event id, school_id, subject_id, title, description, starts_at, ends_at. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}

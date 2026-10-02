@@ -1,0 +1,19 @@
+meta {
+  name: /groups/{id}/subjects (GET)
+  type: http
+  seq: 28
+}
+
+get {
+  url: {{baseUrl}}/groups/{{groupId}}/subjects
+}
+
+docs {
+  GET `/groups/id/subjects` Roles: Admin. Path ids: id. Response: 200 paginated data and meta (page, per_page, total) paginated list. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

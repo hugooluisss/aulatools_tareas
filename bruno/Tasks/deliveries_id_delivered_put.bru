@@ -1,0 +1,23 @@
+meta {
+  name: /deliveries/{id}/delivered (PUT)
+  type: http
+  seq: 41
+}
+
+put {
+  url: {{baseUrl}}/deliveries/{{deliveryId}}/delivered
+}
+
+body:json {
+  {}
+}
+
+docs {
+  PUT `/deliveries/id/delivered` Roles: Admin. Path ids: id. JSON body: ; use valid IDs and dates accepted by the API. Response: 200/201 data with task or delivery. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

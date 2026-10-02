@@ -1,0 +1,28 @@
+meta {
+  name: /subjects/{id} (PUT)
+  type: http
+  seq: 36
+}
+
+put {
+  url: {{baseUrl}}/subjects/{{subjectId}}
+}
+
+body:json {
+  {
+    "cycle_id": "{{cycleId}}",
+    "teacher_id": "{{teacherId}}",
+    "name": "Science",
+    "status": "in_progress"
+  }
+}
+
+docs {
+  PUT `/subjects/id` Roles: Admin. Path ids: id. JSON body: cycle_id, teacher_id, name, status; use valid IDs and dates accepted by the API. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

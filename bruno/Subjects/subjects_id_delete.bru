@@ -1,0 +1,19 @@
+meta {
+  name: /subjects/{id} (DELETE)
+  type: http
+  seq: 34
+}
+
+delete {
+  url: {{baseUrl}}/subjects/{{subjectId}}
+}
+
+docs {
+  DELETE `/subjects/id` Roles: Admin. Path ids: id. Response: 204 No Content; no response body. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 204
+
+}

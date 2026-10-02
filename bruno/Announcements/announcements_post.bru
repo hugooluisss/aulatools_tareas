@@ -1,0 +1,28 @@
+meta {
+  name: /announcements (POST)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/announcements
+}
+
+body:json {
+  {
+    "title": "Parent meeting",
+    "body": "The school meeting is scheduled for October 20.",
+    "starts_on": "2026-10-02",
+    "ends_on": "2026-10-20"
+  }
+}
+
+docs {
+  POST `/announcements` Roles: Admin. JSON body: title, body, starts_on, ends_on; use valid IDs and dates accepted by the API. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}

@@ -1,0 +1,25 @@
+meta {
+  name: /subjects/{id}/students (POST)
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{baseUrl}}/subjects/{{subjectId}}/students
+}
+
+body:json {
+  {
+    "student_id": "{{studentId}}"
+  }
+}
+
+docs {
+  POST `/subjects/id/students` Roles: Admin. Path ids: id. JSON body: student_id; use valid IDs and dates accepted by the API. Response: 201 data with student_id and subject_id. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}

@@ -1,0 +1,23 @@
+meta {
+  name: /tasks/{id}/cancel (POST)
+  type: http
+  seq: 47
+}
+
+post {
+  url: {{baseUrl}}/tasks/{{taskId}}/cancel
+}
+
+body:json {
+  {}
+}
+
+docs {
+  POST `/tasks/id/cancel` Roles: Admin, task's teacher. Path ids: id. JSON body: ; use valid IDs and dates accepted by the API. Response: 200/201 data with task or delivery. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

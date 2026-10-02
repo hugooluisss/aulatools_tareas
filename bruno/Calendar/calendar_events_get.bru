@@ -1,0 +1,19 @@
+meta {
+  name: /calendar/events (GET)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/calendar/events
+}
+
+docs {
+  GET `/calendar/events` Roles: Admin. Parameters: none. Response: 200 paginated data and meta (page, per_page, total) paginated list. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

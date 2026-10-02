@@ -1,0 +1,31 @@
+meta {
+  name: /users/students (POST)
+  type: http
+  seq: 57
+}
+
+post {
+  url: {{baseUrl}}/users/students
+}
+
+body:json {
+  {
+    "first_name": "Riley",
+    "last_name": "Student",
+    "email": "riley.student@example.test",
+    "password": "ChangeMe123!",
+    "enrollment_number": "STU-2026-001",
+    "birth_date": "2012-05-14",
+    "status": "active"
+  }
+}
+
+docs {
+  POST `/users/students` Roles: Admin. JSON body: first_name, last_name, email, password, enrollment_number, birth_date, status; use valid IDs and dates accepted by the API. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}

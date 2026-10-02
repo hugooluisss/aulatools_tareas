@@ -1,0 +1,25 @@
+meta {
+  name: /groups/{id}/students (POST)
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{baseUrl}}/groups/{{groupId}}/students
+}
+
+body:json {
+  {
+    "student_id": "{{studentId}}"
+  }
+}
+
+docs {
+  POST `/groups/id/students` Roles: Admin. Path ids: id. JSON body: student_id; use valid IDs and dates accepted by the API. Response: 201 data with student_id, group_id, and subject_ids. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}

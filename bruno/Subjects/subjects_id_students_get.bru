@@ -1,0 +1,19 @@
+meta {
+  name: /subjects/{id}/students (GET)
+  type: http
+  seq: 22
+}
+
+get {
+  url: {{baseUrl}}/subjects/{{subjectId}}/students
+}
+
+docs {
+  GET `/subjects/id/students` Roles: Admin, assigned teacher, enrolled student. Path ids: id. Response: 200 paginated data and meta (page, per_page, total) paginated list. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

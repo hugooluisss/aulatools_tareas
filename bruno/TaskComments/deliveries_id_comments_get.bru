@@ -1,0 +1,19 @@
+meta {
+  name: /deliveries/{id}/comments (GET)
+  type: http
+  seq: 39
+}
+
+get {
+  url: {{baseUrl}}/deliveries/{{deliveryId}}/comments
+}
+
+docs {
+  GET `/deliveries/id/comments` Roles: Admin, delivery's teacher, owning student. Path ids: id. Response: 200 paginated data and meta (page, per_page, total) paginated list. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

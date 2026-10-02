@@ -1,0 +1,28 @@
+meta {
+  name: /users/teachers (POST)
+  type: http
+  seq: 62
+}
+
+post {
+  url: {{baseUrl}}/users/teachers
+}
+
+body:json {
+  {
+    "first_name": "Jamie",
+    "last_name": "Teacher",
+    "email": "jamie.teacher@example.test",
+    "password": "ChangeMe123!"
+  }
+}
+
+docs {
+  POST `/users/teachers` Roles: Admin. JSON body: first_name, last_name, email, password; use valid IDs and dates accepted by the API. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}

@@ -11,6 +11,7 @@ use App\Groups\Controller\GroupController;
 use App\Enrollments\Controller\EnrollmentController;
 use App\Users\Controller\UserController;
 use App\Cycles\Controller\CycleController;
+use App\Schools\SchoolController;
 use Yiisoft\Router\Route;
 
 return [
@@ -18,6 +19,8 @@ return [
     Route::post('/auth/register-school')->action([AuthController::class, 'registerSchool']),
     Route::post('/auth/login')->action([AuthController::class, 'login']),
     Route::post('/auth/change-password')->middleware(AuthenticationMiddleware::class)->action([AuthController::class, 'changePassword']),
+    Route::get('/school')->middleware(AuthenticationMiddleware::class)->action([SchoolController::class, 'view']),
+    Route::put('/school')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SchoolController::class, 'update']),
     Route::get('/subjects')->middleware(AuthenticationMiddleware::class)->action([SubjectController::class, 'index']),
     Route::post('/subjects')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SubjectController::class, 'create']),
     Route::get('/subjects/{id}')->middleware(AuthenticationMiddleware::class)->action([SubjectController::class, 'view']),

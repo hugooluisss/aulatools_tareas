@@ -1,0 +1,20 @@
+meta {
+  name: /health (GET)
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{baseUrl}}/health
+}
+
+
+docs {
+  GET `/health` Roles: Public. Parameters: none. Response: 200 `status=ok`. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 200
+
+}

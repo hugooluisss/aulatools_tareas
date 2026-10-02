@@ -1,0 +1,25 @@
+meta {
+  name: /deliveries/{id}/comments (POST)
+  type: http
+  seq: 40
+}
+
+post {
+  url: {{baseUrl}}/deliveries/{{deliveryId}}/comments
+}
+
+body:json {
+  {
+    "body": "Please review question 3; I attached my working."
+  }
+}
+
+docs {
+  POST `/deliveries/id/comments` Roles: Admin, delivery's teacher, owning student. Path ids: id. JSON body: body; use valid IDs and dates accepted by the API. Response: 201 data with comment id, delivery_id, author, body, created_at. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}

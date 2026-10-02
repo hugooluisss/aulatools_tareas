@@ -1,0 +1,30 @@
+meta {
+  name: /auth/register-school (POST)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/auth/register-school
+}
+
+
+body:json {
+  {
+    "school_name": "Northstar Academy",
+    "first_name": "Avery",
+    "last_name": "Morgan",
+    "email": "avery.admin@example.test",
+    "password": "ChangeMe123!"
+  }
+}
+
+docs {
+  POST `/auth/register-school` Roles: Public. JSON body: school_name, first_name, last_name, email, password; use valid IDs and dates accepted by the API. Response: 201 `message` (controller response). Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+}
+
+assert {
+
+  res.status: eq 201
+
+}
