@@ -9,11 +9,12 @@ get {
 }
 
 docs {
-  GET `/me/tasks/delivery_id` Roles: Student (own delivery). Path ids: delivery_id. Response: 200 data containing task, subject, teacher, and delivery. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+  GET `/me/tasks/delivery_id` Roles: Student (own delivery). Path ids: delivery_id. Response: 200 bare object containing task, subject, teacher, and delivery. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
+  res.body: isObject
 
 }

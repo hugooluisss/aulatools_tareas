@@ -17,11 +17,12 @@ body:json {
 }
 
 docs {
-  POST `/subjects/subject_id/tasks` Roles: Admin, assigned teacher. Path ids: subject_id. JSON body: name, description, due_at; use valid IDs and dates accepted by the API. Response: 200/201 data with task or delivery. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+  POST `/subjects/subject_id/tasks` Roles: Admin, assigned teacher. Path ids: subject_id. JSON body: name, description, due_at; use valid IDs and dates accepted by the API. Response: 201 bare resource object. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 201
+  res.body: isObject
 
 }

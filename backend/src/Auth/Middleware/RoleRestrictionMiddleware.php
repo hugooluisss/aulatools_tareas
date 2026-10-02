@@ -23,14 +23,10 @@ final class RoleRestrictionMiddleware implements MiddlewareInterface
     {
         $user = $request->getAttribute(CurrentUser::class);
         if (!$user instanceof CurrentUser) {
-            $response = $this->responseFactory->createResponse(401)->withHeader('Content-Type', 'application/json');
-            $response->getBody()->write('{"error":"Unauthorized"}');
-            return $response;
+            return \App\Shared\JsonResponse::error($this->responseFactory, 401, 'Unauthorized.');
         }
         if (!in_array($user->role, $this->allowedRoles, true)) {
-            $response = $this->responseFactory->createResponse(403)->withHeader('Content-Type', 'application/json');
-            $response->getBody()->write('{"error":"Forbidden"}');
-            return $response;
+            return \App\Shared\JsonResponse::error($this->responseFactory, 403, 'Forbidden.');
         }
         return $handler->handle($request);
     }

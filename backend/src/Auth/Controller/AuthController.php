@@ -25,7 +25,8 @@ final class AuthController
             $this->authService->registerSchool($this->body($request));
             return $this->json(201, ['message' => 'School registered.']);
         } catch (DomainException $exception) {
-            return $this->json(422, ['error' => $exception->getMessage()]);
+            $status = str_contains($exception->getMessage(), 'already registered') ? 409 : 400;
+            return \App\Shared\JsonResponse::error($this->responseFactory, $status, $exception->getMessage());
         }
     }
 
@@ -36,7 +37,7 @@ final class AuthController
             $token = $this->authService->login((string) ($data['email'] ?? ''), (string) ($data['password'] ?? ''));
             return $this->json(200, ['token' => $token]);
         } catch (DomainException) {
-            return $this->json(401, ['error' => 'Invalid email or password.']);
+            return \App\Shared\JsonResponse::error($this->responseFactory, 401, 'Invalid email or password.');
         }
     }
 
@@ -52,7 +53,8 @@ final class AuthController
             );
             return $this->json(200, ['message' => 'Password updated.']);
         } catch (DomainException $exception) {
-            return $this->json(422, ['error' => $exception->getMessage()]);
+            $status = str_contains($exception->getMessage(), 'incorrect') ? 401 : 422;
+            return \App\Shared\JsonResponse::error($this->responseFactory, $status, $exception->getMessage());
         }
     }
 
@@ -62,10 +64,8 @@ final class AuthController
         return is_array($decoded) ? $decoded : [];
     }
 
-    private function json(int $status, array $data): ResponseInterface
+    private function json(int $status, mixed $data): ResponseInterface
     {
-        $response = $this->responseFactory->createResponse($status)->withHeader('Content-Type', 'application/json');
-        $response->getBody()->write(json_encode($data, JSON_THROW_ON_ERROR));
-        return $response;
+        return \App\Shared\JsonResponse::send($this->responseFactory, $status, $data);
     }
 }

@@ -20,11 +20,12 @@ body:json {
 }
 
 docs {
-  POST `/auth/register-school` Roles: Public. JSON body: school_name, first_name, last_name, email, password; use valid IDs and dates accepted by the API. Response: 201 `message` (controller response). Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+  POST `/auth/register-school` Roles: Public. JSON body: school_name, first_name, last_name, email, password; use valid IDs and dates accepted by the API. Response: 201 `{message}` on success. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 201
+  res.body: isObject
 
 }

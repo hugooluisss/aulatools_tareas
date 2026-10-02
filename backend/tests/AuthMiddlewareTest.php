@@ -26,7 +26,9 @@ final class AuthMiddlewareTest extends TestCase
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects(self::never())->method('handle');
 
-        self::assertSame(401, $middleware->process(new ServerRequest(), $handler)->getStatusCode());
+        $missing = $middleware->process(new ServerRequest(), $handler);
+        self::assertSame(401, $missing->getStatusCode());
+        self::assertSame(['error' => ['code' => 'UNAUTHENTICATED', 'message' => 'Unauthorized.']], json_decode((string) $missing->getBody(), true));
         $request = (new ServerRequest())->withHeader('Authorization', 'Bearer invalid');
         self::assertSame(401, $middleware->process($request, $handler)->getStatusCode());
     }
@@ -38,7 +40,9 @@ final class AuthMiddlewareTest extends TestCase
         $handler->expects(self::once())->method('handle')->willReturn((new ResponseFactory())->createResponse(204));
 
         $studentRequest = (new ServerRequest())->withAttribute(CurrentUser::class, new CurrentUser(1, 'student', 7));
-        self::assertSame(403, $middleware->process($studentRequest, $handler)->getStatusCode());
+        $forbidden = $middleware->process($studentRequest, $handler);
+        self::assertSame(403, $forbidden->getStatusCode());
+        self::assertSame(['error' => ['code' => 'FORBIDDEN', 'message' => 'Forbidden.']], json_decode((string) $forbidden->getBody(), true));
         $teacherRequest = (new ServerRequest())->withAttribute(CurrentUser::class, new CurrentUser(2, 'teacher', 7));
         self::assertSame(204, $middleware->process($teacherRequest, $handler)->getStatusCode());
     }

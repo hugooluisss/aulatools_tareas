@@ -43,8 +43,6 @@ final class AuthenticationMiddleware implements MiddlewareInterface
 
     private function unauthorized(): ResponseInterface
     {
-        $response = $this->responseFactory->createResponse(401)->withHeader('Content-Type', 'application/json');
-        $response->getBody()->write('{"error":"Unauthorized"}');
-        return $response;
+        return \App\Shared\JsonResponse::error($this->responseFactory, 401, 'Unauthorized.');
     }
 }

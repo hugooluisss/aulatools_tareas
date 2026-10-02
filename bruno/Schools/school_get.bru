@@ -9,11 +9,12 @@ get {
 }
 
 docs {
-  GET `/school` Roles: Any authenticated role. Parameters: none. Response: 200 data with school id and name. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+  GET `/school` Roles: Any authenticated role. Parameters: none. Response: 200 bare school object with id and name. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
+  res.body: isObject
 
 }

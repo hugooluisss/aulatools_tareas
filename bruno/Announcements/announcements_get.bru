@@ -9,11 +9,15 @@ get {
 }
 
 docs {
-  GET `/announcements` Roles: Admin. Response: 200 paginated data and meta (page, per_page, total) paginated list. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+  GET `/announcements` Roles: Admin. Response: 200 bare JSON array; pagination in X-Total-Count, X-Page, X-Per-Page headers. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
+  res.body: isArray
+  res.headers["X-Total-Count"][0]: isDefined
+  res.headers["X-Page"][0]: isDefined
+  res.headers["X-Per-Page"][0]: isDefined
 
 }

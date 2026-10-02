@@ -30,26 +30,22 @@ final class TaskController
 
     public function create(ServerRequestInterface $request, int $subject_id): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->create($this->user($request), $subject_id, $this->body($request)),
-        ], 201);
+        return $this->run(fn () => $this->service->create($this->user($request), $subject_id, $this->body($request)), 201);
     }
 
     public function view(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => ['data' => $this->service->find($this->user($request), $id)]);
+        return $this->run(fn () => $this->service->find($this->user($request), $id));
     }
 
     public function update(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->update($this->user($request), $id, $this->body($request)),
-        ]);
+        return $this->run(fn () => $this->service->update($this->user($request), $id, $this->body($request)));
     }
 
     public function cancel(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => ['data' => $this->service->cancel($this->user($request), $id)]);
+        return $this->run(fn () => $this->service->cancel($this->user($request), $id));
     }
 
     public function deliveries(ServerRequestInterface $request, int $id): ResponseInterface
@@ -66,14 +62,12 @@ final class TaskController
 
     public function delivered(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => ['data' => $this->service->markDelivered($this->user($request), $id)]);
+        return $this->run(fn () => $this->service->markDelivered($this->user($request), $id));
     }
 
     public function grade(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->grade($this->user($request), $id, $this->body($request)),
-        ]);
+        return $this->run(fn () => $this->service->grade($this->user($request), $id, $this->body($request)));
     }
 
     public function myTasks(ServerRequestInterface $request): ResponseInterface
@@ -89,7 +83,7 @@ final class TaskController
 
     public function myTaskDetail(ServerRequestInterface $request, int $delivery_id): ResponseInterface
     {
-        return $this->run(fn () => ['data' => $this->service->myTaskDetail($this->user($request), $delivery_id)]);
+        return $this->run(fn () => $this->service->myTaskDetail($this->user($request), $delivery_id));
     }
 
     private function user(ServerRequestInterface $request): CurrentUser
@@ -119,19 +113,18 @@ final class TaskController
                 400 => 'VALIDATION_ERROR',
                 403 => 'FORBIDDEN',
                 404 => 'NOT_FOUND',
+                409 => 'CONFLICT',
                 422 => 'INVALID_STATE',
                 default => 'INTERNAL_ERROR',
             };
-            return $this->json($exception->status, [
-                'error' => ['code' => $code, 'message' => $exception->getMessage()],
-            ]);
+            return \App\Shared\JsonResponse::error($this->responses, $exception->status, $exception->getMessage(), $code);
+        } catch (\Throwable) {
+            return \App\Shared\JsonResponse::error($this->responses, 500, 'Unexpected server error.');
         }
     }
 
-    private function json(int $status, array $data): ResponseInterface
+    private function json(int $status, mixed $data): ResponseInterface
     {
-        $response = $this->responses->createResponse($status)->withHeader('Content-Type', 'application/json');
-        $response->getBody()->write(json_encode($data, JSON_THROW_ON_ERROR));
-        return $response;
+        return \App\Shared\JsonResponse::send($this->responses, $status, $data);
     }
 }

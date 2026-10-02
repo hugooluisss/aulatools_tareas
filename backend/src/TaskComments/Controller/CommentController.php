@@ -30,9 +30,7 @@ final class CommentController
 
     public function create(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->create($this->user($request), $id, $this->body($request)),
-        ], 201);
+        return $this->run(fn () => $this->service->create($this->user($request), $id, $this->body($request)), 201);
     }
 
     private function user(ServerRequestInterface $request): CurrentUser
@@ -52,18 +50,16 @@ final class CommentController
             return $this->json($status, $action());
         } catch (CommentException $exception) {
             $code = match ($exception->status) {
-                400 => 'VALIDATION_ERROR', 403 => 'FORBIDDEN', 404 => 'NOT_FOUND', default => 'INTERNAL_ERROR'
+                400 => 'VALIDATION_ERROR', 403 => 'FORBIDDEN', 404 => 'NOT_FOUND', 409 => 'CONFLICT', 422 => 'INVALID_STATE', default => 'INTERNAL_ERROR'
             };
-            return $this->json($exception->status, [
-                'error' => ['code' => $code, 'message' => $exception->getMessage()],
-            ]);
+            return \App\Shared\JsonResponse::error($this->responses, $exception->status, $exception->getMessage(), $code);
+        } catch (\Throwable) {
+            return \App\Shared\JsonResponse::error($this->responses, 500, 'Unexpected server error.');
         }
     }
 
-    private function json(int $status, array $data): ResponseInterface
+    private function json(int $status, mixed $data): ResponseInterface
     {
-        $response = $this->responses->createResponse($status)->withHeader('Content-Type', 'application/json');
-        $response->getBody()->write(json_encode($data, JSON_THROW_ON_ERROR));
-        return $response;
+        return \App\Shared\JsonResponse::send($this->responses, $status, $data);
     }
 }

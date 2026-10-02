@@ -40,51 +40,41 @@ final class UserController
 
     public function createTeacher(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->create($this->user($request), 'teacher', $this->body($request)),
-        ], 201);
+        return $this->run(fn () => $this->service->create($this->user($request), 'teacher', $this->body($request)), 201);
     }
 
     public function createStudent(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->create($this->user($request), 'student', $this->body($request)),
-        ], 201);
+        return $this->run(fn () => $this->service->create($this->user($request), 'student', $this->body($request)), 201);
     }
 
     public function getTeacher(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => ['data' => $this->service->find($this->user($request), 'teacher', $id)]);
+        return $this->run(fn () => $this->service->find($this->user($request), 'teacher', $id));
     }
 
     public function getStudent(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => ['data' => $this->service->find($this->user($request), 'student', $id)]);
+        return $this->run(fn () => $this->service->find($this->user($request), 'student', $id));
     }
 
     public function updateTeacher(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->update($this->user($request), 'teacher', $id, $this->body($request)),
-        ]);
+        return $this->run(fn () => $this->service->update($this->user($request), 'teacher', $id, $this->body($request)));
     }
 
     public function updateStudent(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->update($this->user($request), 'student', $id, $this->body($request)),
-        ]);
+        return $this->run(fn () => $this->service->update($this->user($request), 'student', $id, $this->body($request)));
     }
 
     public function studentStatus(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return $this->run(fn () => [
-            'data' => $this->service->status(
+        return $this->run(fn () => $this->service->status(
                 $this->user($request),
                 $id,
                 (string) ($this->body($request)['status'] ?? ''),
-            ),
-        ]);
+            ));
     }
 
     public function deleteTeacher(ServerRequestInterface $request, int $id): ResponseInterface
@@ -116,6 +106,8 @@ final class UserController
             return $this->responses->createResponse(204);
         } catch (UserException $exception) {
             return $this->error($exception);
+        } catch (\Throwable) {
+            return \App\Shared\JsonResponse::error($this->responses, 500, 'Unexpected server error.');
         }
     }
 
@@ -125,6 +117,8 @@ final class UserController
             return $this->json($status, $operation());
         } catch (UserException $exception) {
             return $this->error($exception);
+        } catch (\Throwable) {
+            return \App\Shared\JsonResponse::error($this->responses, 500, 'Unexpected server error.');
         }
     }
 
@@ -151,28 +145,15 @@ final class UserController
 
     private function error(UserException $exception): ResponseInterface
     {
-        return $this->json($exception->status, [
-            'error' => [
-                'code' => $this->code($exception->status),
-                'message' => $exception->getMessage(),
-            ],
-        ]);
+        $status = str_contains($exception->getMessage(), 'already registered') || str_contains($exception->getMessage(), 'already exists')
+            ? 409
+            : $exception->status;
+        $code = $status === 409 ? 'CONFLICT' : null;
+        return \App\Shared\JsonResponse::error($this->responses, $status, $exception->getMessage(), $code);
     }
 
-    private function code(int $status): string
+    private function json(int $status, mixed $data): ResponseInterface
     {
-        return match ($status) {
-            400 => 'VALIDATION_ERROR',
-            403 => 'FORBIDDEN',
-            404 => 'NOT_FOUND',
-            default => 'INVALID_STATE',
-        };
-    }
-
-    private function json(int $status, array $data): ResponseInterface
-    {
-        $response = $this->responses->createResponse($status)->withHeader('Content-Type', 'application/json');
-        $response->getBody()->write(json_encode($data, JSON_THROW_ON_ERROR));
-        return $response;
+        return \App\Shared\JsonResponse::send($this->responses, $status, $data);
     }
 }

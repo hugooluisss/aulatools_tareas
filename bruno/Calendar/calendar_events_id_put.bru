@@ -19,11 +19,12 @@ body:json {
 }
 
 docs {
-  PUT `/calendar/events/id` Roles: Admin. Path ids: id. JSON body: subject_id, title, description, starts_at, ends_at; use valid IDs and dates accepted by the API. Response: 200/201 data with event id, school_id, subject_id, title, description, starts_at, ends_at. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+  PUT `/calendar/events/id` Roles: Admin. Path ids: id. JSON body: subject_id, title, description, starts_at, ends_at; use valid IDs and dates accepted by the API. Response: 200 bare event object with event id, school_id, subject_id, title, description, starts_at, ends_at. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
+  res.body: isObject
 
 }

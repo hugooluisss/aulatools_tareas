@@ -9,11 +9,12 @@ get {
 }
 
 docs {
-  GET `/users/teachers/id` Roles: Admin. Path ids: id. Response: 200/201 data with the resource; errors use documented error object. Errors: validation 400, unauthenticated 401, forbidden 403, missing resource 404, invalid state 422 where applicable.
+  GET `/users/teachers/id` Roles: Admin. Path ids: id. Response: 200 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
+  res.body: isObject
 
 }

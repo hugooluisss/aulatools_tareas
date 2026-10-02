@@ -20,17 +20,13 @@ final class EnrollmentController
     public function enrollGroup(ServerRequestInterface $request, int $id): ResponseInterface
     {
         $body = $this->body($request);
-        return $this->run(fn () => [
-            'data' => $this->service->enrollGroup($this->user($request), $id, $this->studentId($body)),
-        ], 201);
+        return $this->run(fn () => $this->service->enrollGroup($this->user($request), $id, $this->studentId($body)), 201);
     }
 
     public function enrollSubject(ServerRequestInterface $request, int $id): ResponseInterface
     {
         $body = $this->body($request);
-        return $this->run(fn () => [
-            'data' => $this->service->enrollSubject($this->user($request), $id, $this->studentId($body)),
-        ], 201);
+        return $this->run(fn () => $this->service->enrollSubject($this->user($request), $id, $this->studentId($body)), 201);
     }
 
     public function unenrollSubject(ServerRequestInterface $request, int $id, int $student_id): ResponseInterface
@@ -73,16 +69,16 @@ final class EnrollmentController
             }
             return $this->json($success, $data);
         } catch (DomainException $exception) {
-            return $this->json(404, ['error' => ['code' => 'NOT_FOUND', 'message' => $exception->getMessage()]]);
+            return \App\Shared\JsonResponse::error($this->responseFactory, 404, $exception->getMessage());
         } catch (\InvalidArgumentException $exception) {
-            return $this->json(400, ['error' => ['code' => 'VALIDATION_ERROR', 'message' => $exception->getMessage()]]);
+            return \App\Shared\JsonResponse::error($this->responseFactory, 400, $exception->getMessage());
+        } catch (\Throwable) {
+            return \App\Shared\JsonResponse::error($this->responseFactory, 500, 'Unexpected server error.');
         }
     }
 
-    private function json(int $status, array $data): ResponseInterface
+    private function json(int $status, mixed $data): ResponseInterface
     {
-        $response = $this->responseFactory->createResponse($status)->withHeader('Content-Type', 'application/json');
-        $response->getBody()->write(json_encode($data, JSON_THROW_ON_ERROR));
-        return $response;
+        return \App\Shared\JsonResponse::send($this->responseFactory, $status, $data);
     }
 }
