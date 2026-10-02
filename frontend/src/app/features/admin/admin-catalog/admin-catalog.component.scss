@@ -10,15 +10,6 @@
 .admin-catalog__header {
   margin-bottom: $spacing-lg;
 }
-.admin-catalog__form {
-  display: grid;
-  gap: $spacing-sm;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  margin-bottom: $spacing-xl;
-}
-.admin-catalog__form label {
-  align-self: end;
-}
 .admin-catalog__actions {
   display: flex;
   align-items: center;

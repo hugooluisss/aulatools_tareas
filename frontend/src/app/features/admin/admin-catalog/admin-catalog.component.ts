@@ -44,6 +44,7 @@ export class AdminCatalogComponent {
   selectedRecord: any | null = null;
   error = '';
   editing: number | null = null;
+  showForm = false;
   form = this.fb.nonNullable.group({
     first_name: [''],
     last_name: [''],
@@ -84,8 +85,21 @@ export class AdminCatalogComponent {
               : this.groupsApi;
     api.list().subscribe((r) => (this.rows = r.data));
   }
+  openNew(): void {
+    this.editing = null;
+    this.error = '';
+    this.resetForm();
+    this.showForm = true;
+  }
+  closeForm(): void {
+    this.showForm = false;
+    this.editing = null;
+    this.error = '';
+    this.resetForm();
+  }
   edit(row: any): void {
     this.editing = row.id;
+    this.showForm = true;
     this.form.controls.password.removeValidators(Validators.required);
     this.form.controls.password.updateValueAndValidity();
     this.form.patchValue({ ...row, subject_ids: row.subjects?.map((s: any) => s.id) ?? [] });
@@ -195,7 +209,10 @@ export class AdminCatalogComponent {
   }
   private done(message: string): void {
     this.toast.show(message);
-    this.editing = null;
+    this.closeForm();
+    this.reload();
+  }
+  private resetForm(): void {
     this.form.reset({
       status: 'active',
       cycle_id: 0,
@@ -203,7 +220,6 @@ export class AdminCatalogComponent {
       student_id: 0,
       subject_ids: [],
     });
-    this.reload();
   }
   private configureForm(): void {
     const required = (name: string) =>

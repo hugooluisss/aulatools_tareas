@@ -23,6 +23,12 @@
   padding: 0 v.$spacing-lg v.$spacing-xl;
 }
 
+.app-sidebar__school {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
 .app-sidebar__brand-accent {
   color: v.$brand-accent;
 }

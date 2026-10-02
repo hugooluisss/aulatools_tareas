@@ -89,6 +89,13 @@ export const routes: Routes = [
           ),
       })),
       {
+        path: 'escuela',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./features/admin/school/school.component').then((m) => m.SchoolComponent),
+      },
+      {
         path: 'inicio',
         loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
       },

@@ -3,95 +3,182 @@
     <h1>{{ title }}</h1>
     <p>Administra la información de tu escuela.</p>
   </header>
-  <form class="admin-catalog__form" [formGroup]="form" (ngSubmit)="save()">
-    @if (kind === 'students' || kind === 'teachers') {
-      <label for="first-name">Nombre</label>
-      <input id="first-name" class="form-control" formControlName="first_name" required />
-      <label for="last-name">Apellidos</label>
-      <input id="last-name" class="form-control" formControlName="last_name" required />
-      <label for="email">Correo electrónico</label>
-      <input id="email" class="form-control" type="email" formControlName="email" required />
-      @if (!editing) {
-        <label for="password">Contraseña inicial</label>
-        <input
-          id="password"
-          class="form-control"
-          type="password"
-          formControlName="password"
-          required
-          minlength="8"
-        />
-      }
-      @if (kind === 'students') {
-        <label for="enrollment">Matrícula</label>
-        <input id="enrollment" class="form-control" formControlName="enrollment_number" required />
-        <label for="birth-date">Fecha de nacimiento</label>
-        <input
-          id="birth-date"
-          class="form-control"
-          type="date"
-          formControlName="birth_date"
-          required
-        />
-        <label for="status">Estado</label>
-        <select id="status" class="form-select" formControlName="status">
-          <option value="active">Activo</option>
-          <option value="inactive">Inactivo</option>
-        </select>
-      }
-    }
-    @if (kind === 'cycles') {
-      <label for="name">Nombre del ciclo</label>
-      <input id="name" class="form-control" formControlName="name" required />
-      <label for="starts">Fecha de inicio</label>
-      <input id="starts" class="form-control" type="date" formControlName="starts_on" required />
-      <label for="ends">Fecha de fin</label>
-      <input id="ends" class="form-control" type="date" formControlName="ends_on" required />
-    }
-    @if (kind === 'subjects') {
-      <label for="name">Nombre de la materia</label>
-      <input id="name" class="form-control" formControlName="name" required />
-      <label for="cycle">Ciclo</label>
-      <select id="cycle" class="form-select" formControlName="cycle_id" required>
-        <option [value]="0">Selecciona un ciclo</option>
-        @for (cycle of cycles; track cycle.id) {
-          <option [value]="cycle.id">{{ cycle.name }}</option>
-        }
-      </select>
-      <label for="teacher">Profesor</label>
-      <select id="teacher" class="form-select" formControlName="teacher_id" required>
-        <option [value]="0">Selecciona un profesor</option>
-        @for (teacher of teachers; track teacher.id) {
-          <option [value]="teacher.id">{{ teacher.first_name }} {{ teacher.last_name }}</option>
-        }
-      </select>
-    }
-    @if (kind === 'groups') {
-      <label for="name">Nombre del grupo</label>
-      <input id="name" class="form-control" formControlName="name" required />
-      <label for="subjects">Materias del grupo</label>
-      <select id="subjects" class="form-select" multiple formControlName="subject_ids">
-        @for (subject of subjects; track subject.id) {
-          <option [value]="subject.id">{{ subject.name }}</option>
-        }
-      </select>
-    }
-    <button class="btn btn-primary" type="submit">
-      {{ editing ? 'Guardar cambios' : 'Crear' }}
-    </button>
-    @if (editing) {
-      <button
-        class="btn btn-outline-secondary"
-        type="button"
-        (click)="editing = null; form.reset({ status: 'active', subject_ids: [] })"
-      >
-        Cancelar
-      </button>
-    }
-    @if (error) {
-      <p class="text-danger" role="alert">{{ error }}</p>
-    }
-  </form>
+  <div class="mb-3">
+    <button class="btn btn-primary" type="button" (click)="openNew()">Nuevo</button>
+  </div>
+  @if (showForm) {
+    <div class="modal-backdrop fade show"></div>
+    <div
+      class="modal d-block"
+      tabindex="-1"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="form-title"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <form class="modal-content" [formGroup]="form" (ngSubmit)="save()">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="form-title">
+              {{ editing ? 'Editar' : 'Nuevo registro' }}
+            </h2>
+            <button
+              type="button"
+              class="btn-close"
+              aria-label="Cerrar"
+              (click)="closeForm()"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              @if (kind === 'students' || kind === 'teachers') {
+                <div class="col-md-6">
+                  <label class="form-label" for="first-name">Nombre</label>
+                  <input
+                    id="first-name"
+                    class="form-control"
+                    formControlName="first_name"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="last-name">Apellidos</label>
+                  <input id="last-name" class="form-control" formControlName="last_name" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="email">Correo electrónico</label>
+                  <input
+                    id="email"
+                    class="form-control"
+                    type="email"
+                    formControlName="email"
+                    required
+                  />
+                </div>
+                @if (!editing) {
+                  <div class="col-md-6">
+                    <label class="form-label" for="password">Contraseña inicial</label>
+                    <input
+                      id="password"
+                      class="form-control"
+                      type="password"
+                      formControlName="password"
+                      required
+                      minlength="8"
+                    />
+                  </div>
+                }
+                @if (kind === 'students') {
+                  <div class="col-md-6">
+                    <label class="form-label" for="enrollment">Matrícula</label>
+                    <input
+                      id="enrollment"
+                      class="form-control"
+                      formControlName="enrollment_number"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="birth-date">Fecha de nacimiento</label>
+                    <input
+                      id="birth-date"
+                      class="form-control"
+                      type="date"
+                      formControlName="birth_date"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="status">Estado</label>
+                    <select id="status" class="form-select" formControlName="status">
+                      <option value="active">Activo</option>
+                      <option value="inactive">Inactivo</option>
+                    </select>
+                  </div>
+                }
+              }
+              @if (kind === 'cycles') {
+                <div class="col-12">
+                  <label class="form-label" for="name">Nombre del ciclo</label>
+                  <input id="name" class="form-control" formControlName="name" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="starts">Fecha de inicio</label>
+                  <input
+                    id="starts"
+                    class="form-control"
+                    type="date"
+                    formControlName="starts_on"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="ends">Fecha de fin</label>
+                  <input
+                    id="ends"
+                    class="form-control"
+                    type="date"
+                    formControlName="ends_on"
+                    required
+                  />
+                </div>
+              }
+              @if (kind === 'subjects') {
+                <div class="col-12">
+                  <label class="form-label" for="name">Nombre de la materia</label>
+                  <input id="name" class="form-control" formControlName="name" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="cycle">Ciclo</label>
+                  <select id="cycle" class="form-select" formControlName="cycle_id" required>
+                    <option [value]="0">Selecciona un ciclo</option>
+                    @for (cycle of cycles; track cycle.id) {
+                      <option [value]="cycle.id">{{ cycle.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="teacher">Profesor</label>
+                  <select id="teacher" class="form-select" formControlName="teacher_id" required>
+                    <option [value]="0">Selecciona un profesor</option>
+                    @for (teacher of teachers; track teacher.id) {
+                      <option [value]="teacher.id">
+                        {{ teacher.first_name }} {{ teacher.last_name }}
+                      </option>
+                    }
+                  </select>
+                </div>
+              }
+              @if (kind === 'groups') {
+                <div class="col-12">
+                  <label class="form-label" for="name">Nombre del grupo</label>
+                  <input id="name" class="form-control" formControlName="name" required />
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="subjects">Materias del grupo</label>
+                  <select id="subjects" class="form-select" multiple formControlName="subject_ids">
+                    @for (subject of subjects; track subject.id) {
+                      <option [value]="subject.id">{{ subject.name }}</option>
+                    }
+                  </select>
+                </div>
+              }
+            </div>
+            @if (error) {
+              <p class="text-danger mt-3 mb-0" role="alert">{{ error }}</p>
+            }
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" type="button" (click)="closeForm()">
+              Cancelar
+            </button>
+            <button class="btn btn-primary" type="submit">
+              {{ editing ? 'Guardar cambios' : 'Crear' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
   <div class="table-responsive">
     <table class="table align-middle">
       <thead>
