@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TasksService, DeliveryRow } from '../tasks.service';
@@ -17,7 +17,7 @@ export class TaskDeliveriesComponent {
   private readonly tasks = inject(TasksService);
   private readonly toast = inject(ToastService);
   readonly taskId = Number(this.route.snapshot.paramMap.get('taskId'));
-  deliveries: DeliveryRow[] = [];
+  deliveries = signal<DeliveryRow[]>([]);
 
   statusLabel(status: string): string {
     return (
@@ -35,7 +35,7 @@ export class TaskDeliveriesComponent {
   }
 
   load(): void {
-    this.tasks.deliveries(this.taskId).subscribe((page) => (this.deliveries = page.data));
+    this.tasks.deliveries(this.taskId).subscribe((rows) => this.deliveries.set(rows));
   }
 
   markDelivered(deliveryId: number): void {

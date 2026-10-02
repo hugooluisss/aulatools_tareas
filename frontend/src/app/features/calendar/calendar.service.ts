@@ -28,14 +28,14 @@ export class CalendarService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/calendar`;
 
-  list(from: string, to: string): Observable<{ data: CalendarItem[] }> {
-    return this.http.get<{ data: CalendarItem[] }>(this.api, {
+  list(from: string, to: string): Observable<CalendarItem[]> {
+    return this.http.get<CalendarItem[]>(this.api, {
       params: new HttpParams().set('from', from).set('to', to),
     });
   }
 
-  events(): Observable<{ data: CalendarEvent[] }> {
-    return this.http.get<{ data: CalendarEvent[] }>(`${this.api}/events`);
+  events(): Observable<CalendarEvent[]> {
+    return this.http.get<CalendarEvent[]>(`${this.api}/events`);
   }
 
   save(id: number | null, event: Omit<CalendarEvent, 'id'>): Observable<unknown> {

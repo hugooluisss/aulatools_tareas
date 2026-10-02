@@ -6,7 +6,7 @@ import { AnnouncementsComponent } from './announcements.component';
 
 describe('AnnouncementsComponent', () => {
   let fixture: ComponentFixture<AnnouncementsComponent>;
-  const api = { active: vi.fn().mockReturnValue(of({ data: [] })) };
+  const api = { active: vi.fn().mockReturnValue(of([])) };
 
   beforeEach(() => {
     api.active.mockClear();

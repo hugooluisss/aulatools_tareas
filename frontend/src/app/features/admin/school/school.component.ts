@@ -29,7 +29,7 @@ export class SchoolComponent {
   private readonly toast = inject(ToastService);
   form = inject(FormBuilder).nonNullable.group({ name: ['', Validators.required] });
   constructor() {
-    this.api.get().subscribe((r) => this.form.patchValue(r.data));
+    this.api.get().subscribe((r) => this.form.patchValue(r));
   }
   save(): void {
     this.api.update(this.form.getRawValue().name).subscribe(() => {

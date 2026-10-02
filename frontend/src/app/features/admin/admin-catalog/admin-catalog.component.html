@@ -6,7 +6,7 @@
   <div class="mb-3">
     <button class="btn btn-primary" type="button" (click)="openNew()">Nuevo</button>
   </div>
-  @if (showForm) {
+  @if (showForm()) {
     <div class="modal-backdrop fade show"></div>
     <div
       class="modal d-block"
@@ -131,7 +131,7 @@
                   <label class="form-label" for="cycle">Ciclo</label>
                   <select id="cycle" class="form-select" formControlName="cycle_id" required>
                     <option [value]="0">Selecciona un ciclo</option>
-                    @for (cycle of cycles; track cycle.id) {
+                    @for (cycle of cycles(); track cycle.id) {
                       <option [value]="cycle.id">{{ cycle.name }}</option>
                     }
                   </select>
@@ -140,7 +140,7 @@
                   <label class="form-label" for="teacher">Profesor</label>
                   <select id="teacher" class="form-select" formControlName="teacher_id" required>
                     <option [value]="0">Selecciona un profesor</option>
-                    @for (teacher of teachers; track teacher.id) {
+                    @for (teacher of teachers(); track teacher.id) {
                       <option [value]="teacher.id">
                         {{ teacher.first_name }} {{ teacher.last_name }}
                       </option>
@@ -156,18 +156,27 @@
                 <div class="col-12">
                   <label class="form-label" for="subjects">Materias del grupo</label>
                   <select id="subjects" class="form-select" multiple formControlName="subject_ids">
-                    @for (subject of subjects; track subject.id) {
+                    @for (subject of subjects(); track subject.id) {
                       <option [value]="subject.id">{{ subject.name }}</option>
                     }
                   </select>
                 </div>
               }
             </div>
-            @if (error) {
-              <p class="text-danger mt-3 mb-0" role="alert">{{ error }}</p>
+            @if (error()) {
+              <p class="text-danger mt-3 mb-0" role="alert">{{ error() }}</p>
             }
           </div>
           <div class="modal-footer">
+            @if (editing && kind === 'students') {
+              <button
+                class="btn btn-outline-danger me-auto"
+                type="button"
+                (click)="confirmRemove()"
+              >
+                Eliminar
+              </button>
+            }
             <button class="btn btn-outline-secondary" type="button" (click)="closeForm()">
               Cancelar
             </button>
@@ -190,13 +199,13 @@
         </tr>
       </thead>
       <tbody>
-        @for (row of rows; track row.id) {
+        @for (row of rows(); track row.id) {
           <tr>
             <td>{{ row.name || row.first_name + ' ' + row.last_name }}</td>
             <td>{{ detail(row) }}</td>
-            <td>{{ row.status || '—' }}</td>
+            <td>{{ row.status ? (statusLabels[row.status] ?? row.status) : '—' }}</td>
             <td class="admin-catalog__actions">
-              @if (kind === 'students' || kind === 'teachers' || kind === 'groups') {
+              @if (kind === 'teachers' || kind === 'groups') {
                 <app-icon-button icon="eye" label="Ver detalle" (click)="view(row)" />
               }
               @if (kind !== 'cycles') {
@@ -244,7 +253,7 @@
                   #studentSelect
                 >
                   <option value="">Estudiante</option>
-                  @for (student of students; track student.id) {
+                  @for (student of students(); track student.id) {
                     <option [value]="student.id">
                       {{ student.first_name }} {{ student.last_name }}
                     </option>
@@ -255,7 +264,7 @@
                   (click)="enroll(row.id, +studentSelect.value)"
                 />
               }
-              @if (kind !== 'cycles') {
+              @if (kind !== 'cycles' && kind !== 'students') {
                 <app-icon-button
                   icon="trash"
                   label="Eliminar"
@@ -269,22 +278,20 @@
       </tbody>
     </table>
   </div>
-  @if (selectedRecord) {
+  @if (selectedRecord(); as record) {
     <section aria-label="Detalle del registro">
       <h2>Detalle</h2>
-      <p>
-        {{ selectedRecord.first_name }} {{ selectedRecord.last_name }} {{ selectedRecord.name }}
-      </p>
-      <p>{{ detail(selectedRecord) }}</p>
+      <p>{{ record.first_name }} {{ record.last_name }} {{ record.name }}</p>
+      <p>{{ detail(record) }}</p>
     </section>
   }
-  @if (selectedStudents) {
+  @if (selectedStudents(); as enrolledStudents) {
     <section aria-label="Estudiantes inscritos">
       <h2>Estudiantes inscritos</h2>
-      @for (student of selectedStudents; track student.id) {
+      @for (student of enrolledStudents; track student.id) {
         <p>{{ student.first_name }} {{ student.last_name }} · {{ student.enrollment_number }}</p>
       }
-      @if (selectedStudents.length === 0) {
+      @if (enrolledStudents.length === 0) {
         <p>No hay estudiantes inscritos.</p>
       }
     </section>

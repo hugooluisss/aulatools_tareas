@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SchoolService } from '../../features/admin/school.service';
 import { TokenStorageService } from '../auth/token-storage.service';
@@ -13,9 +13,9 @@ import { TokenStorageService } from '../auth/token-storage.service';
 export class ShellComponent {
   private readonly tokens = inject(TokenStorageService);
   private readonly school = inject(SchoolService);
-  schoolName = '';
+  schoolName = signal('');
   constructor() {
-    this.school.get().subscribe((r) => (this.schoolName = r.data.name));
+    this.school.get().subscribe((r) => this.schoolName.set(r.name));
   }
   menu = [
     { label: 'Inicio', path: '/inicio', roles: ['admin', 'teacher', 'student'] },

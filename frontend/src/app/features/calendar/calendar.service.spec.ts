@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -19,10 +20,10 @@ describe('CalendarService', () => {
 
   it('loads the requested calendar range', () => {
     service.list('2026-10-01T00:00:00Z', '2026-11-01T00:00:00Z').subscribe();
-    const request = http.expectOne((req) => req.url === 'http://localhost:8080/calendar');
+    const request = http.expectOne((req) => req.url === `${environment.apiUrl}/calendar`);
     expect(request.request.params.get('from')).toBe('2026-10-01T00:00:00Z');
     expect(request.request.params.get('to')).toBe('2026-11-01T00:00:00Z');
-    request.flush({ data: [] });
+    request.flush([]);
   });
 
   it('creates and deletes events', () => {
@@ -34,11 +35,11 @@ describe('CalendarService', () => {
       ends_at: '2026-10-01T11:00:00Z',
     };
     service.save(null, event).subscribe();
-    const create = http.expectOne('http://localhost:8080/calendar/events');
+    const create = http.expectOne(`${environment.apiUrl}/calendar/events`);
     expect(create.request.method).toBe('POST');
-    create.flush({ data: { id: 1, ...event } });
+    create.flush({ id: 1, ...event });
     service.remove(1).subscribe();
-    const remove = http.expectOne('http://localhost:8080/calendar/events/1');
+    const remove = http.expectOne(`${environment.apiUrl}/calendar/events/1`);
     expect(remove.request.method).toBe('DELETE');
     remove.flush(null);
   });

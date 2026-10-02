@@ -20,7 +20,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (row of rows; track row.delivery.id) {
+      @for (row of rows(); track row.delivery.id) {
         <tr>
           <td>{{ row.task.name }}</td>
           <td>{{ row.subject.name }}</td>
@@ -35,7 +35,7 @@
           <td><a [routerLink]="['/mis-tareas', row.delivery.id]">Ver detalle</a></td>
         </tr>
       } @empty {
-        @if (!loading) {
+        @if (!loading()) {
           <tr>
             <td colspan="6">No hay tareas para este estado.</td>
           </tr>

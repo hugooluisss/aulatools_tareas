@@ -27,6 +27,6 @@ describe('ChangePasswordComponent', () => {
     fixture.componentInstance.form.setValue(data);
     fixture.componentInstance.submit();
     expect(auth.changePassword).toHaveBeenCalledWith(data);
-    expect(fixture.componentInstance.message).toBe('Contraseña actualizada.');
+    expect(fixture.componentInstance.message()).toBe('Contraseña actualizada.');
   });
 });

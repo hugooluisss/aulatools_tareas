@@ -47,13 +47,13 @@
           </button>
         }
       </div>
-      @if (error) {
-        <p class="text-danger" role="alert">{{ error }}</p>
+      @if (error()) {
+        <p class="text-danger" role="alert">{{ error() }}</p>
       }
     </form>
   }
   <div class="announcements-page__list">
-    @for (announcement of announcements; track announcement.id) {
+    @for (announcement of announcements(); track announcement.id) {
       <article class="announcements-page__item card">
         <header class="announcements-page__item-header">
           <h2>{{ announcement.title }}</h2>

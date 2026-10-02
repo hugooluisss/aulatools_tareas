@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TasksService, Subject } from '../tasks.service';
 
@@ -11,9 +11,9 @@ import { TasksService, Subject } from '../tasks.service';
 })
 export class TeacherSubjectsComponent {
   private readonly tasks = inject(TasksService);
-  subjects: Subject[] = [];
+  subjects = signal<Subject[]>([]);
 
   constructor() {
-    this.tasks.subjects().subscribe((page) => (this.subjects = page.data));
+    this.tasks.subjects().subscribe((rows) => this.subjects.set(rows));
   }
 }

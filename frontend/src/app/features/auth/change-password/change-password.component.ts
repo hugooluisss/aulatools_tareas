@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/auth/auth.service';
 
@@ -16,12 +16,12 @@ export class ChangePasswordComponent {
     current_password: ['', Validators.required],
     new_password: ['', [Validators.required, Validators.minLength(8)]],
   });
-  message = '';
+  message = signal('');
   submit(): void {
     if (this.form.invalid) return;
     this.auth.changePassword(this.form.getRawValue()).subscribe({
-      next: () => (this.message = 'Contraseña actualizada.'),
-      error: () => (this.message = 'No se pudo cambiar la contraseña.'),
+      next: () => this.message.set('Contraseña actualizada.'),
+      error: () => this.message.set('No se pudo cambiar la contraseña.'),
     });
   }
 }

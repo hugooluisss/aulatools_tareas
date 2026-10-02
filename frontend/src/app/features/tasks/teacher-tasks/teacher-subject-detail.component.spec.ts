@@ -15,13 +15,9 @@ describe('TeacherSubjectDetailComponent', () => {
           provide: TasksService,
           useValue: {
             students: () =>
-              of({
-                data: [{ id: 1, first_name: 'Leo', last_name: 'Ruiz', enrollment_number: 'A1' }],
-              }),
+              of([{ id: 1, first_name: 'Leo', last_name: 'Ruiz', enrollment_number: 'A1' }]),
             tasks: () =>
-              of({
-                data: [{ id: 2, name: 'Proyecto', description: '', due_at: '', status: 'active' }],
-              }),
+              of([{ id: 2, name: 'Proyecto', description: '', due_at: '', status: 'active' }]),
           },
         },
       ],

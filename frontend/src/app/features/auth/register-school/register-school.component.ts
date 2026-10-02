@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -21,12 +21,12 @@ export class RegisterSchoolComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
-  error = '';
+  error = signal('');
   submit(): void {
     if (this.form.invalid) return;
     this.auth.registerSchool(this.form.getRawValue()).subscribe({
       next: () => this.router.navigateByUrl('/login'),
-      error: () => (this.error = 'No se pudo registrar la escuela.'),
+      error: () => this.error.set('No se pudo registrar la escuela.'),
     });
   }
 }

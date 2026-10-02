@@ -7,8 +7,8 @@ import { environment } from '../../../environments/environment';
 export class SubjectsService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/subjects`;
-  list(): Observable<any> {
-    return this.http.get<any>(this.url);
+  list(): Observable<any[]> {
+    return this.http.get<any[]>(this.url);
   }
   save(id: number | null, data: unknown): Observable<any> {
     return id ? this.http.put(`${this.url}/${id}`, data) : this.http.post(this.url, data);
@@ -16,8 +16,8 @@ export class SubjectsService {
   remove(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`);
   }
-  students(id: number): Observable<any> {
-    return this.http.get<any>(`${this.url}/${id}/students`);
+  students(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.url}/${id}/students`);
   }
   enroll(id: number, student_id: number): Observable<any> {
     return this.http.post(`${this.url}/${id}/students`, { student_id });

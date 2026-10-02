@@ -15,19 +15,17 @@ describe('TaskDeliveriesComponent', () => {
           provide: TasksService,
           useValue: {
             deliveries: () =>
-              of({
-                data: [
-                  {
-                    delivery: { id: 5, status: 'pending', delivered_at: null, grade: null },
-                    student: {
-                      id: 3,
-                      first_name: 'Eva',
-                      last_name: 'Solís',
-                      enrollment_number: 'E3',
-                    },
+              of([
+                {
+                  delivery: { id: 5, status: 'pending', delivered_at: null, grade: null },
+                  student: {
+                    id: 3,
+                    first_name: 'Eva',
+                    last_name: 'Solís',
+                    enrollment_number: 'E3',
                   },
-                ],
-              }),
+                },
+              ]),
           },
         },
       ],

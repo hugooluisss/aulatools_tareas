@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -24,9 +25,9 @@ describe('StudentsService', () => {
       birth_date: '2010-01-01',
     };
     service.save(null, data).subscribe();
-    const request = http.expectOne('http://localhost:8080/users/students');
+    const request = http.expectOne(`${environment.apiUrl}/users/students`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(data);
-    request.flush({ data: {} });
+    request.flush({ id: 1 });
   });
 });

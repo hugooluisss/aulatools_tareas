@@ -12,8 +12,8 @@
   </button>
   <aside id="app-menu" class="app-sidebar collapse app-sidebar--collapsed">
     <div class="app-sidebar__brand">Aula<span class="app-sidebar__brand-accent">Tools</span></div>
-    @if (schoolName) {
-      <div class="app-sidebar__school">{{ schoolName }}</div>
+    @if (schoolName()) {
+      <div class="app-sidebar__school">{{ schoolName() }}</div>
     }
     <nav class="app-sidebar__nav" aria-label="Navegación principal">
       @for (item of visibleMenu; track trackMenuItem(item)) {

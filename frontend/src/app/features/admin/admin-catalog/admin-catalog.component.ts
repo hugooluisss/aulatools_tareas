@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
@@ -35,16 +35,22 @@ export class AdminCatalogComponent {
       groups: 'Grupos',
     } as Record<string, string>
   )[this.kind];
-  rows: any[] = [];
-  cycles: any[] = [];
-  teachers: any[] = [];
-  subjects: any[] = [];
-  students: any[] = [];
-  selectedStudents: any[] | null = null;
-  selectedRecord: any | null = null;
-  error = '';
+  readonly statusLabels: Record<string, string> = {
+    active: 'Activo',
+    inactive: 'Inactivo',
+    finished: 'Finalizado',
+    in_progress: 'En curso',
+  };
+  rows = signal<any[]>([]);
+  cycles = signal<any[]>([]);
+  teachers = signal<any[]>([]);
+  subjects = signal<any[]>([]);
+  students = signal<any[]>([]);
+  selectedStudents = signal<any[] | null>(null);
+  selectedRecord = signal<any | null>(null);
+  error = signal('');
   editing: number | null = null;
-  showForm = false;
+  showForm = signal(false);
   form = this.fb.nonNullable.group({
     first_name: [''],
     last_name: [''],
@@ -66,10 +72,10 @@ export class AdminCatalogComponent {
     this.configureForm();
     this.reload();
     if (this.kind === 'subjects' || this.kind === 'groups') {
-      this.cyclesApi.list().subscribe((r) => (this.cycles = r.data));
-      this.teachersApi.list().subscribe((r) => (this.teachers = r.data));
-      this.subjectsApi.list().subscribe((r) => (this.subjects = r.data));
-      this.studentsApi.list().subscribe((r) => (this.students = r.data));
+      this.cyclesApi.list().subscribe((r) => this.cycles.set(r));
+      this.teachersApi.list().subscribe((r) => this.teachers.set(r));
+      this.subjectsApi.list().subscribe((r) => this.subjects.set(r));
+      this.studentsApi.list().subscribe((r) => this.students.set(r));
     }
   }
   reload(): void {
@@ -83,29 +89,29 @@ export class AdminCatalogComponent {
             : this.kind === 'subjects'
               ? this.subjectsApi
               : this.groupsApi;
-    api.list().subscribe((r) => (this.rows = r.data));
+    api.list().subscribe((r) => this.rows.set(r));
   }
   openNew(): void {
     this.editing = null;
-    this.error = '';
+    this.error.set('');
     this.resetForm();
-    this.showForm = true;
+    this.showForm.set(true);
   }
   closeForm(): void {
-    this.showForm = false;
+    this.showForm.set(false);
     this.editing = null;
-    this.error = '';
+    this.error.set('');
     this.resetForm();
   }
   edit(row: any): void {
     this.editing = row.id;
-    this.showForm = true;
+    this.showForm.set(true);
     this.form.controls.password.removeValidators(Validators.required);
     this.form.controls.password.updateValueAndValidity();
     this.form.patchValue({ ...row, subject_ids: row.subjects?.map((s: any) => s.id) ?? [] });
   }
   save(): void {
-    this.error = '';
+    this.error.set('');
     if (this.kind === 'students' || this.kind === 'teachers') {
       if (this.editing) this.form.controls.password.removeValidators(Validators.required);
       else this.form.controls.password.addValidators(Validators.required);
@@ -117,7 +123,7 @@ export class AdminCatalogComponent {
     }
     const { starts_on, ends_on } = this.form.getRawValue();
     if (this.kind === 'cycles' && ends_on < starts_on) {
-      this.error = 'La fecha de fin debe ser posterior a la fecha de inicio.';
+      this.error.set('La fecha de fin debe ser posterior a la fecha de inicio.');
       return;
     }
     if (this.kind === 'students' || this.kind === 'teachers') {
@@ -170,14 +176,18 @@ export class AdminCatalogComponent {
             : this.groupsApi;
     if ('remove' in api) api.remove(id).subscribe(() => this.done('Registro eliminado.'));
   }
+  confirmRemove(): void {
+    if (this.editing && window.confirm('¿Eliminar este estudiante? No se puede deshacer.'))
+      this.remove(this.editing);
+  }
   finish(id: number): void {
     this.cyclesApi.finish(id).subscribe(() => this.done('Ciclo finalizado.'));
   }
   viewStudents(id: number): void {
-    this.subjectsApi.students(id).subscribe((r) => (this.selectedStudents = r.data));
+    this.subjectsApi.students(id).subscribe((r) => this.selectedStudents.set(r));
   }
   view(row: any): void {
-    this.selectedRecord = row;
+    this.selectedRecord.set(row);
   }
   detail(row: any): string {
     return (

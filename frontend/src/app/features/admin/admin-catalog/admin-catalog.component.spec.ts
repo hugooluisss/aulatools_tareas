@@ -12,14 +12,14 @@ import { ToastService } from '../../../core/services/toast.service';
 describe('AdminCatalogComponent', () => {
   let fixture: ComponentFixture<AdminCatalogComponent>;
   const api = {
-    list: () => of({ data: [] }),
-    save: () => of({ data: {} }),
+    list: () => of([]),
+    save: () => of({}),
     remove: () => of(void 0),
     status: () => of({}),
     reset: () => of({}),
     finish: () => of({}),
     enroll: () => of({}),
-    students: () => of({ data: [] }),
+    students: () => of([]),
     unenroll: () => of(void 0),
   };
   beforeEach(() => {
@@ -43,6 +43,6 @@ describe('AdminCatalogComponent', () => {
     component.form.patchValue({ name: '2026', starts_on: '2026-01-01', ends_on: '2026-12-31' });
     component.save();
     expect(component.title).toBe('Ciclos');
-    expect(component.rows).toEqual([]);
+    expect(component.rows()).toEqual([]);
   });
 });

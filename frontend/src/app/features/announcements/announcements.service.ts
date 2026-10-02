@@ -16,12 +16,12 @@ export class AnnouncementsService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/announcements`;
 
-  list(): Observable<{ data: Announcement[] }> {
-    return this.http.get<{ data: Announcement[] }>(this.url);
+  list(): Observable<Announcement[]> {
+    return this.http.get<Announcement[]>(this.url);
   }
 
-  active(): Observable<{ data: Announcement[] }> {
-    return this.http.get<{ data: Announcement[] }>(`${this.url}/active`);
+  active(): Observable<Announcement[]> {
+    return this.http.get<Announcement[]>(`${this.url}/active`);
   }
 
   save(id: number | null, announcement: Omit<Announcement, 'id'>): Observable<unknown> {

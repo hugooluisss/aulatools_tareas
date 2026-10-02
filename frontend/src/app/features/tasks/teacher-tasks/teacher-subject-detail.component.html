@@ -10,7 +10,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (student of students; track student.id) {
+        @for (student of students(); track student.id) {
           <tr>
             <td>{{ student.first_name }} {{ student.last_name }}</td>
             <td>{{ student.enrollment_number }}</td>
@@ -40,7 +40,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (task of tasksList; track task.id) {
+        @for (task of tasksList(); track task.id) {
           <tr>
             <td>{{ task.name }}</td>
             <td>{{ task.due_at | date: 'medium' }}</td>

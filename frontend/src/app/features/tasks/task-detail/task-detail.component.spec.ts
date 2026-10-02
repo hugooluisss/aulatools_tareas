@@ -17,23 +17,21 @@ describe('TaskDetailComponent', () => {
           useValue: {
             myTask: () =>
               of({
-                data: {
-                  task: {
-                    id: 1,
-                    name: 'Ensayo',
-                    description: 'Tema',
-                    due_at: '2026-10-01',
-                    status: 'active',
-                  },
-                  subject: { id: 2, name: 'Historia' },
-                  teacher: { id: 3, first_name: 'Ana', last_name: 'López' },
-                  delivery: {
-                    id: 7,
-                    status: 'graded',
-                    grade: 95,
-                    delivered_at: '2026-09-30',
-                    overdue: false,
-                  },
+                task: {
+                  id: 1,
+                  name: 'Ensayo',
+                  description: 'Tema',
+                  due_at: '2026-10-01',
+                  status: 'active',
+                },
+                subject: { id: 2, name: 'Historia' },
+                teacher: { id: 3, first_name: 'Ana', last_name: 'López' },
+                delivery: {
+                  id: 7,
+                  status: 'graded',
+                  grade: 95,
+                  delivered_at: '2026-09-30',
+                  overdue: false,
                 },
               }),
           },

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TokenStorageService } from '../../core/auth/token-storage.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -24,9 +24,9 @@ export class AnnouncementsComponent {
     starts_on: ['', Validators.required],
     ends_on: ['', Validators.required],
   });
-  announcements: Announcement[] = [];
+  announcements = signal<Announcement[]>([]);
   editing: number | null = null;
-  error = '';
+  error = signal('');
 
   constructor() {
     this.load();
@@ -34,7 +34,7 @@ export class AnnouncementsComponent {
 
   load(): void {
     const request = this.isAdmin ? this.api.list() : this.api.active();
-    request.subscribe((page) => (this.announcements = page.data));
+    request.subscribe((rows) => this.announcements.set(rows));
   }
 
   edit(announcement: Announcement): void {
@@ -43,14 +43,14 @@ export class AnnouncementsComponent {
   }
 
   save(): void {
-    this.error = '';
+    this.error.set('');
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
     const announcement = this.form.getRawValue();
     if (announcement.ends_on < announcement.starts_on) {
-      this.error = 'La fecha de fin debe ser igual o posterior a la fecha de inicio.';
+      this.error.set('La fecha de fin debe ser igual o posterior a la fecha de inicio.');
       return;
     }
     this.api.save(this.editing, announcement).subscribe(() => this.done('Aviso guardado.'));

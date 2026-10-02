@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TasksService, TaskDetail } from '../tasks.service';
@@ -13,7 +13,7 @@ import { TasksService, TaskDetail } from '../tasks.service';
 export class TaskDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly tasks = inject(TasksService);
-  detail?: TaskDetail;
+  detail = signal<TaskDetail | undefined>(undefined);
 
   statusLabel(status: string): string {
     return (
@@ -28,6 +28,6 @@ export class TaskDetailComponent {
 
   constructor() {
     const deliveryId = Number(this.route.snapshot.paramMap.get('deliveryId'));
-    this.tasks.myTask(deliveryId).subscribe(({ data }) => (this.detail = data));
+    this.tasks.myTask(deliveryId).subscribe((detail) => this.detail.set(detail));
   }
 }

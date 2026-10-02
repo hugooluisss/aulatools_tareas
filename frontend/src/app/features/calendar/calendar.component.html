@@ -21,7 +21,7 @@
       <label for="calendar-subject">Ámbito</label>
       <select id="calendar-subject" class="form-select" formControlName="subject_id">
         <option value="">Toda la escuela</option>
-        @for (subject of subjects; track subject.id) {
+        @for (subject of subjects(); track subject.id) {
           <option [value]="subject.id">{{ subject.name }}</option>
         }
       </select>
@@ -55,8 +55,8 @@
           </button>
         }
       </div>
-      @if (error) {
-        <p class="text-danger" role="alert">{{ error }}</p>
+      @if (error()) {
+        <p class="text-danger" role="alert">{{ error() }}</p>
       }
     </form>
   }
@@ -91,7 +91,7 @@
   @if (isAdmin) {
     <section class="calendar-page__event-list card">
       <h2>Eventos administrables</h2>
-      @for (event of events; track event.id) {
+      @for (event of events(); track event.id) {
         <div class="calendar-page__event-row">
           <span>{{ event.title }} · {{ event.starts_at | date: 'medium' }}</span>
           <app-icon-button icon="pencil" label="Editar evento" (click)="edit(event)" />

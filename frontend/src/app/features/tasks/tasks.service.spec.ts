@@ -22,7 +22,7 @@ describe('TasksService', () => {
     service.myTasks().subscribe();
     const request = http.expectOne(`${environment.apiUrl}/me/tasks?status=pending`);
     expect(request.request.method).toBe('GET');
-    request.flush({ data: [], meta: { page: 1, per_page: 20, total: 0 } });
+    request.flush([]);
   });
 
   it('posts comments to the delivery thread', () => {
@@ -30,6 +30,6 @@ describe('TasksService', () => {
     const request = http.expectOne(`${environment.apiUrl}/deliveries/9/comments`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ body: 'Hola' });
-    request.flush({ data: {} });
+    request.flush({ id: 1 });
   });
 });

@@ -7,10 +7,10 @@ import { environment } from '../../../environments/environment';
 export class SchoolService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/school`;
-  get(): Observable<{ data: { id: number; name: string } }> {
-    return this.http.get<{ data: { id: number; name: string } }>(this.url);
+  get(): Observable<{ id: number; name: string }> {
+    return this.http.get<{ id: number; name: string }>(this.url);
   }
-  update(name: string): Observable<{ data: { id: number; name: string } }> {
-    return this.http.put<{ data: { id: number; name: string } }>(this.url, { name });
+  update(name: string): Observable<{ id: number; name: string }> {
+    return this.http.put<{ id: number; name: string }>(this.url, { name });
   }
 }

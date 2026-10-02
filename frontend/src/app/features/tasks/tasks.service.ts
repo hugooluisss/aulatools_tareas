@@ -3,11 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface Page<T> {
-  data: T[];
-  meta: { page: number; per_page: number; total: number };
-}
-
 export interface TaskRow {
   task: { id: number; name: string; description: string; due_at: string; status: string };
   subject: { id: number; name: string };
@@ -67,58 +62,59 @@ export class TasksService {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiUrl;
 
-  myTasks(status = 'pending'): Observable<Page<TaskRow>> {
-    return this.http.get<Page<TaskRow>>(`${this.api}/me/tasks`, {
+  myTasks(status = 'pending') {
+    return this.http.get<TaskRow[]>(`${this.api}/me/tasks`, {
       params: new HttpParams().set('status', status),
+      observe: 'response' as const,
     });
   }
 
-  myTask(deliveryId: number): Observable<{ data: TaskDetail }> {
-    return this.http.get<{ data: TaskDetail }>(`${this.api}/me/tasks/${deliveryId}`);
+  myTask(deliveryId: number): Observable<TaskDetail> {
+    return this.http.get<TaskDetail>(`${this.api}/me/tasks/${deliveryId}`);
   }
 
-  comments(deliveryId: number): Observable<Page<Comment>> {
-    return this.http.get<Page<Comment>>(`${this.api}/deliveries/${deliveryId}/comments`);
+  comments(deliveryId: number) {
+    return this.http.get<Comment[]>(`${this.api}/deliveries/${deliveryId}/comments`);
   }
 
-  addComment(deliveryId: number, body: string): Observable<{ data: Comment }> {
-    return this.http.post<{ data: Comment }>(`${this.api}/deliveries/${deliveryId}/comments`, {
+  addComment(deliveryId: number, body: string): Observable<Comment> {
+    return this.http.post<Comment>(`${this.api}/deliveries/${deliveryId}/comments`, {
       body,
     });
   }
 
-  subjects(): Observable<Page<Subject>> {
-    return this.http.get<Page<Subject>>(`${this.api}/subjects`);
+  subjects() {
+    return this.http.get<Subject[]>(`${this.api}/subjects`);
   }
 
-  students(subjectId: number): Observable<Page<Student>> {
-    return this.http.get<Page<Student>>(`${this.api}/subjects/${subjectId}/students`);
+  students(subjectId: number) {
+    return this.http.get<Student[]>(`${this.api}/subjects/${subjectId}/students`);
   }
 
-  tasks(subjectId: number): Observable<Page<Task>> {
-    return this.http.get<Page<Task>>(`${this.api}/subjects/${subjectId}/tasks`);
+  tasks(subjectId: number) {
+    return this.http.get<Task[]>(`${this.api}/subjects/${subjectId}/tasks`);
   }
 
   createTask(
     subjectId: number,
     task: Pick<Task, 'name' | 'description' | 'due_at'>,
-  ): Observable<{ data: Task }> {
-    return this.http.post<{ data: Task }>(`${this.api}/subjects/${subjectId}/tasks`, task);
+  ): Observable<Task> {
+    return this.http.post<Task>(`${this.api}/subjects/${subjectId}/tasks`, task);
   }
 
   updateTask(
     taskId: number,
     task: Pick<Task, 'name' | 'description' | 'due_at'>,
-  ): Observable<{ data: Task }> {
-    return this.http.put<{ data: Task }>(`${this.api}/tasks/${taskId}`, task);
+  ): Observable<Task> {
+    return this.http.put<Task>(`${this.api}/tasks/${taskId}`, task);
   }
 
-  cancelTask(taskId: number): Observable<{ data: Task }> {
-    return this.http.post<{ data: Task }>(`${this.api}/tasks/${taskId}/cancel`, {});
+  cancelTask(taskId: number): Observable<Task> {
+    return this.http.post<Task>(`${this.api}/tasks/${taskId}/cancel`, {});
   }
 
-  deliveries(taskId: number): Observable<Page<DeliveryRow>> {
-    return this.http.get<Page<DeliveryRow>>(`${this.api}/tasks/${taskId}/deliveries`);
+  deliveries(taskId: number) {
+    return this.http.get<DeliveryRow[]>(`${this.api}/tasks/${taskId}/deliveries`);
   }
 
   markDelivered(deliveryId: number): Observable<unknown> {

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -18,12 +18,12 @@ export class LoginComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
   });
-  error = '';
+  error = signal('');
   submit(): void {
     if (this.form.invalid) return;
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => this.router.navigateByUrl('/inicio'),
-      error: () => (this.error = 'No se pudo iniciar sesión. Revisa tus datos.'),
+      error: () => this.error.set('No se pudo iniciar sesión. Revisa tus datos.'),
     });
   }
 }

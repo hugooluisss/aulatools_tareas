@@ -6,7 +6,7 @@ import { MyTasksComponent } from './my-tasks.component';
 
 describe('MyTasksComponent', () => {
   let fixture: ComponentFixture<MyTasksComponent>;
-  const tasks = { myTasks: vi.fn().mockReturnValue(of({ data: [], meta: {} })) };
+  const tasks = { myTasks: vi.fn().mockReturnValue(of([])) };
 
   beforeEach(() => {
     tasks.myTasks.mockClear();

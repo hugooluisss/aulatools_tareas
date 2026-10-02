@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -23,7 +24,7 @@ describe('AuthService', () => {
     service
       .login({ email: 'a@escuela.mx', password: 'clave1234' })
       .subscribe((result) => expect(result.token).toBe('jwt'));
-    const request = http.expectOne('http://localhost:8080/auth/login');
+    const request = http.expectOne(`${environment.apiUrl}/auth/login`);
     expect(request.request.method).toBe('POST');
     request.flush({ token: 'jwt' });
     expect(localStorage.getItem('aulatools_token')).toBe('jwt');
@@ -31,7 +32,7 @@ describe('AuthService', () => {
   it('adds the stored JWT to authenticated requests', () => {
     localStorage.setItem('aulatools_token', 'jwt');
     service.changePassword({ current_password: 'a', new_password: 'b' }).subscribe();
-    const request = http.expectOne('http://localhost:8080/auth/change-password');
+    const request = http.expectOne(`${environment.apiUrl}/auth/change-password`);
     expect(request.request.headers.get('Authorization')).toBe('Bearer jwt');
     request.flush({});
   });

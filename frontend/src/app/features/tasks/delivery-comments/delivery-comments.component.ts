@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -17,7 +17,7 @@ export class DeliveryCommentsComponent {
   private readonly tasks = inject(TasksService);
   private readonly toast = inject(ToastService);
   readonly deliveryId = Number(this.route.snapshot.paramMap.get('deliveryId'));
-  comments: Comment[] = [];
+  comments = signal<Comment[]>([]);
   body = '';
 
   constructor() {
@@ -25,7 +25,7 @@ export class DeliveryCommentsComponent {
   }
 
   load(): void {
-    this.tasks.comments(this.deliveryId).subscribe((page) => (this.comments = page.data));
+    this.tasks.comments(this.deliveryId).subscribe((rows) => this.comments.set(rows));
   }
 
   submit(): void {

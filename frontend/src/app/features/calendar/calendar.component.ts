@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
 import { GoogleCalendarLinkService } from '../../core/services/google-calendar-link.service';
@@ -29,17 +29,17 @@ export class CalendarComponent {
     starts_at: ['', Validators.required],
     ends_at: ['', Validators.required],
   });
-  items: CalendarItem[] = [];
-  events: CalendarEvent[] = [];
-  subjects: { id: number; name: string }[] = [];
+  items = signal<CalendarItem[]>([]);
+  events = signal<CalendarEvent[]>([]);
+  subjects = signal<{ id: number; name: string }[]>([]);
   month = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   editing: number | null = null;
-  error = '';
+  error = signal('');
 
   constructor() {
     if (this.isAdmin) {
-      this.api.events().subscribe((page) => (this.events = page.data));
-      this.subjectsApi.list().subscribe((page) => (this.subjects = page.data));
+      this.api.events().subscribe((rows) => this.events.set(rows));
+      this.subjectsApi.list().subscribe((rows) => this.subjects.set(rows));
     }
     this.load();
   }
@@ -67,11 +67,11 @@ export class CalendarComponent {
   load(): void {
     const from = new Date(this.month.getFullYear(), this.month.getMonth(), 1).toISOString();
     const to = new Date(this.month.getFullYear(), this.month.getMonth() + 1, 1).toISOString();
-    this.api.list(from, to).subscribe((page) => (this.items = page.data));
+    this.api.list(from, to).subscribe((rows) => this.items.set(rows));
   }
 
   itemsFor(day: Date): CalendarItem[] {
-    return this.items.filter((item) => {
+    return this.items().filter((item) => {
       const date = new Date(item.starts_at);
       return (
         date.getFullYear() === day.getFullYear() &&
@@ -93,14 +93,14 @@ export class CalendarComponent {
   }
 
   save(): void {
-    this.error = '';
+    this.error.set('');
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
     const value = this.form.getRawValue();
     if (new Date(value.ends_at) <= new Date(value.starts_at)) {
-      this.error = 'La fecha y hora de fin debe ser posterior al inicio.';
+      this.error.set('La fecha y hora de fin debe ser posterior al inicio.');
       return;
     }
     this.api
@@ -134,7 +134,7 @@ export class CalendarComponent {
     this.toast.show(message);
     this.editing = null;
     this.form.reset({ subject_id: '', title: '', description: '', starts_at: '', ends_at: '' });
-    this.api.events().subscribe((page) => (this.events = page.data));
+    this.api.events().subscribe((rows) => this.events.set(rows));
     this.load();
   }
 

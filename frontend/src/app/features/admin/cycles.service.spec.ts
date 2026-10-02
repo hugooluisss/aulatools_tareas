@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -16,9 +17,9 @@ describe('CyclesService', () => {
   afterEach(() => http.verify());
   it('uses the finalize action endpoint', () => {
     service.finish(4).subscribe();
-    const request = http.expectOne('http://localhost:8080/cycles/4/finish');
+    const request = http.expectOne(`${environment.apiUrl}/cycles/4/finish`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({});
-    request.flush({ data: { id: 4, status: 'finished' } });
+    request.flush({ id: 4, status: 'finished' });
   });
 });

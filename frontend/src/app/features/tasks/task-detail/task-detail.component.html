@@ -1,4 +1,4 @@
-@if (detail; as taskDetail) {
+@if (detail(); as taskDetail) {
   <article class="card p-4 task-detail">
     <h1>{{ taskDetail.task.name }}</h1>
     <p>{{ taskDetail.task.description }}</p>

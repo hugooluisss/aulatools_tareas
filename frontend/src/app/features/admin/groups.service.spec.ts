@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -16,9 +17,9 @@ describe('GroupsService', () => {
   afterEach(() => http.verify());
   it('enrolls a student in all subjects of a group', () => {
     service.enroll(2, 8).subscribe();
-    const request = http.expectOne('http://localhost:8080/groups/2/students');
+    const request = http.expectOne(`${environment.apiUrl}/groups/2/students`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ student_id: 8 });
-    request.flush({ data: { student_id: 8, group_id: 2, subject_ids: [3] } });
+    request.flush({ student_id: 8, group_id: 2, subject_ids: [3] });
   });
 });

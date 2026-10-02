@@ -14,8 +14,8 @@ describe('HomeComponent', () => {
         {
           provide: TasksService,
           useValue: {
-            myTasks: () => of({ data: [], meta: { total: 3 } }),
-            subjects: () => of({ data: [], meta: { total: 0 } }),
+            myTasks: () => of({ headers: { get: () => '3' }, body: [] }),
+            subjects: () => of([]),
           },
         },
       ],

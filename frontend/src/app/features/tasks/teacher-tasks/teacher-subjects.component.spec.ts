@@ -13,7 +13,7 @@ describe('TeacherSubjectsComponent', () => {
         {
           provide: TasksService,
           useValue: {
-            subjects: () => of({ data: [{ id: 1, name: 'Ciencias', status: 'in_progress' }] }),
+            subjects: () => of([{ id: 1, name: 'Ciencias', status: 'in_progress' }]),
           },
         },
       ],

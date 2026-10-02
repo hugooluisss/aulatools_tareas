@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -20,8 +20,8 @@ export class MyTasksComponent {
     { value: 'cancelled', label: 'Cancelada' },
   ];
   status = 'pending';
-  rows: TaskRow[] = [];
-  loading = true;
+  rows = signal<TaskRow[]>([]);
+  loading = signal(true);
 
   statusLabel(status: string): string {
     return (
@@ -39,13 +39,13 @@ export class MyTasksComponent {
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.tasks.myTasks(this.status).subscribe({
-      next: (page) => {
-        this.rows = page.data;
-        this.loading = false;
+      next: (response) => {
+        this.rows.set(response.body ?? []);
+        this.loading.set(false);
       },
-      error: () => (this.loading = false),
+      error: () => this.loading.set(false),
     });
   }
 }

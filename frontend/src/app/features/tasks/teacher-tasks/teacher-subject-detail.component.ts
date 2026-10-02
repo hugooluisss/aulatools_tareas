@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TasksService, Student, Task } from '../tasks.service';
@@ -15,20 +15,20 @@ export class TeacherSubjectDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly tasks = inject(TasksService);
   readonly subjectId = Number(this.route.snapshot.paramMap.get('subjectId'));
-  students: Student[] = [];
-  tasksList: Task[] = [];
+  students = signal<Student[]>([]);
+  tasksList = signal<Task[]>([]);
 
   statusLabel(status: string): string {
     return { active: 'Activa', cancelled: 'Cancelada' }[status] ?? status;
   }
 
   constructor() {
-    this.tasks.students(this.subjectId).subscribe((page) => (this.students = page.data));
+    this.tasks.students(this.subjectId).subscribe((rows) => this.students.set(rows));
     this.loadTasks();
   }
 
   loadTasks(): void {
-    this.tasks.tasks(this.subjectId).subscribe((page) => (this.tasksList = page.data));
+    this.tasks.tasks(this.subjectId).subscribe((rows) => this.tasksList.set(rows));
   }
 
   createTask(): void {
