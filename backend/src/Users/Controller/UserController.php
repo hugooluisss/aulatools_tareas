@@ -1,0 +1,178 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Users\Controller;
+
+use App\Auth\CurrentUser;
+use App\Users\Service\UserException;
+use App\Users\Service\UserService;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+final class UserController
+{
+    public function __construct(private UserService $service, private ResponseFactoryInterface $responses)
+    {
+    }
+
+    public function listTeachers(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->list(
+            $this->user($request),
+            'teacher',
+            $this->page($request),
+            $this->perPage($request),
+        ));
+    }
+
+    public function listStudents(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->list(
+            $this->user($request),
+            'student',
+            $this->page($request),
+            $this->perPage($request),
+            $request->getQueryParams()['status'] ?? null,
+        ));
+    }
+
+    public function createTeacher(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->run(fn () => [
+            'data' => $this->service->create($this->user($request), 'teacher', $this->body($request)),
+        ], 201);
+    }
+
+    public function createStudent(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->run(fn () => [
+            'data' => $this->service->create($this->user($request), 'student', $this->body($request)),
+        ], 201);
+    }
+
+    public function getTeacher(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => ['data' => $this->service->find($this->user($request), 'teacher', $id)]);
+    }
+
+    public function getStudent(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => ['data' => $this->service->find($this->user($request), 'student', $id)]);
+    }
+
+    public function updateTeacher(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => [
+            'data' => $this->service->update($this->user($request), 'teacher', $id, $this->body($request)),
+        ]);
+    }
+
+    public function updateStudent(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => [
+            'data' => $this->service->update($this->user($request), 'student', $id, $this->body($request)),
+        ]);
+    }
+
+    public function studentStatus(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => [
+            'data' => $this->service->status(
+                $this->user($request),
+                $id,
+                (string) ($this->body($request)['status'] ?? ''),
+            ),
+        ]);
+    }
+
+    public function deleteTeacher(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->delete($request, 'teacher', $id);
+    }
+
+    public function deleteStudent(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->delete($request, 'student', $id);
+    }
+
+    public function resetPassword(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(function () use ($request, $id): array {
+            $this->service->resetPassword(
+                $this->user($request),
+                $id,
+                (string) ($this->body($request)['new_password'] ?? ''),
+            );
+            return ['message' => 'Password updated'];
+        });
+    }
+
+    private function delete(ServerRequestInterface $request, string $role, int $id): ResponseInterface
+    {
+        try {
+            $this->service->delete($this->user($request), $role, $id);
+            return $this->responses->createResponse(204);
+        } catch (UserException $exception) {
+            return $this->error($exception);
+        }
+    }
+
+    private function run(callable $operation, int $status = 200): ResponseInterface
+    {
+        try {
+            return $this->json($status, $operation());
+        } catch (UserException $exception) {
+            return $this->error($exception);
+        }
+    }
+
+    private function user(ServerRequestInterface $request): CurrentUser
+    {
+        return $request->getAttribute(CurrentUser::class);
+    }
+
+    private function body(ServerRequestInterface $request): array
+    {
+        $body = json_decode((string) $request->getBody(), true);
+        return is_array($body) ? $body : [];
+    }
+
+    private function page(ServerRequestInterface $request): int
+    {
+        return (int) ($request->getQueryParams()['page'] ?? 1);
+    }
+
+    private function perPage(ServerRequestInterface $request): int
+    {
+        return (int) ($request->getQueryParams()['per_page'] ?? 20);
+    }
+
+    private function error(UserException $exception): ResponseInterface
+    {
+        return $this->json($exception->status, [
+            'error' => [
+                'code' => $this->code($exception->status),
+                'message' => $exception->getMessage(),
+            ],
+        ]);
+    }
+
+    private function code(int $status): string
+    {
+        return match ($status) {
+            400 => 'VALIDATION_ERROR',
+            403 => 'FORBIDDEN',
+            404 => 'NOT_FOUND',
+            default => 'INVALID_STATE',
+        };
+    }
+
+    private function json(int $status, array $data): ResponseInterface
+    {
+        $response = $this->responses->createResponse($status)->withHeader('Content-Type', 'application/json');
+        $response->getBody()->write(json_encode($data, JSON_THROW_ON_ERROR));
+        return $response;
+    }
+}

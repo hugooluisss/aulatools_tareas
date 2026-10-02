@@ -1,0 +1,61 @@
+import { Component, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TasksService, DeliveryRow } from '../tasks.service';
+import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
+import { ToastService } from '../../../core/services/toast.service';
+
+@Component({
+  selector: 'app-task-deliveries',
+  standalone: true,
+  imports: [DatePipe, RouterLink, IconButtonComponent],
+  templateUrl: './task-deliveries.component.html',
+  styleUrl: './task-deliveries.component.scss',
+})
+export class TaskDeliveriesComponent {
+  private readonly route = inject(ActivatedRoute);
+  private readonly tasks = inject(TasksService);
+  private readonly toast = inject(ToastService);
+  readonly taskId = Number(this.route.snapshot.paramMap.get('taskId'));
+  deliveries: DeliveryRow[] = [];
+
+  statusLabel(status: string): string {
+    return (
+      {
+        pending: 'Pendiente',
+        delivered: 'Entregada',
+        graded: 'Calificada',
+        cancelled: 'Cancelada',
+      }[status] ?? status
+    );
+  }
+
+  constructor() {
+    this.load();
+  }
+
+  load(): void {
+    this.tasks.deliveries(this.taskId).subscribe((page) => (this.deliveries = page.data));
+  }
+
+  markDelivered(deliveryId: number): void {
+    this.tasks.markDelivered(deliveryId).subscribe({
+      next: () => this.load(),
+      error: () => this.toast.show('No se pudo marcar la entrega.'),
+    });
+  }
+
+  grade(deliveryId: number): void {
+    const value = prompt('Calificación (0 a 100)');
+    if (value === null || value.trim() === '') return;
+    const grade = Number(value);
+    if (!Number.isFinite(grade) || grade < 0 || grade > 100) {
+      this.toast.show('La calificación debe estar entre 0 y 100.');
+      return;
+    }
+    this.tasks.grade(deliveryId, grade).subscribe({
+      next: () => this.load(),
+      error: () => this.toast.show('No se pudo guardar la calificación.'),
+    });
+  }
+}

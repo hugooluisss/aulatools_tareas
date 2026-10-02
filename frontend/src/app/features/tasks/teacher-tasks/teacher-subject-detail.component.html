@@ -1,0 +1,66 @@
+<h1>Materia</h1>
+<section class="card p-4 mb-4">
+  <h2>Estudiantes inscritos</h2>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">Estudiante</th>
+          <th scope="col">Matrícula</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (student of students; track student.id) {
+          <tr>
+            <td>{{ student.first_name }} {{ student.last_name }}</td>
+            <td>{{ student.enrollment_number }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="2">No hay estudiantes inscritos.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="card p-4">
+  <div class="section-heading">
+    <h2>Tareas</h2>
+    <app-icon-button icon="plus-circle" label="Agregar tarea" (click)="createTask()" />
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">Nombre</th>
+          <th scope="col">Vencimiento</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (task of tasksList; track task.id) {
+          <tr>
+            <td>{{ task.name }}</td>
+            <td>{{ task.due_at | date: 'medium' }}</td>
+            <td>{{ statusLabel(task.status) }}</td>
+            <td class="row-actions">
+              <app-icon-button
+                icon="eye"
+                label="Ver entregas"
+                [routerLink]="['/tareas', task.id, 'entregas']"
+              />
+              <app-icon-button icon="pencil" label="Editar tarea" (click)="editTask(task)" />
+              <app-icon-button icon="x-circle" label="Cancelar tarea" (click)="cancelTask(task)" />
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">No hay tareas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

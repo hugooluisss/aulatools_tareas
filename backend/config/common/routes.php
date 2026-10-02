@@ -1,0 +1,77 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Health\Controller\HealthController;
+use App\Auth\Controller\AuthController;
+use App\Auth\Middleware\AuthenticationMiddleware;
+use App\Auth\Middleware\RoleRestrictionMiddleware;
+use App\Subjects\Controller\SubjectController;
+use App\Groups\Controller\GroupController;
+use App\Enrollments\Controller\EnrollmentController;
+use App\Users\Controller\UserController;
+use App\Cycles\Controller\CycleController;
+use Yiisoft\Router\Route;
+
+return [
+    Route::get('/health')->action(HealthController::class),
+    Route::post('/auth/register-school')->action([AuthController::class, 'registerSchool']),
+    Route::post('/auth/login')->action([AuthController::class, 'login']),
+    Route::post('/auth/change-password')->middleware(AuthenticationMiddleware::class)->action([AuthController::class, 'changePassword']),
+    Route::get('/subjects')->middleware(AuthenticationMiddleware::class)->action([SubjectController::class, 'index']),
+    Route::post('/subjects')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SubjectController::class, 'create']),
+    Route::get('/subjects/{id}')->middleware(AuthenticationMiddleware::class)->action([SubjectController::class, 'view']),
+    Route::put('/subjects/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SubjectController::class, 'update']),
+    Route::delete('/subjects/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SubjectController::class, 'delete']),
+    Route::get('/subjects/{id}/students')->middleware(AuthenticationMiddleware::class)->action([SubjectController::class, 'students']),
+    Route::get('/groups')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([GroupController::class, 'index']),
+    Route::post('/groups')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([GroupController::class, 'create']),
+    Route::get('/groups/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([GroupController::class, 'view']),
+    Route::put('/groups/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([GroupController::class, 'update']),
+    Route::delete('/groups/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([GroupController::class, 'delete']),
+    Route::get('/groups/{id}/subjects')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([GroupController::class, 'subjects']),
+    Route::post('/groups/{id}/students')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([EnrollmentController::class, 'enrollGroup']),
+    Route::post('/subjects/{id}/students')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([EnrollmentController::class, 'enrollSubject']),
+    Route::delete('/subjects/{id}/students/{student_id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([EnrollmentController::class, 'unenrollSubject']),
+    Route::get('/users/teachers')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'listTeachers']),
+    Route::post('/users/teachers')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'createTeacher']),
+    Route::get('/users/teachers/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'getTeacher']),
+    Route::put('/users/teachers/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'updateTeacher']),
+    Route::delete('/users/teachers/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'deleteTeacher']),
+    Route::get('/users/students')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'listStudents']),
+    Route::post('/users/students')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'createStudent']),
+    Route::get('/users/students/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'getStudent']),
+    Route::put('/users/students/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'updateStudent']),
+    Route::patch('/users/students/{id}/status')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'studentStatus']),
+    Route::delete('/users/students/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'deleteStudent']),
+    Route::put('/users/{id}/password')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'resetPassword']),
+    Route::get('/cycles')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'list']),
+    Route::post('/cycles')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'create']),
+    Route::get('/cycles/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'get']),
+    Route::put('/cycles/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'update']),
+    Route::post('/cycles/{id}/finish')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'finish']),
+    Route::get('/subjects/{subject_id}/tasks')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'subjectTasks']),
+    Route::post('/subjects/{subject_id}/tasks')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'create']),
+    Route::get('/tasks/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'view']),
+    Route::put('/tasks/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'update']),
+    Route::post('/tasks/{id}/cancel')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'cancel']),
+    Route::get('/tasks/{id}/deliveries')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'deliveries']),
+    Route::put('/deliveries/{id}/delivered')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'delivered']),
+    Route::put('/deliveries/{id}/grade')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'grade']),
+    Route::get('/me/tasks')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'myTasks']),
+    Route::get('/me/tasks/{delivery_id}')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'myTaskDetail']),
+    Route::get('/deliveries/{id}/comments')->middleware(AuthenticationMiddleware::class)->action([\App\TaskComments\Controller\CommentController::class, 'index']),
+    Route::post('/deliveries/{id}/comments')->middleware(AuthenticationMiddleware::class)->action([\App\TaskComments\Controller\CommentController::class, 'create']),
+    Route::get('/calendar')->middleware(AuthenticationMiddleware::class)->action([\App\Calendar\Controller\CalendarController::class, 'view']),
+    Route::get('/calendar/events')->middleware(AuthenticationMiddleware::class)->action([\App\Calendar\Controller\CalendarController::class, 'index']),
+    Route::post('/calendar/events')->middleware(AuthenticationMiddleware::class)->action([\App\Calendar\Controller\CalendarController::class, 'create']),
+    Route::get('/calendar/events/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Calendar\Controller\CalendarController::class, 'event']),
+    Route::put('/calendar/events/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Calendar\Controller\CalendarController::class, 'update']),
+    Route::delete('/calendar/events/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Calendar\Controller\CalendarController::class, 'delete']),
+    Route::get('/announcements')->middleware(AuthenticationMiddleware::class)->action([\App\Announcements\Controller\AnnouncementController::class, 'index']),
+    Route::post('/announcements')->middleware(AuthenticationMiddleware::class)->action([\App\Announcements\Controller\AnnouncementController::class, 'create']),
+    Route::get('/announcements/active')->middleware(AuthenticationMiddleware::class)->action([\App\Announcements\Controller\AnnouncementController::class, 'active']),
+    Route::get('/announcements/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Announcements\Controller\AnnouncementController::class, 'view']),
+    Route::put('/announcements/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Announcements\Controller\AnnouncementController::class, 'update']),
+    Route::delete('/announcements/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Announcements\Controller\AnnouncementController::class, 'delete']),
+];

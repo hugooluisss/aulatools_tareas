@@ -1,0 +1,26 @@
+<h1>Comentarios</h1>
+<section class="comment-thread">
+  @for (comment of comments; track comment.id) {
+    <article class="card p-3">
+      <p class="comment-thread__author">
+        {{ comment.author.first_name }} {{ comment.author.last_name }} · {{ comment.author.role }}
+      </p>
+      <p>{{ comment.body }}</p>
+      <time>{{ comment.created_at | date: 'medium' }}</time>
+    </article>
+  } @empty {
+    <p>Aún no hay comentarios.</p>
+  }
+</section>
+<form class="card p-3" (ngSubmit)="submit()">
+  <label for="comment-body">Escribe un comentario</label>
+  <textarea
+    id="comment-body"
+    class="form-control"
+    name="body"
+    [(ngModel)]="body"
+    maxlength="2000"
+    required
+  ></textarea>
+  <button class="btn btn-primary" type="submit">Enviar</button>
+</form>

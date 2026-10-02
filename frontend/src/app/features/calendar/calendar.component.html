@@ -1,0 +1,110 @@
+<section class="calendar-page">
+  <header class="calendar-page__header">
+    <h1>Calendario</h1>
+    <div class="calendar-page__navigation">
+      <app-icon-button icon="chevron-left" label="Mes anterior" (click)="moveMonth(-1)" />
+      <h2>{{ monthLabel }}</h2>
+      <app-icon-button icon="chevron-right" label="Mes siguiente" (click)="moveMonth(1)" />
+    </div>
+  </header>
+  @if (isAdmin) {
+    <form class="calendar-page__form card" [formGroup]="form" (ngSubmit)="save()">
+      <h2>{{ editing ? 'Editar evento' : 'Agregar evento' }}</h2>
+      <label for="calendar-title">Título</label>
+      <input id="calendar-title" class="form-control" formControlName="title" required />
+      <label for="calendar-description">Descripción</label>
+      <textarea
+        id="calendar-description"
+        class="form-control"
+        formControlName="description"
+      ></textarea>
+      <label for="calendar-subject">Ámbito</label>
+      <select id="calendar-subject" class="form-select" formControlName="subject_id">
+        <option value="">Toda la escuela</option>
+        @for (subject of subjects; track subject.id) {
+          <option [value]="subject.id">{{ subject.name }}</option>
+        }
+      </select>
+      <label for="calendar-start">Fecha y hora de inicio</label>
+      <input
+        id="calendar-start"
+        class="form-control"
+        type="datetime-local"
+        formControlName="starts_at"
+        required
+      />
+      <label for="calendar-end">Fecha y hora de fin</label>
+      <input
+        id="calendar-end"
+        class="form-control"
+        type="datetime-local"
+        formControlName="ends_at"
+        required
+      />
+      <div class="calendar-page__form-actions">
+        <button class="btn btn-primary" type="submit">
+          {{ editing ? 'Guardar cambios' : 'Crear evento' }}
+        </button>
+        @if (editing) {
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="editing = null; form.reset()"
+          >
+            Cancelar
+          </button>
+        }
+      </div>
+      @if (error) {
+        <p class="text-danger" role="alert">{{ error }}</p>
+      }
+    </form>
+  }
+  <div class="calendar-page__grid card" role="grid" [attr.aria-label]="monthLabel">
+    @for (name of ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']; track name) {
+      <div class="calendar-page__weekday" role="columnheader">{{ name }}</div>
+    }
+    @for (day of days; track day.toISOString()) {
+      <section
+        class="calendar-page__day"
+        role="gridcell"
+        [class.calendar-page__day--outside]="day.getMonth() !== month.getMonth()"
+      >
+        <h3>{{ day | date: 'd' }}</h3>
+        @for (item of itemsFor(day); track item.type + item.id) {
+          <article
+            class="calendar-page__item"
+            [class.calendar-page__item--task]="item.type === 'task_due'"
+          >
+            <span>{{ item.title }}</span>
+            <small>{{ item.starts_at | date: 'shortTime' }}</small>
+            <app-icon-button
+              icon="calendar-plus"
+              label="Agregar a Google Calendar"
+              (click)="addToGoogle(item)"
+            />
+          </article>
+        }
+      </section>
+    }
+  </div>
+  @if (isAdmin) {
+    <section class="calendar-page__event-list card">
+      <h2>Eventos administrables</h2>
+      @for (event of events; track event.id) {
+        <div class="calendar-page__event-row">
+          <span>{{ event.title }} · {{ event.starts_at | date: 'medium' }}</span>
+          <app-icon-button icon="pencil" label="Editar evento" (click)="edit(event)" />
+          <app-icon-button
+            icon="trash"
+            label="Eliminar evento"
+            variant="danger"
+            (click)="remove(event.id)"
+          />
+        </div>
+      } @empty {
+        <p>No hay eventos registrados.</p>
+      }
+    </section>
+  }
+</section>

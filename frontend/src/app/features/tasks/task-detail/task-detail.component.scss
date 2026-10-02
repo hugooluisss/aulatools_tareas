@@ -1,0 +1,15 @@
+@use '../../../../styles/variables' as v;
+
+.task-detail {
+  max-width: 52rem;
+}
+
+.task-detail__fields {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) 2fr;
+  gap: v.$spacing-sm v.$spacing-lg;
+}
+
+.task-detail__fields dd {
+  margin: 0;
+}

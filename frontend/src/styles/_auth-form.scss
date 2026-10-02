@@ -1,0 +1,31 @@
+@use 'variables' as v;
+
+/* Authentication form card */
+.auth-card {
+  width: min(100% - 2 * v.$spacing-lg, v.$auth-width);
+  margin: 6vh auto;
+  padding: v.$spacing-xl;
+}
+
+/* Authentication form headings */
+.auth-card h1 {
+  color: v.$sidebar;
+  font-size: v.$auth-heading-size;
+}
+
+/* Authentication form controls */
+.auth-card form {
+  display: grid;
+  gap: v.$spacing-sm;
+  margin: 1.4rem 0;
+}
+
+.auth-card input {
+  margin-bottom: v.$spacing-md;
+}
+
+/* Authentication feedback */
+.auth-card .error {
+  color: v.$danger;
+  min-height: 1rem;
+}

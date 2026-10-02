@@ -1,0 +1,36 @@
+@use '../../../styles/variables' as v;
+
+.announcements-page__form,
+.announcements-page__item {
+  display: grid;
+  gap: v.$spacing-sm;
+  margin-bottom: v.$spacing-lg;
+  padding: v.$spacing-lg;
+}
+
+.announcements-page__item-header,
+.announcements-page__form-actions {
+  display: flex;
+  align-items: center;
+  gap: v.$spacing-sm;
+}
+
+.announcements-page__item-header h2 {
+  flex: 1;
+  margin: 0;
+}
+
+.announcements-page__item p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.announcements-page__empty {
+  padding: v.$spacing-lg;
+}
+
+@media (max-width: 767px) {
+  .announcements-page__item-header {
+    flex-wrap: wrap;
+  }
+}

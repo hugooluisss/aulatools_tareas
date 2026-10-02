@@ -1,0 +1,13 @@
+@use '../../../../styles/variables' as v;
+
+.page-header {
+  margin-bottom: v.$spacing-lg;
+}
+
+.page-header .form-select {
+  max-width: 20rem;
+}
+
+.table {
+  min-width: 680px;
+}

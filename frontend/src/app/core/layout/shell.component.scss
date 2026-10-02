@@ -1,0 +1,86 @@
+@use '../../../styles/variables' as v;
+
+/* Main application shell */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+/* Role navigation sidebar */
+.app-sidebar {
+  width: v.$sidebar-width;
+  min-height: 100vh;
+  padding: v.$spacing-xl v.$spacing-lg;
+  color: white;
+  background: v.$sidebar;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-sidebar__brand {
+  font-size: 1.4rem;
+  font-weight: 800;
+  padding: 0 v.$spacing-lg v.$spacing-xl;
+}
+
+.app-sidebar__brand-accent {
+  color: v.$brand-accent;
+}
+
+.app-sidebar__nav {
+  display: grid;
+  gap: v.$spacing-xs;
+}
+.app-sidebar__nav-link,
+.app-sidebar__password-link {
+  color: v.$sidebar-text;
+  text-decoration: none;
+  border-radius: 0.8rem;
+  padding: v.$spacing-md v.$spacing-lg;
+}
+.app-sidebar__link--active {
+  color: v.$sidebar;
+  background: white;
+  font-weight: 700;
+}
+
+.app-sidebar__password-link {
+  margin-top: auto;
+}
+
+/* Main page content */
+.app-content {
+  flex: 1;
+  min-width: 0;
+  padding: v.$spacing-xl;
+}
+
+/* Mobile navigation toggle */
+.app-shell__menu-toggle {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .app-shell {
+    display: block;
+  }
+
+  .app-shell__menu-toggle {
+    display: block;
+    margin: v.$spacing-md;
+  }
+
+  .app-sidebar {
+    width: auto;
+    min-height: 0;
+    padding: v.$spacing-lg;
+  }
+
+  .app-sidebar--collapsed {
+    display: none;
+  }
+
+  .app-content {
+    padding: v.$spacing-lg;
+  }
+}

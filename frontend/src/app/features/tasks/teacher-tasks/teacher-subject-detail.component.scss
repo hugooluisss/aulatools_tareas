@@ -1,0 +1,16 @@
+@use '../../../../styles/variables' as v;
+
+.section-heading,
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: v.$spacing-sm;
+}
+
+.section-heading {
+  justify-content: space-between;
+}
+
+.row-actions {
+  white-space: nowrap;
+}

@@ -1,0 +1,25 @@
+<header class="mb-4">
+  <p class="text-secondary mb-1">AulaTools</p>
+  <h1 class="home-dashboard__heading">¡Bienvenido!</h1>
+  <p>Tu espacio para aprender y organizar el ciclo escolar.</p>
+</header>
+<div class="row g-3">
+  <div class="col-md-4">
+    <article class="card p-4 home-kpi home-kpi--green">
+      <h2 class="home-kpi__title">{{ role === 'student' ? 'Tareas pendientes' : 'Materias' }}</h2>
+      <p class="home-kpi__value">{{ count }}</p>
+    </article>
+  </div>
+  <div class="col-md-4">
+    <article class="card p-4 home-kpi home-kpi--yellow">
+      <h2 class="home-kpi__title">Calendario</h2>
+      <p>Consulta las fechas importantes de tu comunidad escolar.</p>
+    </article>
+  </div>
+  <div class="col-md-4">
+    <article class="card p-4 home-kpi home-kpi--pink">
+      <h2 class="home-kpi__title">Avisos</h2>
+      <p>Consulta las novedades de tu escuela.</p>
+    </article>
+  </div>
+</div>

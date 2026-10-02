@@ -1,0 +1,29 @@
+@use 'styles/variables' as v;
+@use 'bootstrap/scss/bootstrap' with (
+  $primary: v.$primary,
+  $success: v.$success,
+  $warning: v.$warning,
+  $body-bg: v.$body-bg,
+  $body-color: v.$body-color,
+  $border-radius: v.$border-radius,
+  $border-radius-lg: v.$border-radius-lg
+);
+@use 'bootstrap-icons/font/bootstrap-icons';
+
+/* Base document sizing */
+html,
+body {
+  min-height: 100%;
+}
+/* Global page surface */
+body {
+  margin: 0;
+  background: v.$lavender;
+  font-family: system-ui, sans-serif;
+}
+/* Shared card surface */
+.card {
+  border: 0;
+  border-radius: v.$card-radius;
+  box-shadow: 0 6px 24px v.$shadow-soft;
+}

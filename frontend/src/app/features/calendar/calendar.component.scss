@@ -1,0 +1,83 @@
+@use '../../../styles/variables' as v;
+
+.calendar-page__header,
+.calendar-page__navigation,
+.calendar-page__event-row,
+.calendar-page__form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$spacing-md;
+}
+
+.calendar-page__form,
+.calendar-page__event-list {
+  display: grid;
+  gap: v.$spacing-sm;
+  margin-bottom: v.$spacing-lg;
+  padding: v.$spacing-lg;
+}
+
+.calendar-page__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  overflow: hidden;
+}
+
+.calendar-page__weekday,
+.calendar-page__day {
+  border: 1px solid v.$sidebar-text;
+  padding: v.$spacing-sm;
+}
+
+.calendar-page__weekday {
+  font-weight: 700;
+  text-align: center;
+}
+
+.calendar-page__day {
+  min-height: 8rem;
+}
+
+.calendar-page__day h3 {
+  font-size: 1rem;
+}
+
+.calendar-page__day--outside {
+  background: v.$lavender;
+  color: v.$body-text;
+}
+
+.calendar-page__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.15rem v.$spacing-xs;
+  margin-bottom: v.$spacing-xs;
+  padding: v.$spacing-xs;
+  border-left: 3px solid v.$primary;
+}
+
+.calendar-page__item small {
+  grid-column: 1;
+}
+
+.calendar-page__item app-icon-button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.calendar-page__item--task {
+  border-left-color: v.$warning;
+}
+
+@media (max-width: 767px) {
+  .calendar-page__grid {
+    grid-template-columns: repeat(7, minmax(5rem, 1fr));
+    overflow-x: auto;
+  }
+
+  .calendar-page__day {
+    min-height: 6rem;
+    padding: v.$spacing-xs;
+  }
+}

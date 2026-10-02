@@ -1,0 +1,12 @@
+<h1>Mis materias</h1>
+<div class="subject-list">
+  @for (subject of subjects; track subject.id) {
+    <article class="card p-4">
+      <h2>{{ subject.name }}</h2>
+      <p>Estado: {{ subject.status }}</p>
+      <a [routerLink]="['/mis-materias', subject.id]">Ver estudiantes y tareas</a>
+    </article>
+  } @empty {
+    <p>No hay materias asignadas.</p>
+  }
+</div>

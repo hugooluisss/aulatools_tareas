@@ -1,0 +1,80 @@
+<section class="announcements-page">
+  <header class="announcements-page__header">
+    <h1>Avisos</h1>
+    @if (!isAdmin) {
+      <p>Avisos vigentes para tu comunidad escolar.</p>
+    }
+  </header>
+  @if (isAdmin) {
+    <form class="announcements-page__form card" [formGroup]="form" (ngSubmit)="save()">
+      <h2>{{ editing ? 'Editar aviso' : 'Crear aviso' }}</h2>
+      <label for="announcement-title">Título</label>
+      <input id="announcement-title" class="form-control" formControlName="title" required />
+      <label for="announcement-body">Contenido</label>
+      <textarea
+        id="announcement-body"
+        class="form-control"
+        formControlName="body"
+        required
+      ></textarea>
+      <label for="announcement-start">Fecha de inicio</label>
+      <input
+        id="announcement-start"
+        class="form-control"
+        type="date"
+        formControlName="starts_on"
+        required
+      />
+      <label for="announcement-end">Fecha de fin</label>
+      <input
+        id="announcement-end"
+        class="form-control"
+        type="date"
+        formControlName="ends_on"
+        required
+      />
+      <div class="announcements-page__form-actions">
+        <button class="btn btn-primary" type="submit">
+          {{ editing ? 'Guardar cambios' : 'Publicar aviso' }}
+        </button>
+        @if (editing) {
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="editing = null; form.reset()"
+          >
+            Cancelar
+          </button>
+        }
+      </div>
+      @if (error) {
+        <p class="text-danger" role="alert">{{ error }}</p>
+      }
+    </form>
+  }
+  <div class="announcements-page__list">
+    @for (announcement of announcements; track announcement.id) {
+      <article class="announcements-page__item card">
+        <header class="announcements-page__item-header">
+          <h2>{{ announcement.title }}</h2>
+          @if (isAdmin) {
+            <app-icon-button icon="pencil" label="Editar aviso" (click)="edit(announcement)" />
+            <app-icon-button
+              icon="trash"
+              label="Eliminar aviso"
+              variant="danger"
+              (click)="remove(announcement.id)"
+            />
+          }
+        </header>
+        <p>{{ announcement.body }}</p>
+        <small
+          >Vigencia: {{ announcement.starts_on | date: 'mediumDate' }} –
+          {{ announcement.ends_on | date: 'mediumDate' }}</small
+        >
+      </article>
+    } @empty {
+      <p class="card announcements-page__empty">No hay avisos para mostrar.</p>
+    }
+  </div>
+</section>

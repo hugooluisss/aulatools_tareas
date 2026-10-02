@@ -1,0 +1,18 @@
+@use '../../../../styles/variables' as v;
+
+.comment-thread {
+  display: grid;
+  gap: v.$spacing-md;
+  margin-bottom: v.$spacing-lg;
+  max-width: 48rem;
+}
+
+.comment-thread__author {
+  font-weight: 700;
+  margin-bottom: v.$spacing-xs;
+}
+
+form {
+  gap: v.$spacing-md;
+  max-width: 48rem;
+}

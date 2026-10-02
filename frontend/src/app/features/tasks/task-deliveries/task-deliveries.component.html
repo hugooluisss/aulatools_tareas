@@ -1,0 +1,53 @@
+<h1>Entregas</h1>
+<div class="card table-responsive">
+  <table class="table align-middle mb-0">
+    <thead>
+      <tr>
+        <th scope="col">Estudiante</th>
+        <th scope="col">Matrícula</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Entregada</th>
+        <th scope="col">Calificación</th>
+        <th scope="col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of deliveries; track row.delivery.id) {
+        <tr>
+          <td>{{ row.student.first_name }} {{ row.student.last_name }}</td>
+          <td>{{ row.student.enrollment_number }}</td>
+          <td>{{ statusLabel(row.delivery.status) }}</td>
+          <td>
+            {{ row.delivery.delivered_at ? (row.delivery.delivered_at | date: 'medium') : '—' }}
+          </td>
+          <td>{{ row.delivery.grade ?? '—' }}</td>
+          <td class="row-actions">
+            @if (row.delivery.status === 'pending') {
+              <app-icon-button
+                icon="check2"
+                label="Marcar entregada"
+                (click)="markDelivered(row.delivery.id)"
+              />
+            }
+            @if (row.delivery.status === 'delivered') {
+              <app-icon-button
+                icon="pencil-square"
+                label="Calificar"
+                (click)="grade(row.delivery.id)"
+              />
+            }
+            <app-icon-button
+              icon="chat-left-text"
+              label="Ver comentarios"
+              [routerLink]="['/entregas', row.delivery.id, 'comentarios']"
+            />
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6">No hay entregas.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

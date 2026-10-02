@@ -1,0 +1,46 @@
+<header class="page-header">
+  <h1>Mis tareas</h1>
+  <label for="task-status">Filtrar por estado</label>
+  <select id="task-status" class="form-select" [(ngModel)]="status" (change)="load()">
+    @for (filter of filters; track filter.value) {
+      <option [value]="filter.value">{{ filter.label }}</option>
+    }
+  </select>
+</header>
+<div class="card table-responsive">
+  <table class="table align-middle mb-0">
+    <thead>
+      <tr>
+        <th scope="col">Tarea</th>
+        <th scope="col">Materia</th>
+        <th scope="col">Calificación</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Vencimiento</th>
+        <th scope="col">Detalle</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows; track row.delivery.id) {
+        <tr>
+          <td>{{ row.task.name }}</td>
+          <td>{{ row.subject.name }}</td>
+          <td>{{ row.delivery.grade ?? '—' }}</td>
+          <td>{{ statusLabel(row.delivery.status) }}</td>
+          <td>
+            {{ row.task.due_at | date: 'mediumDate' }}
+            @if (row.delivery.overdue) {
+              <span class="badge text-bg-danger">Vencida</span>
+            }
+          </td>
+          <td><a [routerLink]="['/mis-tareas', row.delivery.id]">Ver detalle</a></td>
+        </tr>
+      } @empty {
+        @if (!loading) {
+          <tr>
+            <td colspan="6">No hay tareas para este estado.</td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>

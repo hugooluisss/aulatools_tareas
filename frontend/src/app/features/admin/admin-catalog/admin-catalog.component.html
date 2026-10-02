@@ -1,0 +1,205 @@
+<section class="admin-catalog card">
+  <header class="admin-catalog__header">
+    <h1>{{ title }}</h1>
+    <p>Administra la información de tu escuela.</p>
+  </header>
+  <form class="admin-catalog__form" [formGroup]="form" (ngSubmit)="save()">
+    @if (kind === 'students' || kind === 'teachers') {
+      <label for="first-name">Nombre</label>
+      <input id="first-name" class="form-control" formControlName="first_name" required />
+      <label for="last-name">Apellidos</label>
+      <input id="last-name" class="form-control" formControlName="last_name" required />
+      <label for="email">Correo electrónico</label>
+      <input id="email" class="form-control" type="email" formControlName="email" required />
+      @if (!editing) {
+        <label for="password">Contraseña inicial</label>
+        <input
+          id="password"
+          class="form-control"
+          type="password"
+          formControlName="password"
+          required
+          minlength="8"
+        />
+      }
+      @if (kind === 'students') {
+        <label for="enrollment">Matrícula</label>
+        <input id="enrollment" class="form-control" formControlName="enrollment_number" required />
+        <label for="birth-date">Fecha de nacimiento</label>
+        <input
+          id="birth-date"
+          class="form-control"
+          type="date"
+          formControlName="birth_date"
+          required
+        />
+        <label for="status">Estado</label>
+        <select id="status" class="form-select" formControlName="status">
+          <option value="active">Activo</option>
+          <option value="inactive">Inactivo</option>
+        </select>
+      }
+    }
+    @if (kind === 'cycles') {
+      <label for="name">Nombre del ciclo</label>
+      <input id="name" class="form-control" formControlName="name" required />
+      <label for="starts">Fecha de inicio</label>
+      <input id="starts" class="form-control" type="date" formControlName="starts_on" required />
+      <label for="ends">Fecha de fin</label>
+      <input id="ends" class="form-control" type="date" formControlName="ends_on" required />
+    }
+    @if (kind === 'subjects') {
+      <label for="name">Nombre de la materia</label>
+      <input id="name" class="form-control" formControlName="name" required />
+      <label for="cycle">Ciclo</label>
+      <select id="cycle" class="form-select" formControlName="cycle_id" required>
+        <option [value]="0">Selecciona un ciclo</option>
+        @for (cycle of cycles; track cycle.id) {
+          <option [value]="cycle.id">{{ cycle.name }}</option>
+        }
+      </select>
+      <label for="teacher">Profesor</label>
+      <select id="teacher" class="form-select" formControlName="teacher_id" required>
+        <option [value]="0">Selecciona un profesor</option>
+        @for (teacher of teachers; track teacher.id) {
+          <option [value]="teacher.id">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+        }
+      </select>
+    }
+    @if (kind === 'groups') {
+      <label for="name">Nombre del grupo</label>
+      <input id="name" class="form-control" formControlName="name" required />
+      <label for="subjects">Materias del grupo</label>
+      <select id="subjects" class="form-select" multiple formControlName="subject_ids">
+        @for (subject of subjects; track subject.id) {
+          <option [value]="subject.id">{{ subject.name }}</option>
+        }
+      </select>
+    }
+    <button class="btn btn-primary" type="submit">
+      {{ editing ? 'Guardar cambios' : 'Crear' }}
+    </button>
+    @if (editing) {
+      <button
+        class="btn btn-outline-secondary"
+        type="button"
+        (click)="editing = null; form.reset({ status: 'active', subject_ids: [] })"
+      >
+        Cancelar
+      </button>
+    }
+    @if (error) {
+      <p class="text-danger" role="alert">{{ error }}</p>
+    }
+  </form>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Detalle</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track row.id) {
+          <tr>
+            <td>{{ row.name || row.first_name + ' ' + row.last_name }}</td>
+            <td>{{ detail(row) }}</td>
+            <td>{{ row.status || '—' }}</td>
+            <td class="admin-catalog__actions">
+              @if (kind === 'students' || kind === 'teachers' || kind === 'groups') {
+                <app-icon-button icon="eye" label="Ver detalle" (click)="view(row)" />
+              }
+              @if (kind !== 'cycles') {
+                <app-icon-button icon="pencil" label="Editar" (click)="edit(row)" />
+              }
+              @if (kind === 'cycles' && row.status === 'active') {
+                <app-icon-button
+                  icon="check-circle"
+                  label="Finalizar ciclo"
+                  variant="success"
+                  (click)="finish(row.id)"
+                />
+              }
+              @if (kind === 'subjects') {
+                <app-icon-button
+                  icon="people"
+                  label="Ver estudiantes"
+                  (click)="viewStudents(row.id)"
+                />
+              }
+              @if (kind === 'students') {
+                <app-icon-button
+                  [icon]="row.status === 'active' ? 'person-dash' : 'person-check'"
+                  label="Cambiar estado"
+                  (click)="toggle(row)"
+                /><app-icon-button
+                  icon="key"
+                  label="Restablecer contraseña"
+                  (click)="reset(row.id)"
+                />
+              }
+              @if (kind === 'teachers') {
+                <app-icon-button
+                  icon="key"
+                  label="Restablecer contraseña"
+                  (click)="reset(row.id)"
+                />
+              }
+              @if (kind === 'groups' || kind === 'subjects') {
+                <label class="visually-hidden" [for]="'student-' + row.id"
+                  >Estudiante a inscribir</label
+                ><select
+                  class="form-select form-select-sm"
+                  [id]="'student-' + row.id"
+                  #studentSelect
+                >
+                  <option value="">Estudiante</option>
+                  @for (student of students; track student.id) {
+                    <option [value]="student.id">
+                      {{ student.first_name }} {{ student.last_name }}
+                    </option>
+                  }</select
+                ><app-icon-button
+                  icon="person-plus"
+                  label="Inscribir estudiante"
+                  (click)="enroll(row.id, +studentSelect.value)"
+                />
+              }
+              @if (kind !== 'cycles') {
+                <app-icon-button
+                  icon="trash"
+                  label="Eliminar"
+                  variant="danger"
+                  (click)="remove(row.id)"
+                />
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (selectedRecord) {
+    <section aria-label="Detalle del registro">
+      <h2>Detalle</h2>
+      <p>
+        {{ selectedRecord.first_name }} {{ selectedRecord.last_name }} {{ selectedRecord.name }}
+      </p>
+      <p>{{ detail(selectedRecord) }}</p>
+    </section>
+  }
+  @if (selectedStudents) {
+    <section aria-label="Estudiantes inscritos">
+      <h2>Estudiantes inscritos</h2>
+      @for (student of selectedStudents; track student.id) {
+        <p>{{ student.first_name }} {{ student.last_name }} · {{ student.enrollment_number }}</p>
+      }
+      @if (selectedStudents.length === 0) {
+        <p>No hay estudiantes inscritos.</p>
+      }
+    </section>
+  }
+</section>

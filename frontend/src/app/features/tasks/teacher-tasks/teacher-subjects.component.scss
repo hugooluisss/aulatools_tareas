@@ -1,0 +1,7 @@
+@use '../../../../styles/variables' as v;
+
+.subject-list {
+  display: grid;
+  gap: v.$spacing-lg;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}

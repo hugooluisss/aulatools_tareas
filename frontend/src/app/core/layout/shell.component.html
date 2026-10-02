@@ -1,0 +1,32 @@
+<div class="app-shell">
+  <button
+    class="app-shell__menu-toggle btn btn-primary"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#app-menu"
+    aria-controls="app-menu"
+    aria-expanded="false"
+    aria-label="Abrir menú"
+  >
+    Menú
+  </button>
+  <aside id="app-menu" class="app-sidebar collapse app-sidebar--collapsed">
+    <div class="app-sidebar__brand">Aula<span class="app-sidebar__brand-accent">Tools</span></div>
+    <nav class="app-sidebar__nav" aria-label="Navegación principal">
+      @for (item of visibleMenu; track trackMenuItem(item)) {
+        <a
+          class="app-sidebar__nav-link"
+          [routerLink]="item.path"
+          routerLinkActive="app-sidebar__link--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+    <a class="app-sidebar__password-link" routerLink="/cambiar-contrasena">Cambiar contraseña</a>
+  </aside>
+  <main class="app-content">
+    <router-outlet />
+  </main>
+</div>

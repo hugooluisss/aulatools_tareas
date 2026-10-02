@@ -1,0 +1,27 @@
+@if (detail; as taskDetail) {
+  <article class="card p-4 task-detail">
+    <h1>{{ taskDetail.task.name }}</h1>
+    <p>{{ taskDetail.task.description }}</p>
+    <dl class="task-detail__fields">
+      <dt>Materia</dt>
+      <dd>{{ taskDetail.subject.name }}</dd>
+      <dt>Profesor</dt>
+      <dd>{{ taskDetail.teacher.first_name }} {{ taskDetail.teacher.last_name }}</dd>
+      <dt>Fecha de vencimiento</dt>
+      <dd>{{ taskDetail.task.due_at | date: 'medium' }}</dd>
+      <dt>Calificación</dt>
+      <dd>{{ taskDetail.delivery.grade ?? 'Sin calificar' }}</dd>
+      <dt>Fecha de entrega</dt>
+      <dd>
+        {{
+          taskDetail.delivery.delivered_at
+            ? (taskDetail.delivery.delivered_at | date: 'medium')
+            : 'Sin entregar'
+        }}
+      </dd>
+      <dt>Estado</dt>
+      <dd>{{ statusLabel(taskDetail.delivery.status) }}</dd>
+    </dl>
+    <a [routerLink]="['/entregas', taskDetail.delivery.id, 'comentarios']">Ver comentarios</a>
+  </article>
+}

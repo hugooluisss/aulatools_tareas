@@ -1,0 +1,34 @@
+@use '../../../styles/variables' as v;
+
+/* Dashboard heading */
+.home-dashboard__heading {
+  color: v.$sidebar;
+}
+
+/* Dashboard indicator cards */
+.home-kpi {
+  min-height: 170px;
+  border-left: 5px solid v.$primary;
+}
+
+.home-kpi--green {
+  border-color: v.$success;
+}
+
+.home-kpi--yellow {
+  border-color: v.$warning;
+}
+
+.home-kpi--pink {
+  border-color: v.$pink;
+}
+
+/* Dashboard card titles */
+.home-kpi__title {
+  font-size: 1.1rem;
+}
+
+.home-kpi__value {
+  font-size: 2rem;
+  font-weight: 700;
+}

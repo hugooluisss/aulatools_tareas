@@ -1,0 +1,11 @@
+@use '../../../../styles/variables' as v;
+
+.row-actions {
+  display: flex;
+  gap: v.$spacing-sm;
+  white-space: nowrap;
+}
+
+.table {
+  min-width: 720px;
+}
