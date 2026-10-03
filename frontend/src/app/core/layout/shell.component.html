@@ -81,6 +81,25 @@
           {{ item.label }}
         </a>
       }
+      @if (isAdmin()) {
+        <details
+          class="app-sidebar__group"
+          [open]="escuelaActive() || escuelaOpen()"
+          (toggle)="escuelaOpen.set($any($event.target).open)"
+        >
+          <summary class="app-sidebar__nav-link">Escuela</summary>
+          @for (item of escuela; track item.path) {
+            <a
+              class="app-sidebar__nav-link app-sidebar__nav-link--nested"
+              [routerLink]="item.path"
+              routerLinkActive="app-sidebar__link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              {{ item.label }}
+            </a>
+          }
+        </details>
+      }
     </nav>
     <a class="app-sidebar__password-link" routerLink="/change-password">Cambiar contraseña</a>
   </aside>

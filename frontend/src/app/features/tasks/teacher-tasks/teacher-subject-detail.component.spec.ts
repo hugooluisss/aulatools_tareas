@@ -32,6 +32,9 @@ describe('TeacherSubjectDetailComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Leo Ruiz');
     expect(fixture.nativeElement.textContent).toContain('Proyecto');
+    const studentHeaders = fixture.nativeElement.querySelectorAll('app-data-table th');
+    expect(studentHeaders[0].textContent).toContain('Matrícula');
+    expect(studentHeaders[1].textContent).toContain('Estudiante');
     expect(fixture.nativeElement.querySelector('[aria-label="Agregar tarea"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[aria-label="Ver entregas"]')).not.toBeNull();
   });

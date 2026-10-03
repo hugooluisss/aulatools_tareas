@@ -5,11 +5,14 @@ import { CyclesService } from '../../admin/cycles.service';
 import { TokenStorageService } from '../../../core/auth/token-storage.service';
 import { Page } from '../../../core/models/page';
 import { PaginatorComponent } from '../../../shared/paginator/paginator.component';
+import { DataTableComponent } from '../../../shared/data-table/data-table.component';
+import { ColumnComponent } from '../../../shared/data-table/column.component';
+import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
 
 @Component({
   selector: 'app-teacher-subjects',
   standalone: true,
-  imports: [RouterLink, PaginatorComponent],
+  imports: [RouterLink, PaginatorComponent, DataTableComponent, ColumnComponent, IconButtonComponent],
   templateUrl: './teacher-subjects.component.html',
   styleUrl: './teacher-subjects.component.scss',
 })

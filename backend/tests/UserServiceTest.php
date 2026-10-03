@@ -52,6 +52,62 @@ final class UserServiceTest extends TestCase
         }
     }
 
+    public function testAdminCreateAndListUseSharedRoleFlow(): void
+    {
+        $repository = $this->createMock(UserRepository::class);
+        $repository->expects(self::once())->method('emailExists')->with('new@example.test')->willReturn(false);
+        $repository->expects(self::once())->method('create')->with(12, 'admin', self::anything(), self::isType('string'))->willReturn(90);
+        $repository->expects(self::once())->method('find')->with(12, 'admin', 90)->willReturn([
+            'id' => 90, 'school_id' => 12, 'role' => 'admin', 'email' => 'new@example.test',
+            'first_name' => 'New', 'last_name' => 'Admin',
+        ]);
+        $repository->expects(self::once())->method('list')->with(12, 'admin', 0, 20, null)->willReturn([
+            'data' => [['id' => 90, 'role' => 'admin']], 'total' => 1,
+        ]);
+        $connection = $this->createMock(ConnectionInterface::class);
+        $transaction = $this->createMock(\Yiisoft\Db\Transaction\TransactionInterface::class);
+        $transaction->expects(self::once())->method('commit');
+        $connection->expects(self::once())->method('beginTransaction')->willReturn($transaction);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+        $hasher->method('hash')->willReturn('hash');
+        $service = new UserService($repository, new TransactionRunner($connection), $hasher);
+        $user = new CurrentUser(1, 'admin', 12);
+
+        self::assertSame('admin', $service->create($user, 'admin', [
+            'first_name' => 'New', 'last_name' => 'Admin', 'email' => 'new@example.test', 'password' => 'valid-password',
+        ])['role']);
+        self::assertSame(1, $service->list($user, 'admin', 1, 20)['total']);
+    }
+
+    public function testAdminCannotDeleteSelfOrLastAdmin(): void
+    {
+        $repository = $this->createMock(UserRepository::class);
+        $repository->expects(self::exactly(2))->method('find')->with(12, 'admin', self::anything())->willReturn([
+            'id' => 1, 'school_id' => 12, 'role' => 'admin',
+        ]);
+        $repository->expects(self::once())->method('countAdmins')->with(12)->willReturn(1);
+        $repository->expects(self::never())->method('delete');
+        $transaction = $this->createMock(\Yiisoft\Db\Transaction\TransactionInterface::class);
+        $transaction->expects(self::once())->method('rollBack');
+        $connection = $this->createMock(ConnectionInterface::class);
+        $connection->expects(self::once())->method('beginTransaction')->willReturn($transaction);
+        $service = new UserService($repository, new TransactionRunner($connection), new PasswordHasher());
+        $user = new CurrentUser(1, 'admin', 12);
+
+        try {
+            $service->delete($user, 'admin', 1);
+            self::fail('Expected self deletion to be rejected.');
+        } catch (UserException $exception) {
+            self::assertSame(409, $exception->status);
+        }
+        try {
+            $service->delete($user, 'admin', 2);
+            self::fail('Expected deletion of the last administrator to be rejected.');
+        } catch (UserException $exception) {
+            self::assertSame(409, $exception->status);
+        }
+    }
+
     public function testStudentCreateIgnoresEnrollmentNumberAndUsesInsertedId(): void
     {
         $repository = $this->createMock(UserRepository::class);

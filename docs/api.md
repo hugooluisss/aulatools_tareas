@@ -16,10 +16,15 @@ Errors use `{ "error": { "code": "...", "message": "..." } }`. Successful respon
 
 ## Users
 
-User object: `{id,school_id,role,email,first_name,last_name}`. Student adds `{enrollment_number,birth_date,status}` (`active|inactive`). Teacher endpoints are admin-only; student endpoints are admin-only. Create accepts `{first_name,last_name,email,password}` for teachers; students also require `enrollment_number,birth_date` and may set `status` (defaults `active`). Update accepts the same profile fields except password; student update may include `status`.
+User object: `{id,school_id,role,email,first_name,last_name}`. Student adds `{enrollment_number,birth_date,status}` (`active|inactive`). Admin, teacher and student management endpoints are admin-only. Create accepts `{first_name,last_name,email,password}` for admins and teachers; optional profile fields are `address,phone`. Students also require `birth_date` and may set `status` (defaults `active`). Update accepts the same profile fields except password; student update may include `status`.
 
 | Method / path | Roles | Request | Response |
 |---|---|---|---|
+| GET `/users/admins` | Admin | Query pagination | `200` {items:[...],page,per_page,total,total_pages} |
+| POST `/users/admins` | Admin | Admin create JSON | `201 admin object` |
+| GET `/users/admins/{id}` | Admin | — | `200 admin object` |
+| PUT `/users/admins/{id}` | Admin | Admin profile fields | `200 admin object` |
+| DELETE `/users/admins/{id}` | Admin | — | `204`; cannot delete self or last school admin (`409`) |
 | GET `/users/teachers` | Admin | Query pagination | `200` {items:[...],page,per_page,total,total_pages} |
 | POST `/users/teachers` | Admin | Teacher create JSON | `201 teacher object` |
 | GET `/users/teachers/{id}` | Admin | — | `200 teacher object` |

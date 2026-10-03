@@ -36,7 +36,13 @@ describe('ShellComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Control escolar');
     expect(fixture.nativeElement.textContent).toContain('Catálogos');
     expect(fixture.nativeElement.textContent).toContain('Reportes');
-    expect(fixture.nativeElement.querySelectorAll('details').length).toBe(3);
+    expect(fixture.nativeElement.querySelectorAll('details').length).toBe(4);
+    expect(fixture.nativeElement.textContent).toContain('Usuarios');
+    expect(fixture.nativeElement.textContent).toContain('Generales');
+    expect(fixture.nativeElement.querySelectorAll('a[href="/calendar"]')).toHaveLength(1);
     expect(fixture.nativeElement.textContent).not.toContain('Inicio');
+    const nav = fixture.nativeElement.querySelector('.app-sidebar__nav');
+    expect(Array.from(nav.children).map((item: any) => item.querySelector('summary')?.textContent.trim() ?? item.textContent.trim()))
+      .toEqual(['Control escolar', 'Catálogos', 'Reportes', 'Tareas', 'Escuela']);
   });
 });

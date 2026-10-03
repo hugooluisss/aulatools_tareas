@@ -108,6 +108,7 @@ export const routes: Routes = [
       ...[
         ['students', 'students'],
         ['teachers', 'teachers'],
+        ['admin-users', 'admins'],
         ['cycles', 'cycles'],
         ['admin/subjects', 'subjects'],
         ['groups', 'groups'],

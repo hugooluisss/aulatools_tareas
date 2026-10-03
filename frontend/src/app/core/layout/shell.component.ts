@@ -20,6 +20,7 @@ export class ShellComponent {
   controlEscolarOpen = signal(false);
   catalogosOpen = signal(false);
   reportesOpen = signal(false);
+  escuelaOpen = signal(false);
   constructor() {
     this.school.get().subscribe((r) => this.schoolName.set(r.name));
   }
@@ -29,10 +30,8 @@ export class ShellComponent {
     { label: 'Mis materias', path: '/my-subjects', roles: ['teacher'] },
     { label: 'Tareas', path: '/tasks', roles: ['teacher'] },
     { label: 'Tareas', path: '/admin/tasks', roles: ['admin'] },
-    { label: 'Calendario', path: '/calendar', roles: ['admin', 'teacher', 'student'] },
-    { label: 'Avisos', path: '/announcements', roles: ['admin', 'teacher', 'student'] },
-    { label: 'Escuela', path: '/school', roles: ['admin'] },
-    { label: 'Profesores', path: '/teachers', roles: ['admin'] },
+    { label: 'Calendario', path: '/calendar', roles: ['teacher', 'student'] },
+    { label: 'Avisos', path: '/announcements', roles: ['teacher', 'student'] },
   ];
   controlEscolar = [
     { label: 'Estudiantes', path: '/students' },
@@ -46,6 +45,13 @@ export class ShellComponent {
     { label: 'Planes de estudio', path: '/study-plans' },
   ];
   reportes = [{ label: 'Lista de asistencia', path: '/reports/attendance' }];
+  escuela = [
+    { label: 'Calendario', path: '/calendar' },
+    { label: 'Avisos', path: '/announcements' },
+    { label: 'Profesores', path: '/teachers' },
+    { label: 'Usuarios', path: '/admin-users' },
+    { label: 'Generales', path: '/school' },
+  ];
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -63,6 +69,9 @@ export class ShellComponent {
   );
   reportesActive = computed(() =>
     this.reportes.some((item) => this.currentUrl().startsWith(item.path)),
+  );
+  escuelaActive = computed(() =>
+    this.escuela.some((item) => this.currentUrl().startsWith(item.path)),
   );
   get visibleMenu() {
     const role = this.tokens.getRole();

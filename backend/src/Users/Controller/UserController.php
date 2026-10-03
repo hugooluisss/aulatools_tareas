@@ -28,6 +28,31 @@ final class UserController
         ));
     }
 
+    public function listAdmins(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->list($this->user($request), 'admin', $this->page($request), $this->perPage($request)));
+    }
+
+    public function createAdmin(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->create($this->user($request), 'admin', $this->body($request)), 201);
+    }
+
+    public function getAdmin(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->find($this->user($request), 'admin', $id));
+    }
+
+    public function updateAdmin(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->update($this->user($request), 'admin', $id, $this->body($request)));
+    }
+
+    public function deleteAdmin(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->delete($request, 'admin', $id);
+    }
+
     public function listStudents(ServerRequestInterface $request): ResponseInterface
     {
         return $this->run(fn () => $this->service->list(

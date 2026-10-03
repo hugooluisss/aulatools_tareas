@@ -30,7 +30,7 @@
           </div>
           <div class="modal-body">
             <div class="row g-3">
-              @if (kind === 'students' || kind === 'teachers') {
+              @if (kind === 'students' || kind === 'teachers' || kind === 'admins') {
                 <div class="col-md-6">
                   <label class="form-label" for="first-name">Nombre</label>
                   <input
@@ -67,7 +67,7 @@
                     />
                   </div>
                 }
-                @if (kind === 'teachers') {
+                @if (kind === 'teachers' || kind === 'admins') {
                   <div class="col-12">
                     <label class="form-label" for="teacher-address">Dirección</label>
                     <input id="teacher-address" class="form-control" formControlName="address" />
@@ -432,7 +432,7 @@
       <app-column header="Nombre"><ng-template let-row>{{ row.name || row.first_name + ' ' + row.last_name }}</ng-template></app-column>
       <app-column [header]="kind === 'subjects' ? 'Materia' : 'Detalle'">
         <ng-template let-row>
-          @if (kind === 'teachers' && row.phone) {
+                  @if ((kind === 'teachers' || kind === 'admins') && row.phone) {
             <a [href]="'https://wa.me/' + row.phone" target="_blank" rel="noopener">{{ row.phone }}</a>
           } @else { {{ detail(row) }} }
         </ng-template>
@@ -454,7 +454,7 @@
             <app-icon-button [icon]="row.status === 'active' ? 'person-dash' : 'person-check'" label="Cambiar estado" (click)="toggle(row)" />
             <app-icon-button icon="key" label="Restablecer contraseña" (click)="reset(row.id)" />
           }
-          @if (kind === 'teachers') { <app-icon-button icon="key" label="Restablecer contraseña" (click)="reset(row.id)" /> }
+                @if (kind === 'teachers' || kind === 'admins') { <app-icon-button icon="key" label="Restablecer contraseña" (click)="reset(row.id)" /> }
           @if (kind !== 'cycles' && kind !== 'students') {
             <app-icon-button icon="trash" label="Eliminar" variant="danger" [disabled]="kind === 'subjects' && hasEnrolledStudents(row)" (click)="remove(row.id)" />
           }

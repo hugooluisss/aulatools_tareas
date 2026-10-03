@@ -1,7 +1,7 @@
 <h1>Entregas</h1>
 <app-data-table [page]="deliveries()" (pageChange)="load($event)">
-  <app-column header="Estudiante"><ng-template let-row>{{ row.student.first_name }} {{ row.student.last_name }}</ng-template></app-column>
   <app-column header="Matrícula"><ng-template let-row>{{ row.student.enrollment_number }}</ng-template></app-column>
+  <app-column header="Estudiante"><ng-template let-row>{{ row.student.first_name }} {{ row.student.last_name }}</ng-template></app-column>
   <app-column header="Estado"><ng-template let-row>{{ statusLabel(row.delivery.status) }}</ng-template></app-column>
   <app-column header="Entregada"><ng-template let-row>{{ row.delivery.delivered_at ? (row.delivery.delivered_at | date: 'medium') : '—' }}</ng-template></app-column>
   <app-column header="Calificación"><ng-template let-row>{{ row.delivery.grade ?? '—' }}</ng-template></app-column>

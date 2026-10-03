@@ -171,6 +171,14 @@ class UserRepository
         return $photo;
     }
 
+    public function countAdmins(int $schoolId): int
+    {
+        return (int) $this->db->createCommand(
+            "SELECT COUNT(*) FROM users WHERE school_id = :school_id AND role = 'admin'",
+            [':school_id' => $schoolId],
+        )->queryScalar();
+    }
+
     public function photoPath(int $schoolId, int $id): ?string
     {
         return $this->db->createCommand(
@@ -195,6 +203,14 @@ class UserRepository
                 SQL,
             [':hash' => $hash, ':id' => $id, ':school_id' => $schoolId],
         )->execute() > 0;
+    }
+
+    public function userExists(int $schoolId, int $id): bool
+    {
+        return $this->db->createCommand(
+            'SELECT id FROM users WHERE id = :id AND school_id = :school_id',
+            [':id' => $id, ':school_id' => $schoolId],
+        )->queryOne() !== null;
     }
 
     private function selectSql(string $role): string

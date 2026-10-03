@@ -16,8 +16,8 @@
 <section class="card p-4 mb-4">
   <h2>Estudiantes inscritos</h2>
   <app-data-table [page]="students()" (pageChange)="loadStudents($event)">
-    <app-column header="Estudiante"><ng-template let-row>{{ row.first_name }} {{ row.last_name }}</ng-template></app-column>
     <app-column header="Matrícula"><ng-template let-row>{{ row.enrollment_number }}</ng-template></app-column>
+    <app-column header="Estudiante"><ng-template let-row>{{ row.first_name }} {{ row.last_name }}</ng-template></app-column>
   </app-data-table>
 </section>
 <section class="card p-4">

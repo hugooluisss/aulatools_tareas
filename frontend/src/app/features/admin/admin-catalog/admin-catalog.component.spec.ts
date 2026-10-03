@@ -10,6 +10,7 @@ import { SubjectsService } from '../subjects.service';
 import { GroupsService } from '../groups.service';
 import { InscriptionsService } from '../inscriptions.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AdminsService } from '../admins.service';
 import { StudyPlansService } from '../study-plans.service';
 import { environment } from '../../../../environments/environment';
 
@@ -82,6 +83,7 @@ describe('AdminCatalogComponent', () => {
         },
         { provide: StudentsService, useValue: api },
         { provide: TeachersService, useValue: api },
+        { provide: AdminsService, useValue: api },
         { provide: CyclesService, useValue: api },
         { provide: SubjectsService, useValue: api },
         { provide: GroupsService, useValue: api },

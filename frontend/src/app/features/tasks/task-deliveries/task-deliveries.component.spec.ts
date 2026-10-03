@@ -35,6 +35,9 @@ describe('TaskDeliveriesComponent', () => {
     const fixture = TestBed.createComponent(TaskDeliveriesComponent);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Eva Solís');
+    const deliveryHeaders = fixture.nativeElement.querySelectorAll('app-data-table th');
+    expect(deliveryHeaders[0].textContent).toContain('Matrícula');
+    expect(deliveryHeaders[1].textContent).toContain('Estudiante');
     expect(fixture.nativeElement.querySelector('[aria-label="Marcar entregada"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[aria-label="Comentarios"]')).not.toBeNull();
     expect(

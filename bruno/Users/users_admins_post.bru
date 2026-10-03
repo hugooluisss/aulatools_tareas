@@ -1,0 +1,30 @@
+meta {
+  name: /users/admins (POST)
+  type: http
+  seq: 64
+}
+
+post {
+  url: {{baseUrl}}/users/admins
+  auth: inherit
+  body: json
+}
+
+body:json {
+  {
+    "first_name": "{{adminFirstName}}",
+    "last_name": "{{adminLastName}}",
+    "email": "{{adminEmail}}",
+    "password": "{{adminPassword}}",
+    "address": "123 Main Street",
+    "phone": "+52 55 1234 5678"
+  }
+}
+docs {
+  POST `/users/admins` Roles: Admin. JSON: first_name, last_name, email, password; optional address, phone. Response: 201 admin object.
+}
+
+assert {
+  res.status: eq 201
+  res.body: isJson
+}

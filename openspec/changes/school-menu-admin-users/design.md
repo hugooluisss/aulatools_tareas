@@ -1,0 +1,9 @@
+# Design
+
+## Decisiones
+
+1. **Menú**: nuevo grupo `escuela` en `shell.component.ts` siguiendo el patrón de "Control escolar", "Catálogos" y "Reportes" (signal de apertura, activo por URL): Calendario `/calendar`, Avisos `/announcements`, Profesores `/teachers`, Usuarios `/admin-users`, Generales `/school`. Orden del menú del administrador: Control escolar, Catálogos, Reportes, Tareas, Escuela. Los elementos planos Calendario y Avisos quedan solo para profesor y estudiante; Escuela y Profesores planos se eliminan. Las rutas existentes no cambian.
+2. **Administradores en el backend**: `UserService`, `UserRepository` y `UserController` ya parametrizan el rol (`student`, `teacher`); se extienden a `admin` con los mismos campos que el profesor (nombre, apellido, correo, contraseña al crear, dirección, celular) sin fotografía. Rutas `GET/POST /users/admins`, `GET/PUT/DELETE /users/admins/{id}`, solo administrador, lista paginada con el envoltorio de `paginated-lists`. Reglas: el correo es único; un administrador no puede eliminarse a sí mismo (409/422 con el formato de error) ni se puede eliminar al último administrador de la escuela; restablecer contraseña usa el `PUT /users/{id}/password` existente, que debe aceptar al rol `admin`.
+3. **Frontend de Usuarios**: nuevo tipo `admins` en el catálogo administrativo (reutiliza tabla genérica, modal y formulario del profesor sin fotografía), servicio `AdminsService` con `list(page)` y `all()`, ruta `admin-users` solo administrador.
+4. **Materias en lista**: `teacher-subjects` muestra para `isAdmin` una `app-data-table` (columnas Nombre, Estado, Acciones con enlace/icono a `/admin/tasks/:id`); para el profesor se conserva la presentación actual.
+5. **Matrícula primero**: intercambiar el orden de las columnas en `teacher-subject-detail` y `task-deliveries` (Matrícula, Estudiante) y revisar el resto de tablas de estudiantes de las pantallas de tareas.

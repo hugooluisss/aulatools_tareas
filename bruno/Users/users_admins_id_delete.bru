@@ -1,0 +1,17 @@
+meta {
+  name: /users/admins/{{adminId}} (DELETE)
+  type: http
+  seq: 67
+}
+
+delete {
+  url: {{baseUrl}}/users/admins/{{adminId}}
+  auth: inherit
+}
+docs {
+  DELETE `/users/admins/{id}` Roles: Admin. Response: 204 No Content. Self-delete and deleting the last administrator return 409.
+}
+
+assert {
+  res.status: eq 204
+}

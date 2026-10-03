@@ -1,0 +1,18 @@
+meta {
+  name: /users/admins/{{adminId}} (GET)
+  type: http
+  seq: 65
+}
+
+get {
+  url: {{baseUrl}}/users/admins/{{adminId}}
+  auth: inherit
+}
+docs {
+  GET `/users/admins/{id}` Roles: Admin. Response: 200 admin object.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isJson
+}

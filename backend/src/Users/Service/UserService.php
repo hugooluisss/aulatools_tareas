@@ -119,7 +119,15 @@ final class UserService
     {
         $this->admin($user);
         $this->find($user, $role, $id);
-        $photo = $this->repository->delete($user->schoolId, $role, $id);
+        if ($role === 'admin' && $id === $user->id) {
+            throw new UserException('You cannot delete your own account.', 409);
+        }
+        $photo = $this->transactions->run(function () use ($user, $role, $id): ?string {
+            if ($role === 'admin' && $this->repository->countAdmins($user->schoolId) <= 1) {
+                throw new UserException('The school must have at least one administrator.', 409);
+            }
+            return $this->repository->delete($user->schoolId, $role, $id);
+        });
         if ($photo !== null) {
             $this->deletePhotoFile($photo);
         }
@@ -162,9 +170,10 @@ final class UserService
         if (strlen($password) < 8) {
             throw new UserException('Password must be at least 8 characters.', 400);
         }
-        if (!$this->repository->updatePassword($user->schoolId, $id, $this->passwordHasher->hash($password))) {
+        if (!$this->repository->userExists($user->schoolId, $id)) {
             throw new UserException('User not found.', 404);
         }
+        $this->repository->updatePassword($user->schoolId, $id, $this->passwordHasher->hash($password));
     }
 
     private function validate(string $role, array $data, bool $creating): void

@@ -5,6 +5,7 @@ import { IconButtonComponent } from '../../../shared/icon-button/icon-button.com
 import { ToastService } from '../../../core/services/toast.service';
 import { StudentsService } from '../students.service';
 import { TeachersService } from '../teachers.service';
+import { AdminsService, Admin } from '../admins.service';
 import { CyclesService } from '../cycles.service';
 import { SubjectsService } from '../subjects.service';
 import { GroupsService } from '../groups.service';
@@ -43,6 +44,7 @@ export class AdminCatalogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly studentsApi = inject(StudentsService);
   private readonly teachersApi = inject(TeachersService);
+  private readonly adminsApi = inject(AdminsService);
   private readonly cyclesApi = inject(CyclesService);
   private readonly subjectsApi = inject(SubjectsService);
   private readonly groupsApi = inject(GroupsService);
@@ -54,6 +56,7 @@ export class AdminCatalogComponent {
     {
       students: 'Estudiantes',
       teachers: 'Profesores',
+      admins: 'Usuarios',
       cycles: 'Ciclos',
       subjects: 'Materias',
       groups: 'Grupos',
@@ -66,7 +69,7 @@ export class AdminCatalogComponent {
     finished: 'Finalizado',
     in_progress: 'En curso',
   };
-  page = signal<Page<StudentRow | TeacherRow | CycleRow | GroupRow | SubjectRow>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  page = signal<Page<StudentRow | TeacherRow | Admin | CycleRow | GroupRow | SubjectRow>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
   currentPage = signal(1);
   cycles = signal<CycleRow[]>([]);
   activeCycles = computed(() => this.cycles().filter((cycle) => cycle.status === 'active'));
@@ -134,11 +137,12 @@ export class AdminCatalogComponent {
   }
   reload(): void {
     const page = this.currentPage();
-    const onPage = <T extends StudentRow | TeacherRow | CycleRow | GroupRow | SubjectRow>(
+    const onPage = <T extends StudentRow | TeacherRow | Admin | CycleRow | GroupRow | SubjectRow>(
       result: Page<T>,
     ) => this.setPage(result);
     if (this.kind === 'students') this.studentsApi.list(page).subscribe(onPage);
     else if (this.kind === 'teachers') this.teachersApi.list(page).subscribe(onPage);
+    else if (this.kind === 'admins') this.adminsApi.list(page).subscribe(onPage);
     else if (this.kind === 'cycles') this.cyclesApi.list(page).subscribe(onPage);
     else if (this.kind === 'subjects') this.subjectsApi.list(undefined, page).subscribe(onPage);
     else this.groupsApi.list(page).subscribe(onPage);
@@ -147,13 +151,13 @@ export class AdminCatalogComponent {
     this.currentPage.set(page);
     this.reload();
   }
-  private setPage<T extends StudentRow | TeacherRow | CycleRow | GroupRow | SubjectRow>(
+  private setPage<T extends StudentRow | TeacherRow | Admin | CycleRow | GroupRow | SubjectRow>(
     result: Page<T>,
   ): void {
     if (!result.items.length && result.page > 1 && result.total > 0) {
       this.currentPage.set(result.page - 1);
       this.reload();
-    } else this.page.set(result as Page<StudentRow | TeacherRow | CycleRow | GroupRow | SubjectRow>);
+    } else this.page.set(result as Page<StudentRow | TeacherRow | Admin | CycleRow | GroupRow | SubjectRow>);
   }
   openNew(): void {
     this.editing = null;
@@ -176,7 +180,7 @@ export class AdminCatalogComponent {
   }
   save(): void {
     this.error.set('');
-    if (this.kind === 'students' || this.kind === 'teachers') {
+    if (['students', 'teachers', 'admins'].includes(this.kind)) {
       if (this.editing) this.form.controls.password.removeValidators(Validators.required);
       else this.form.controls.password.addValidators(Validators.required);
       this.form.controls.password.updateValueAndValidity();
@@ -190,8 +194,8 @@ export class AdminCatalogComponent {
       this.error.set('La fecha de fin debe ser posterior a la fecha de inicio.');
       return;
     }
-    if (this.kind === 'students' || this.kind === 'teachers') {
-      const api = this.kind === 'students' ? this.studentsApi : this.teachersApi;
+    if (['students', 'teachers', 'admins'].includes(this.kind)) {
+      const api = this.kind === 'students' ? this.studentsApi : this.kind === 'admins' ? this.adminsApi : this.teachersApi;
       const { first_name, last_name, enrollment_number, email, password, birth_date, status } =
         this.form.getRawValue();
       const data =
@@ -259,13 +263,15 @@ export class AdminCatalogComponent {
         ? this.studentsApi
         : this.kind === 'teachers'
           ? this.teachersApi
+          : this.kind === 'admins'
+            ? this.adminsApi
           : this.kind === 'subjects'
             ? this.subjectsApi
             : this.groupsApi;
-    if ('remove' in api) api.remove(id).subscribe(() => {
+    if ('remove' in api) api.remove(id).subscribe({ next: () => {
       if (this.page().items.length === 1 && this.currentPage() > 1) this.currentPage.update((page) => page - 1);
       this.done('Registro eliminado.');
-    });
+    }, error: (error) => this.toast.show(error.error?.message ?? error.message) });
   }
   confirmRemove(): void {
     if (this.editing && window.confirm('¿Eliminar este estudiante? No se puede deshacer.'))
@@ -394,7 +400,7 @@ export class AdminCatalogComponent {
   reset(id: number): void {
     const password = window.prompt('Nueva contraseña (mínimo 8 caracteres)');
     if (password && password.length >= 8)
-      (this.kind === 'students' ? this.studentsApi : this.teachersApi)
+      (this.kind === 'students' ? this.studentsApi : this.kind === 'admins' ? this.adminsApi : this.teachersApi)
         .reset(id, password)
         .subscribe(() => this.toast.show('Contraseña restablecida.'));
   }
@@ -446,7 +452,7 @@ export class AdminCatalogComponent {
       this.form.controls[name as keyof typeof this.form.controls].addValidators(
         Validators.required,
       );
-    if (this.kind === 'students' || this.kind === 'teachers') {
+    if (['students', 'teachers', 'admins'].includes(this.kind)) {
       ['first_name', 'last_name', 'email'].forEach(required);
       this.form.controls.email.addValidators(Validators.email);
       this.form.controls.password.addValidators(Validators.minLength(8));

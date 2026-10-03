@@ -1,0 +1,29 @@
+meta {
+  name: /users/admins/{{adminId}} (PUT)
+  type: http
+  seq: 66
+}
+
+put {
+  url: {{baseUrl}}/users/admins/{{adminId}}
+  auth: inherit
+  body: json
+}
+
+body:json {
+  {
+    "first_name": "Alex",
+    "last_name": "Admin",
+    "email": "{{adminEmail}}",
+    "address": "123 Main Street",
+    "phone": "+52 55 1234 5678"
+  }
+}
+docs {
+  PUT `/users/admins/{id}` Roles: Admin. JSON: first_name, last_name, email; optional address, phone. Response: 200 admin object.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isJson
+}

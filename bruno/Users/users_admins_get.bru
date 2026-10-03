@@ -1,0 +1,22 @@
+meta {
+  name: /users/admins (GET)
+  type: http
+  seq: 63
+}
+
+get {
+  url: {{baseUrl}}/users/admins
+  auth: inherit
+}
+docs {
+  GET `/users/admins` Roles: Admin. Query: page, per_page. Response: 200 paginated list {items,page,per_page,total,total_pages}.
+}
+
+assert {
+  res.status: eq 200
+  res.body.items: isArray
+  res.body.page: isDefined
+  res.body.per_page: isDefined
+  res.body.total: isDefined
+  res.body.total_pages: isDefined
+}
