@@ -59,8 +59,7 @@
   margin-left: v.$spacing-md;
   margin-top: v.$spacing-xs;
 }
-.app-sidebar__nav-link,
-.app-sidebar__password-link {
+.app-sidebar__nav-link {
   color: v.$sidebar-text;
   text-decoration: none;
   border-radius: 0.8rem;
@@ -72,7 +71,11 @@
   font-weight: 700;
 }
 
-.app-sidebar__password-link {
+/* Account actions pinned to the sidebar bottom */
+.app-sidebar__actions {
+  display: flex;
+  gap: v.$spacing-sm;
+  justify-content: flex-end;
   margin-top: auto;
 }
 

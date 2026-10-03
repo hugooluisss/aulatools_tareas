@@ -101,7 +101,20 @@
         </details>
       }
     </nav>
-    <a class="app-sidebar__password-link" routerLink="/change-password">Cambiar contraseña</a>
+    <div class="app-sidebar__actions">
+      <app-icon-button
+        icon="key"
+        label="Cambiar contraseña"
+        variant="outline-light"
+        (click)="changePassword()"
+      />
+      <app-icon-button
+        icon="box-arrow-right"
+        label="Cerrar sesión"
+        variant="outline-light"
+        (click)="logout()"
+      />
+    </div>
   </aside>
   <main class="app-content">
     <router-outlet />

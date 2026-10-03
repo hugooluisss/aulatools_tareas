@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { ShellComponent } from './shell.component';
 import { TokenStorageService } from '../auth/token-storage.service';
 
@@ -42,7 +42,28 @@ describe('ShellComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('a[href="/calendar"]')).toHaveLength(1);
     expect(fixture.nativeElement.textContent).not.toContain('Inicio');
     const nav = fixture.nativeElement.querySelector('.app-sidebar__nav');
-    expect(Array.from(nav.children).map((item: any) => item.querySelector('summary')?.textContent.trim() ?? item.textContent.trim()))
-      .toEqual(['Control escolar', 'Catálogos', 'Reportes', 'Tareas', 'Escuela']);
+    expect(
+      Array.from(nav.children).map(
+        (item: any) => item.querySelector('summary')?.textContent.trim() ?? item.textContent.trim(),
+      ),
+    ).toEqual(['Control escolar', 'Catálogos', 'Reportes', 'Tareas', 'Escuela']);
+  });
+
+  it('clears the session and goes to login when logging out', () => {
+    TestBed.configureTestingModule({
+      imports: [ShellComponent],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
+    const token = TestBed.inject(TokenStorageService);
+    token.setToken(`e30.${btoa(JSON.stringify({ role: 'teacher' }))}.x`);
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const fixture = TestBed.createComponent(ShellComponent);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('button[aria-label="Cerrar sesión"]').click();
+
+    expect(token.getRole()).toBeNull();
+    expect(navigate).toHaveBeenCalledWith(['/login']);
   });
 });

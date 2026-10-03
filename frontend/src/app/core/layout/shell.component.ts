@@ -3,12 +3,14 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
 import { SchoolService } from '../../features/admin/school.service';
+import { IconButtonComponent } from '../../shared/icon-button/icon-button.component';
+import { AuthService } from '../auth/auth.service';
 import { TokenStorageService } from '../auth/token-storage.service';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [IconButtonComponent, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
@@ -16,6 +18,7 @@ export class ShellComponent {
   private readonly tokens = inject(TokenStorageService);
   private readonly school = inject(SchoolService);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
   schoolName = signal('');
   controlEscolarOpen = signal(false);
   catalogosOpen = signal(false);
@@ -76,6 +79,15 @@ export class ShellComponent {
   get visibleMenu() {
     const role = this.tokens.getRole();
     return this.menu.filter((item) => item.roles.includes(role ?? ''));
+  }
+
+  changePassword(): void {
+    this.router.navigate(['/change-password']);
+  }
+
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/login']);
   }
 
   trackMenuItem(item: { path: string }): string {
