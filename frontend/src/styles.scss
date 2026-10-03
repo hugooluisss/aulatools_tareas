@@ -27,3 +27,16 @@ body {
   border-radius: v.$card-radius;
   box-shadow: 0 6px 24px v.$shadow-soft;
 }
+
+button.is-busy {
+  position: relative;
+  color: transparent !important;
+}
+button.is-busy::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--bs-btn-disabled-color, var(--bs-btn-color, currentColor));
+  content: attr(data-busy-label);
+}
