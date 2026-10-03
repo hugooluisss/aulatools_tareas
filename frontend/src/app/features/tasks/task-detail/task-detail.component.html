@@ -8,7 +8,7 @@
       <dt>Profesor</dt>
       <dd>{{ taskDetail.teacher.first_name }} {{ taskDetail.teacher.last_name }}</dd>
       <dt>Fecha de vencimiento</dt>
-      <dd>{{ taskDetail.task.due_at | date: 'medium' }}</dd>
+      <dd>{{ taskDetail.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy' }}</dd>
       <dt>Calificación</dt>
       <dd>{{ taskDetail.delivery.grade ?? 'Sin calificar' }}</dd>
       <dt>Fecha de entrega</dt>

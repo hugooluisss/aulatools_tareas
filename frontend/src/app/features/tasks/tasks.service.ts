@@ -58,6 +58,21 @@ export interface DeliveryRow {
   student: Student;
 }
 
+export interface TaskOverviewRow {
+  delivery_id: number;
+  status: 'pending' | 'delivered' | 'graded' | 'cancelled';
+  task: { id: number; title: string; description: string; due_at: string };
+  student: { id: number; first_name: string; last_name: string };
+  subject: { id: number; code: string; name: string };
+}
+
+export interface TaskDeliveryStatus {
+  code: TaskOverviewRow['status'];
+  label: string;
+  color: string;
+  text_color: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TasksService {
   private readonly http = inject(HttpClient);
@@ -76,7 +91,9 @@ export class TasksService {
   }
 
   comments(deliveryId: number, page = 1): Observable<Page<Comment>> {
-    return this.http.get<Page<Comment>>(`${this.api}/deliveries/${deliveryId}/comments`, { params: { page, per_page: 20 } });
+    return this.http.get<Page<Comment>>(`${this.api}/deliveries/${deliveryId}/comments`, {
+      params: { page, per_page: 20 },
+    });
   }
 
   addComment(deliveryId: number, body: string): Observable<Comment> {
@@ -128,7 +145,20 @@ export class TasksService {
   }
 
   deliveries(taskId: number, page = 1): Observable<Page<DeliveryRow>> {
-    return this.http.get<Page<DeliveryRow>>(`${this.api}/tasks/${taskId}/deliveries`, { params: { page, per_page: 20 } });
+    return this.http.get<Page<DeliveryRow>>(`${this.api}/tasks/${taskId}/deliveries`, {
+      params: { page, per_page: 20 },
+    });
+  }
+
+  overview(search = '', statuses: string[] = []): Observable<TaskOverviewRow[]> {
+    let params = new HttpParams();
+    if (search.trim()) params = params.set('search', search.trim());
+    if (statuses.length) params = params.set('status', statuses.join(','));
+    return this.http.get<TaskOverviewRow[]>(`${this.api}/tasks/overview`, { params });
+  }
+
+  deliveryStatuses(): Observable<TaskDeliveryStatus[]> {
+    return this.http.get<TaskDeliveryStatus[]>(`${this.api}/tasks/statuses`);
   }
 
   markDelivered(deliveryId: number): Observable<unknown> {

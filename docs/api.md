@@ -81,14 +81,14 @@ Group object: `{id,school_id,name,subjects:[{id,name}]}`. Enrollment endpoints a
 
 ## Tasks and deliveries
 
-Task object: `{id,subject_id,name,description,due_at,status}` (`active|cancelled`). Delivery object: `{id,task_id,student_id,status,delivered_at,grade,overdue,on_time}`. `overdue` is true only when pending and past due; `on_time` is true when delivered at or before `due_at`; otherwise false. Delivery status is `pending|delivered|graded|cancelled`; `grade` is null or 0–100.
+Task object: `{id,subject_id,name,description,due_at,status}` (`due_at` uses `YYYY-MM-DD`; status is `active|cancelled`). Delivery object: `{id,task_id,student_id,status,delivered_at,grade,overdue,on_time}`. `overdue` is true only when pending and the due date is before today; a task due today is not overdue until tomorrow. `on_time` is true when delivered on or before `due_at`; otherwise false. Delivery status is `pending|delivered|graded|cancelled`; `grade` is null or 0–100.
 
 | Method / path | Roles | Request | Response |
 |---|---|---|---|
 | GET `/subjects/{subject_id}/tasks` | Admin, assigned teacher, enrolled student | Query pagination | `200` {items:[...],page,per_page,total,total_pages} |
-| POST `/subjects/{subject_id}/tasks` | Admin, assigned teacher | `{name,description,due_at}` | `201 task object`; creates one pending delivery per enrolled student |
+| POST `/subjects/{subject_id}/tasks` | Admin, assigned teacher | `{name,description,due_at}` (`due_at`: `YYYY-MM-DD`) | `201 task object`; creates one pending delivery per enrolled student |
 | GET `/tasks/{id}` | Admin, task's teacher, enrolled student | — | `200` bare `{task,delivery?,teacher}` object |
-| PUT `/tasks/{id}` | Admin, task's teacher | `{name,description,due_at}` | `200 task object` |
+| PUT `/tasks/{id}` | Admin, task's teacher | `{name,description,due_at}` (`due_at`: `YYYY-MM-DD`) | `200 task object` |
 | POST `/tasks/{id}/cancel` | Admin, task's teacher | `{}` | `200 task object`; all deliveries become `cancelled` |
 | GET `/tasks/{id}/deliveries` | Admin, task's teacher | Query pagination; optional `status` | `200` {items:[...],page,per_page,total,total_pages}; rows contain `{delivery,student}` |
 | PUT `/deliveries/{id}/delivered` | Admin, task's teacher | `{}` | `200 delivery object`; sets `delivered_at` to current time |

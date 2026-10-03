@@ -49,7 +49,7 @@ final class TaskServiceTest extends TestCase
                     'cycle_id' => 14,
                     'name' => 'Essay',
                     'description' => 'Write',
-                    'due_at' => '2026-10-08 12:00:00',
+                    'due_at' => '2026-10-08',
                     'status' => 'active',
                     'teacher_id' => 7,
                     'teacher_user_id' => 7,
@@ -72,11 +72,12 @@ final class TaskServiceTest extends TestCase
         $task = $service->create(
             new CurrentUser(7, 'teacher', 2),
             4,
-            ['name' => ' Essay ', 'description' => 'Write', 'due_at' => '2026-10-08T12:00:00Z', 'cycle_id' => 14],
+            ['name' => ' Essay ', 'description' => 'Write', 'due_at' => '2026-10-08', 'cycle_id' => 14],
         );
         (new TaskDeliveryService($repository))->createForEnrollment(15, 4, 14);
 
         self::assertSame('Essay', $repository->created[2]['name']);
+        self::assertSame('2026-10-08', $repository->created[2]['due_at']);
         self::assertSame([15, 4, 14], $repository->enrollment);
         self::assertSame(9, $task['id']);
     }
@@ -153,6 +154,116 @@ final class TaskServiceTest extends TestCase
         self::assertSame('pending', $repository->status);
     }
 
+    public function testOverviewUsesSchoolScopeFiltersAndReturnsAllRows(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends TaskRepository {
+            public array $arguments = [];
+
+            public function overview(int $schoolId, ?string $search, array $statuses): array
+            {
+                $this->arguments = [$schoolId, $search, $statuses];
+                return [[
+                        'delivery_id' => '31',
+                        'status' => 'graded',
+                        'task_id' => '7',
+                        'task_title' => 'Essay',
+                        'task_description' => 'Write an essay.',
+                        'due_at' => '2026-10-08',
+                        'student_id' => '15',
+                        'student_first_name' => 'Ada',
+                        'student_last_name' => 'Lovelace',
+                        'subject_id' => '4',
+                        'subject_code' => 'MAT1',
+                        'subject_name' => 'Math',
+                    ]];
+            }
+        };
+        $service = new TaskService(
+            $repository,
+            new TransactionRunner($this->createMock(ConnectionInterface::class)),
+        );
+
+        $result = $service->overview(new CurrentUser(1, 'admin', 9), ' Ada ', 'pending,graded');
+
+        self::assertSame([9, 'Ada', ['pending', 'graded']], $repository->arguments);
+        self::assertSame([
+            'delivery_id' => 31,
+            'status' => 'graded',
+            'task' => [
+                'id' => 7,
+                'title' => 'Essay',
+                'description' => 'Write an essay.',
+                'due_at' => '2026-10-08',
+            ],
+            'student' => ['id' => 15, 'first_name' => 'Ada', 'last_name' => 'Lovelace'],
+            'subject' => ['id' => 4, 'code' => 'MAT1', 'name' => 'Math'],
+        ], $result[0]);
+    }
+
+    public function testOverviewRejectsNonAdminAndUnsupportedStatus(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends TaskRepository {
+            public function overview(int $schoolId, ?string $search, array $statuses): array
+            {
+                self::fail('Overview repository should not be called for invalid access or status.');
+            }
+        };
+        $service = new TaskService(
+            $repository,
+            new TransactionRunner($this->createMock(ConnectionInterface::class)),
+        );
+
+        try {
+            $service->overview(new CurrentUser(2, 'teacher', 9), null, null);
+            self::fail('Non-admin access was accepted.');
+        } catch (TaskException $exception) {
+            self::assertSame(403, $exception->status);
+        }
+
+        try {
+            $service->overview(new CurrentUser(1, 'admin', 9), null, 'graded,unknown');
+            self::fail('Unsupported delivery status was accepted.');
+        } catch (TaskException $exception) {
+            self::assertSame(400, $exception->status);
+        }
+    }
+
+    public function testDueDateRejectsTimestampInput(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends TaskRepository {
+            public function subject(int $schoolId, int $subjectId): ?array
+            {
+                return ['id' => $subjectId, 'teacher_id' => 7];
+            }
+
+            public function cycle(int $schoolId, int $cycleId): ?array
+            {
+                return ['id' => $cycleId, 'status' => 'active'];
+            }
+
+            public function create(int $subjectId, int $cycleId, array $data): int
+            {
+                self::fail('Timestamp due_at reached repository.');
+            }
+        };
+        $service = new TaskService(
+            $repository,
+            new TransactionRunner($this->createMock(ConnectionInterface::class)),
+        );
+
+        try {
+            $service->create(new CurrentUser(7, 'teacher', 2), 4, [
+                'name' => 'Essay',
+                'description' => 'Write',
+                'due_at' => '2026-10-08T12:00:00Z',
+                'cycle_id' => 14,
+            ]);
+            self::fail('Timestamp due_at was accepted.');
+        } catch (TaskException $exception) {
+            self::assertSame(400, $exception->status);
+        }
+    }
+
     public function testCancelTaskUpdatesAllDeliveriesInTransaction(): void
     {
         $repository = new class ($this->createMock(ConnectionInterface::class)) extends TaskRepository {
@@ -163,9 +274,10 @@ final class TaskServiceTest extends TestCase
                 return [
                     'id' => $taskId,
                     'subject_id' => 4,
+                    'cycle_id' => 14,
                     'name' => 'Essay',
                     'description' => 'Write',
-                    'due_at' => '2026-10-08 12:00:00',
+                    'due_at' => '2026-10-08',
                     'status' => $this->cancelled ? 'cancelled' : 'active',
                     'teacher_id' => 7,
                     'teacher_user_id' => 7,

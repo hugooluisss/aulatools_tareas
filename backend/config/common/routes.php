@@ -85,6 +85,8 @@ return [
     Route::put('/cycles/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'update']),
     Route::post('/cycles/{id}/finish')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'finish']),
     Route::get('/subjects/{subject_id}/tasks')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'subjectTasks']),
+    Route::get('/tasks/overview')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'overview']),
+    Route::get('/tasks/statuses')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'statuses']),
     Route::post('/subjects/{subject_id}/tasks')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'create']),
     Route::get('/tasks/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'view']),
     Route::put('/tasks/{id}')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'update']),

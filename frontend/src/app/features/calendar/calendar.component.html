@@ -13,40 +13,135 @@
   @if (isAdmin) {
     @if (formOpen()) {
       <div class="modal-backdrop fade show"></div>
-      <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="calendar-form-title">
+      <div
+        class="modal d-block"
+        tabindex="-1"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="calendar-form-title"
+      >
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
           <form class="modal-content" [formGroup]="form" (ngSubmit)="save()">
             <div class="modal-header">
-              <h2 class="modal-title fs-5" id="calendar-form-title">{{ editing ? 'Editar evento' : 'Agregar evento' }}</h2>
-              <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeForm()"></button>
+              <h2 class="modal-title fs-5" id="calendar-form-title">
+                {{ editing ? 'Editar evento' : 'Agregar evento' }}
+              </h2>
+              <button
+                type="button"
+                class="btn-close"
+                aria-label="Cerrar"
+                (click)="closeForm()"
+              ></button>
             </div>
             <div class="modal-body">
               <label class="form-label" for="calendar-title">Título</label>
-              <input id="calendar-title" class="form-control mb-3" formControlName="title" required />
+              <input
+                id="calendar-title"
+                class="form-control mb-3"
+                formControlName="title"
+                required
+              />
               <label class="form-label" for="calendar-description">Descripción</label>
-              <textarea id="calendar-description" class="form-control mb-3" formControlName="description"></textarea>
+              <textarea
+                id="calendar-description"
+                class="form-control mb-3"
+                formControlName="description"
+              ></textarea>
               <label class="form-label" for="calendar-subject">Ámbito</label>
               <select id="calendar-subject" class="form-select mb-3" formControlName="subject_id">
                 <option value="">Toda la escuela</option>
-                @for (subject of subjects(); track subject.id) { <option [value]="subject.id">{{ subject.name }}</option> }
+                @for (subject of subjects(); track subject.id) {
+                  <option [value]="subject.id">{{ subject.name }}</option>
+                }
               </select>
               <label class="form-label" for="calendar-start">Fecha y hora de inicio</label>
-              <input id="calendar-start" class="form-control mb-3" type="datetime-local" formControlName="starts_at" required />
+              <input
+                id="calendar-start"
+                class="form-control mb-3"
+                type="datetime-local"
+                formControlName="starts_at"
+                required
+              />
               <label class="form-label" for="calendar-end">Fecha y hora de fin</label>
-              <input id="calendar-end" class="form-control" type="datetime-local" formControlName="ends_at" required />
-              @if (error()) { <p class="text-danger mt-3 mb-0" role="alert">{{ error() }}</p> }
+              <input
+                id="calendar-end"
+                class="form-control"
+                type="datetime-local"
+                formControlName="ends_at"
+                required
+              />
+              @if (error()) {
+                <p class="text-danger mt-3 mb-0" role="alert">{{ error() }}</p>
+              }
             </div>
             <div class="modal-footer">
-              <button class="btn btn-outline-secondary" type="button" (click)="closeForm()">Cancelar</button>
-              <button class="btn btn-primary" type="submit">{{ editing ? 'Guardar cambios' : 'Crear evento' }}</button>
+              <button class="btn btn-outline-secondary" type="button" (click)="closeForm()">
+                Cancelar
+              </button>
+              <button class="btn btn-primary" type="submit">
+                {{ editing ? 'Guardar cambios' : 'Crear evento' }}
+              </button>
             </div>
           </form>
         </div>
       </div>
     }
   }
+  @if (selectedItem(); as item) {
+    <div class="modal-backdrop fade show"></div>
+    <div
+      class="modal d-block"
+      tabindex="-1"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="calendar-item-title"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="calendar-item-title">{{ item.title }}</h2>
+            <button
+              class="btn-close"
+              type="button"
+              aria-label="Cerrar"
+              (click)="closeItem()"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              <strong>Tipo:</strong> {{ item.type === 'event' ? 'Evento' : 'Tarea por entregar' }}
+            </p>
+            <p>
+              <strong>Fecha:</strong>
+              {{ item.starts_at | date: (dateOnly(item.starts_at) ? 'longDate' : 'medium') }}
+            </p>
+            @if (!dateOnly(item.starts_at) && item.ends_at !== item.starts_at) {
+              <p><strong>Hora de fin:</strong> {{ item.ends_at | date: 'short' }}</p>
+            }
+            <p><strong>Materia:</strong> {{ subjectName(item) }}</p>
+            @if (item.description) {
+              <p><strong>Descripción:</strong> {{ item.description }}</p>
+            }
+            @if (item.task_id) {
+              <p><strong>Identificador de tarea:</strong> {{ item.task_id }}</p>
+            }
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" type="button" (click)="closeItem()">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
   @if (items().total_pages > 1) {
-    <app-paginator [page]="page()" [totalPages]="items().total_pages" [total]="items().total" (pageChange)="loadPage($event)" />
+    <app-paginator
+      [page]="page()"
+      [totalPages]="items().total_pages"
+      [total]="items().total"
+      (pageChange)="loadPage($event)"
+    />
   }
   <div class="calendar-page__grid card" role="grid" [attr.aria-label]="monthLabel">
     @for (name of ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']; track name) {
@@ -57,25 +152,77 @@
         class="calendar-page__day"
         role="gridcell"
         [class.calendar-page__day--outside]="day.getMonth() !== month.getMonth()"
+        [class.calendar-page__day--selected]="selectedDay()?.toDateString() === day.toDateString()"
+        [attr.aria-label]="day | date: 'fullDate'"
+        [attr.aria-selected]="selectedDay()?.toDateString() === day.toDateString()"
+        tabindex="0"
+        (click)="selectDay(day)"
+        (keydown.enter)="selectDay(day)"
+        (keydown.space)="selectDay(day)"
       >
         <h3>{{ day | date: 'd' }}</h3>
         @for (item of itemsFor(day); track item.type + item.id) {
           <article
             class="calendar-page__item"
             [class.calendar-page__item--task]="item.type === 'task_due'"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Ver detalles: ' + item.title"
+            (click)="$event.stopPropagation(); openItem(item)"
+            (keydown.enter)="$event.stopPropagation(); openItem(item)"
+            (keydown.space)="$event.stopPropagation(); openItem(item)"
           >
             <span>{{ item.title }}</span>
-            <small>{{ item.starts_at | date: 'shortTime' }}</small>
-            <app-icon-button
-              icon="calendar-plus"
-              label="Agregar a Google Calendar"
-              (click)="addToGoogle(item)"
-            />
+            @if (!dateOnly(item.starts_at)) {
+              <small>{{ item.starts_at | date: 'shortTime' }}</small>
+            }
+            @if (item.type === 'event') {
+              <app-icon-button
+                icon="calendar-plus"
+                label="Agregar a Google Calendar"
+                (click)="$event.stopPropagation(); addToGoogle(item)"
+              />
+            }
           </article>
         }
       </section>
     }
   </div>
+  @if (selectedDay(); as day) {
+    <section class="calendar-page__event-list card" aria-live="polite">
+      <h2>Eventos del {{ day | date: 'fullDate' }}</h2>
+      @for (item of itemsFor(day); track item.type + item.id) {
+        <div class="calendar-page__event-row">
+          <button class="calendar-page__event-title" type="button" (click)="openItem(item)">
+            {{ item.title }}
+          </button>
+          <span
+            >{{ item.type === 'task_due' ? 'Tarea por entregar' : 'Evento' }} ·
+            {{ item.starts_at | date: (dateOnly(item.starts_at) ? 'longDate' : 'short') }}</span
+          >
+          @if (isAdmin && item.type === 'event') {
+            <app-icon-button icon="pencil" label="Editar evento" (click)="editItem(item)" />
+            <app-icon-button
+              icon="trash"
+              label="Eliminar evento"
+              variant="danger"
+              (click)="remove(item.id)"
+            />
+          }
+        </div>
+      } @empty {
+        <p>No hay eventos para este día.</p>
+      }
+      @if (events().total_pages > 1) {
+        <app-paginator
+          [page]="eventsPage()"
+          [totalPages]="events().total_pages"
+          [total]="events().total"
+          (pageChange)="loadEvents($event)"
+        />
+      }
+    </section>
+  }
   @if (isAdmin) {
     <section class="calendar-page__event-list card">
       <h2>Eventos administrables</h2>
@@ -94,7 +241,12 @@
         <p>No hay eventos registrados.</p>
       }
       @if (events().total_pages > 1) {
-        <app-paginator [page]="eventsPage()" [totalPages]="events().total_pages" [total]="events().total" (pageChange)="loadEvents($event)" />
+        <app-paginator
+          [page]="eventsPage()"
+          [totalPages]="events().total_pages"
+          [total]="events().total"
+          (pageChange)="loadEvents($event)"
+        />
       }
     </section>
   }

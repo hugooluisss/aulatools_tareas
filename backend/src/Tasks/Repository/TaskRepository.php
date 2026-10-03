@@ -66,10 +66,10 @@ class TaskRepository
         return $this->db->createCommand(<<<'SQL'
             SELECT task_deliveries.id, task_deliveries.task_id, task_deliveries.student_id,
                    task_deliveries.status, task_deliveries.delivered_at, task_deliveries.grade,
-            (task_deliveries.status = 'pending' AND tasks.due_at < UTC_TIMESTAMP()) AS overdue,
+            (task_deliveries.status = 'pending' AND tasks.due_at < UTC_DATE()) AS overdue,
                    (
                        task_deliveries.delivered_at IS NOT NULL
-                       AND task_deliveries.delivered_at <= tasks.due_at
+                       AND DATE(task_deliveries.delivered_at) <= tasks.due_at
                    ) AS on_time
             FROM task_deliveries
             INNER JOIN tasks ON tasks.id = task_deliveries.task_id
@@ -210,10 +210,10 @@ class TaskRepository
         $data = $this->db->createCommand(<<<SQL
             SELECT task_deliveries.id, task_deliveries.task_id, task_deliveries.student_id, task_deliveries.status,
                    task_deliveries.delivered_at, task_deliveries.grade,
-                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_TIMESTAMP()) AS overdue,
+                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_DATE()) AS overdue,
                    (
                        task_deliveries.delivered_at IS NOT NULL
-                       AND task_deliveries.delivered_at <= tasks.due_at
+                       AND DATE(task_deliveries.delivered_at) <= tasks.due_at
                    ) AS on_time,
                    students.first_name, students.last_name, student_profiles.enrollment_number
             {$sql}
@@ -226,15 +226,88 @@ class TaskRepository
         return ['data' => $data, 'total' => $total];
     }
 
+    public function overview(int $schoolId, ?string $search, array $statuses): array
+    {
+        $filters = '';
+        $params = [':school_id' => $schoolId];
+        if ($search !== null && $search !== '') {
+            $filters .= <<<'SQL'
+                AND (
+                    students.first_name LIKE :search
+                    OR students.last_name LIKE :search
+                    OR subjects.code LIKE :search
+                    OR subjects.name LIKE :search
+                )
+                SQL;
+            $params[':search'] = '%' . $search . '%';
+        }
+        if ($statuses !== []) {
+            $placeholders = [];
+            foreach ($statuses as $index => $status) {
+                $placeholder = ':status_' . $index;
+                $placeholders[] = $placeholder;
+                $params[$placeholder] = $status;
+            }
+            $filters .= ' AND task_deliveries.status IN (' . implode(', ', $placeholders) . ')';
+        }
+        $joins = <<<'SQL'
+            FROM task_deliveries
+            INNER JOIN tasks ON tasks.id = task_deliveries.task_id
+            INNER JOIN subjects ON subjects.id = tasks.subject_id
+            INNER JOIN users AS students ON students.id = task_deliveries.student_id
+            INNER JOIN students AS student_profiles ON student_profiles.user_id = students.id
+            WHERE subjects.school_id = :school_id
+              AND subjects.status = 'active'
+              AND students.role = 'student'
+              AND student_profiles.status = 'active'
+              AND EXISTS (
+                  SELECT 1
+                  FROM enrollment_subject_bindings
+                  INNER JOIN enrollments ON enrollments.id = enrollment_subject_bindings.enrollment_id
+                  INNER JOIN academic_cycles ON academic_cycles.id = enrollments.cycle_id
+                  WHERE enrollment_subject_bindings.subject_id = subjects.id
+                    AND enrollments.student_id = students.id
+                    AND enrollments.cycle_id = tasks.cycle_id
+                    AND academic_cycles.status = 'active'
+              )
+            SQL;
+        $data = $this->db->createCommand(<<<SQL
+            SELECT task_deliveries.id AS delivery_id,
+                   task_deliveries.status,
+                   tasks.id AS task_id,
+                   tasks.name AS task_title,
+                   tasks.description AS task_description,
+                   tasks.due_at,
+                   students.id AS student_id,
+                   students.first_name AS student_first_name,
+                   students.last_name AS student_last_name,
+                   subjects.id AS subject_id,
+                   subjects.code AS subject_code,
+                   subjects.name AS subject_name
+            {$joins}{$filters}
+            ORDER BY tasks.due_at ASC, task_deliveries.id ASC
+            SQL, $params)->queryAll();
+        return $data;
+    }
+
+    public function deliveryStatuses(): array
+    {
+        return $this->db->createCommand(<<<'SQL'
+            SELECT code, label, color, text_color
+            FROM task_delivery_statuses
+            ORDER BY sort_order
+            SQL)->queryAll();
+    }
+
     public function delivery(int $schoolId, int $deliveryId): ?array
     {
         return $this->db->createCommand(<<<'SQL'
             SELECT task_deliveries.id, task_deliveries.task_id, task_deliveries.student_id, task_deliveries.status,
                    task_deliveries.delivered_at, task_deliveries.grade, tasks.due_at,
-                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_TIMESTAMP()) AS overdue,
+                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_DATE()) AS overdue,
                    (
                        task_deliveries.delivered_at IS NOT NULL
-                       AND task_deliveries.delivered_at <= tasks.due_at
+                       AND DATE(task_deliveries.delivered_at) <= tasks.due_at
                    ) AS on_time,
                    subjects.id AS subject_id, subjects.teacher_id, subjects.school_id
             FROM task_deliveries
@@ -258,10 +331,10 @@ class TaskRepository
         return $this->db->createCommand(<<<'SQL'
             SELECT task_deliveries.id, task_deliveries.task_id, task_deliveries.student_id,
                    task_deliveries.status, task_deliveries.delivered_at, task_deliveries.grade,
-                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_TIMESTAMP()) AS overdue,
+                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_DATE()) AS overdue,
                    (
                        task_deliveries.delivered_at IS NOT NULL
-                       AND task_deliveries.delivered_at <= tasks.due_at
+                       AND DATE(task_deliveries.delivered_at) <= tasks.due_at
                    ) AS on_time
             FROM task_deliveries
             INNER JOIN tasks ON tasks.id = task_deliveries.task_id
@@ -292,10 +365,10 @@ class TaskRepository
                    subjects.id AS subject_id, subjects.name AS subject_name,
                    task_deliveries.id AS delivery_id, task_deliveries.status AS delivery_status,
                    task_deliveries.delivered_at, task_deliveries.grade,
-                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_TIMESTAMP()) AS overdue,
+                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_DATE()) AS overdue,
                    (
                        task_deliveries.delivered_at IS NOT NULL
-                       AND task_deliveries.delivered_at <= tasks.due_at
+                       AND DATE(task_deliveries.delivered_at) <= tasks.due_at
                    ) AS on_time
             {$sql}
             ORDER BY tasks.due_at LIMIT :limit OFFSET :offset
@@ -314,10 +387,10 @@ class TaskRepository
                    subjects.id AS subject_id, subjects.name AS subject_name,
                    task_deliveries.id AS delivery_id, task_deliveries.status AS delivery_status,
                    task_deliveries.delivered_at, task_deliveries.grade,
-                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_TIMESTAMP()) AS overdue,
+                   (task_deliveries.status = 'pending' AND tasks.due_at < UTC_DATE()) AS overdue,
                    (
                        task_deliveries.delivered_at IS NOT NULL
-                       AND task_deliveries.delivered_at <= tasks.due_at
+                       AND DATE(task_deliveries.delivered_at) <= tasks.due_at
                    ) AS on_time,
                    teachers.id AS teacher_id, teachers.first_name AS teacher_first_name,
                    teachers.last_name AS teacher_last_name

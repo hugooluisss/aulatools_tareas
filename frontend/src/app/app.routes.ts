@@ -64,8 +64,8 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['admin'] },
         loadComponent: () =>
-          import('./features/tasks/teacher-tasks/teacher-subjects.component').then(
-            (m) => m.TeacherSubjectsComponent,
+          import('./features/tasks/admin-task-overview/admin-task-overview.component').then(
+            (m) => m.AdminTaskOverviewComponent,
           ),
       },
       {

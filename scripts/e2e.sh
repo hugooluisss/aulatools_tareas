@@ -60,7 +60,7 @@ api POST "/groups/$GROUP_ID/students" "$ADMIN_TOKEN" "$(jq -nc --argjson student
 api POST "/groups/$GROUP_ID/students" "$ADMIN_TOKEN" "$(jq -nc --argjson student "$OTHER_STUDENT_ID" '{student_id:$student}')" 201
 
 TEACHER_TOKEN=$(login "$TEACHER_EMAIL" "$INITIAL_PASSWORD")
-api POST "/subjects/$SUBJECT_ID/tasks" "$TEACHER_TOKEN" '{"name":"E2E task","description":"Flow check","due_at":"2027-01-01T00:00:00Z"}' 201
+api POST "/subjects/$SUBJECT_ID/tasks" "$TEACHER_TOKEN" '{"name":"E2E task","description":"Flow check","due_at":"2027-01-01"}' 201
 TASK_ID=$(value '.data.id')
 STUDENT_TOKEN=$(login "$STUDENT_EMAIL" "$INITIAL_PASSWORD")
 api GET /me/tasks "$STUDENT_TOKEN" 200
@@ -96,6 +96,6 @@ STUDENT_TOKEN=$(login "$STUDENT_EMAIL" "$RESET_PASSWORD")
 api PATCH "/users/students/$OTHER_STUDENT_ID/status" "$ADMIN_TOKEN" '{"status":"inactive"}' 200
 api POST /auth/login '' "$(jq -nc --arg email "$OTHER_STUDENT_EMAIL" --arg password "$INITIAL_PASSWORD" '{email:$email,password:$password}')" 401
 api GET "/subjects/$OTHER_SUBJECT_ID" "$TEACHER_TOKEN" 404
-api POST "/subjects/$SUBJECT_ID/tasks" "$STUDENT_TOKEN" '{"name":"Forbidden task","description":"","due_at":"2027-01-01T00:00:00Z"}' 403
+api POST "/subjects/$SUBJECT_ID/tasks" "$STUDENT_TOKEN" '{"name":"Forbidden task","description":"","due_at":"2027-01-01"}' 403
 
 printf 'PASS: full E2E flow (school %s, cycle %s)\n' "$RUN_ID" "$CYCLE_ID"

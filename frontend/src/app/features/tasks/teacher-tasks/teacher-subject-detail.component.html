@@ -16,10 +16,65 @@
 <section class="card p-4 mb-4">
   <h2>Estudiantes inscritos</h2>
   <app-data-table [page]="students()" (pageChange)="loadStudents($event)">
-    <app-column header="Matrícula"><ng-template let-row>{{ row.enrollment_number }}</ng-template></app-column>
-    <app-column header="Estudiante"><ng-template let-row>{{ row.first_name }} {{ row.last_name }}</ng-template></app-column>
+    <app-column header="Matrícula"
+      ><ng-template let-row>{{ row.enrollment_number }}</ng-template></app-column
+    >
+    <app-column header="Estudiante"
+      ><ng-template let-row>{{ row.first_name }} {{ row.last_name }}</ng-template></app-column
+    >
   </app-data-table>
 </section>
+@if (taskEditor() !== false) {
+  <div class="modal d-block" role="dialog" aria-modal="true" aria-labelledby="task-editor-title">
+    <div class="modal-dialog">
+      <form class="modal-content" (ngSubmit)="saveTask()">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="task-editor-title">
+            {{ taskEditor() ? 'Editar tarea' : 'Agregar tarea' }}
+          </h2>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Cerrar"
+            (click)="taskEditor.set(false)"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label" for="task-name">Nombre</label>
+          <input
+            id="task-name"
+            class="form-control mb-3"
+            name="taskName"
+            [(ngModel)]="taskName"
+            required
+          />
+          <label class="form-label" for="task-description">Descripción</label>
+          <textarea
+            id="task-description"
+            class="form-control mb-3"
+            name="taskDescription"
+            [(ngModel)]="taskDescription"
+          ></textarea>
+          <label class="form-label" for="task-due-date">Fecha de vencimiento</label>
+          <input
+            id="task-due-date"
+            class="form-control"
+            type="date"
+            name="taskDueAt"
+            [(ngModel)]="taskDueAt"
+            required
+          />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" (click)="taskEditor.set(false)">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
 <section class="card p-4">
   <div class="section-heading">
     <h2>Tareas</h2>
@@ -28,23 +83,28 @@
     }
   </div>
   <app-data-table [page]="tasksList()" (pageChange)="loadTasks($event)">
-    <app-column header="Nombre"><ng-template let-row>{{ row.name }}</ng-template></app-column>
-    <app-column header="Vencimiento"><ng-template let-row>{{ row.due_at | date: 'medium' }}</ng-template></app-column>
-    <app-column header="Estado"><ng-template let-row>{{ statusLabel(row.status) }}</ng-template></app-column>
-    <app-column header="Acciones"><ng-template let-task>
-              <app-icon-button
-                icon="eye"
-                label="Ver entregas"
-                [routerLink]="['/tasks', task.id, 'deliveries']"
-              />
-              @if (!isAdmin) {
-                <app-icon-button icon="pencil" label="Editar tarea" (click)="editTask(task)" />
-                <app-icon-button
-                  icon="x-circle"
-                  label="Cancelar tarea"
-                  (click)="cancelTask(task)"
-                />
-              }
-    </ng-template></app-column>
+    <app-column header="Nombre"
+      ><ng-template let-row>{{ row.name }}</ng-template></app-column
+    >
+    <app-column header="Vencimiento"
+      ><ng-template let-row>{{
+        row.due_at + 'T00:00:00' | date: 'dd/MM/yyyy'
+      }}</ng-template></app-column
+    >
+    <app-column header="Estado"
+      ><ng-template let-row>{{ statusLabel(row.status) }}</ng-template></app-column
+    >
+    <app-column header="Acciones"
+      ><ng-template let-task>
+        <app-icon-button
+          icon="eye"
+          label="Ver entregas"
+          [routerLink]="['/tasks', task.id, 'deliveries']"
+        />
+        @if (!isAdmin) {
+          <app-icon-button icon="pencil" label="Editar tarea" (click)="editTask(task)" />
+          <app-icon-button icon="x-circle" label="Cancelar tarea" (click)="cancelTask(task)" />
+        }</ng-template
+    ></app-column>
   </app-data-table>
 </section>

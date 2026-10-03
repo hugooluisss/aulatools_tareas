@@ -12,6 +12,7 @@ export interface CalendarItem {
   starts_at: string;
   ends_at: string;
   subject_id: number | null;
+  task_id?: number;
   google_calendar_url?: string;
 }
 
@@ -31,12 +32,18 @@ export class CalendarService {
 
   list(from: string, to: string, page = 1): Observable<Page<CalendarItem>> {
     return this.http.get<Page<CalendarItem>>(this.api, {
-      params: new HttpParams().set('from', from).set('to', to).set('page', page).set('per_page', 20),
+      params: new HttpParams()
+        .set('from', from)
+        .set('to', to)
+        .set('page', page)
+        .set('per_page', 20),
     });
   }
 
   events(page = 1): Observable<Page<CalendarEvent>> {
-    return this.http.get<Page<CalendarEvent>>(`${this.api}/events`, { params: { page, per_page: 20 } });
+    return this.http.get<Page<CalendarEvent>>(`${this.api}/events`, {
+      params: { page, per_page: 20 },
+    });
   }
 
   save(id: number | null, event: Omit<CalendarEvent, 'id'>): Observable<unknown> {

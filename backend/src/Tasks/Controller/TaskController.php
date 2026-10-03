@@ -29,6 +29,21 @@ final class TaskController
         ));
     }
 
+    public function overview(ServerRequestInterface $request): ResponseInterface
+    {
+        $query = $request->getQueryParams();
+        return $this->run(fn () => $this->service->overview(
+            $this->user($request),
+            isset($query['search']) ? (string) $query['search'] : null,
+            isset($query['status']) ? (string) $query['status'] : null,
+        ));
+    }
+
+    public function statuses(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->deliveryStatuses($this->user($request)));
+    }
+
     public function create(ServerRequestInterface $request, int $subject_id): ResponseInterface
     {
         return $this->run(fn () => $this->service->create($this->user($request), $subject_id, $this->body($request)), 201);

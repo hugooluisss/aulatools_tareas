@@ -17,9 +17,31 @@ describe('TeacherSubjectDetailComponent', () => {
         {
           provide: TasksService,
           useValue: {
-            students: () => of({ items: [{ id: 1, first_name: 'Leo', last_name: 'Ruiz', enrollment_number: '1' }], page: 1, per_page: 20, total: 1, total_pages: 1 }),
+            students: () =>
+              of({
+                items: [{ id: 1, first_name: 'Leo', last_name: 'Ruiz', enrollment_number: '1' }],
+                page: 1,
+                per_page: 20,
+                total: 1,
+                total_pages: 1,
+              }),
             tasks: () =>
-              of({ items: [{ id: 2, subject_id: 2, name: 'Proyecto', description: '', due_at: '', status: 'active' }], page: 1, per_page: 20, total: 1, total_pages: 1 }),
+              of({
+                items: [
+                  {
+                    id: 2,
+                    subject_id: 2,
+                    name: 'Proyecto',
+                    description: '',
+                    due_at: '2026-10-08',
+                    status: 'active',
+                  },
+                ],
+                page: 1,
+                per_page: 20,
+                total: 1,
+                total_pages: 1,
+              }),
           },
         },
         {

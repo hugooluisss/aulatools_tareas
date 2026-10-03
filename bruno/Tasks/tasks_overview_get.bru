@@ -1,0 +1,19 @@
+meta {
+  name: /tasks/overview (GET)
+  type: http
+  seq: 49
+}
+
+get {
+  url: {{baseUrl}}/tasks/overview?search={{search}}&status={{status}}
+  auth: inherit
+}
+
+docs {
+  GET `/tasks/overview` Roles: Admin. Query parameters: search and comma-separated status values (`pending`, `delivered`, `graded`, `cancelled`); absent or empty status returns all statuses. Response: 200 `[{delivery_id,status,task:{id,title,description,due_at},student:{id,first_name,last_name},subject:{id,code,name}}]`, sorted by due date ascending. Errors: {error:{code,message}} with HTTP 400/401/403/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
 import { GoogleCalendarLinkService } from '../../core/services/google-calendar-link.service';
@@ -9,6 +9,7 @@ import { SubjectsService } from '../admin/subjects.service';
 import { CalendarEvent, CalendarItem, CalendarService } from './calendar.service';
 import { Page } from '../../core/models/page';
 import { PaginatorComponent } from '../../shared/paginator/paginator.component';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-calendar',
@@ -31,8 +32,20 @@ export class CalendarComponent {
     starts_at: ['', Validators.required],
     ends_at: ['', Validators.required],
   });
-  items = signal<Page<CalendarItem>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
-  events = signal<Page<CalendarEvent>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  items = signal<Page<CalendarItem>>({
+    items: [],
+    page: 1,
+    per_page: 20,
+    total: 0,
+    total_pages: 1,
+  });
+  events = signal<Page<CalendarEvent>>({
+    items: [],
+    page: 1,
+    per_page: 20,
+    total: 0,
+    total_pages: 1,
+  });
   page = signal(1);
   eventsPage = signal(1);
   subjects = signal<{ id: string; name: string }[]>([]);
@@ -40,6 +53,8 @@ export class CalendarComponent {
   month = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   editing: number | null = null;
   error = signal('');
+  selectedDay = signal<Date | null>(null);
+  selectedItem = signal<CalendarItem | null>(null);
 
   constructor() {
     if (this.isAdmin) {
@@ -66,18 +81,68 @@ export class CalendarComponent {
 
   moveMonth(amount: number): void {
     this.month = new Date(this.month.getFullYear(), this.month.getMonth() + amount, 1);
+    this.selectedDay.set(null);
     this.load();
   }
 
   load(): void {
     const from = new Date(this.month.getFullYear(), this.month.getMonth(), 1).toISOString();
     const to = new Date(this.month.getFullYear(), this.month.getMonth() + 1, 1).toISOString();
-    this.api.list(from, to, this.page()).subscribe((rows) => this.items.set(rows));
+    this.api.list(from, to, 1).subscribe((first) => {
+      if (first.total_pages <= 1) {
+        this.items.set(first);
+        this.page.set(1);
+        return;
+      }
+      forkJoin(
+        Array.from({ length: first.total_pages - 1 }, (_, index) =>
+          this.api.list(from, to, index + 2),
+        ),
+      ).subscribe((rest) => {
+        this.items.set({
+          ...first,
+          items: [...first.items, ...rest.flatMap((rows) => rows.items)],
+        });
+        this.page.set(1);
+      });
+    });
+  }
+
+  selectDay(day: Date): void {
+    this.selectedDay.set(day);
+  }
+
+  openItem(item: CalendarItem): void {
+    this.selectedItem.set(item);
+  }
+
+  closeItem(): void {
+    this.selectedItem.set(null);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeItemOnEscape(): void {
+    this.closeItem();
+  }
+
+  dateOnly(value: string): boolean {
+    return value.length === 10;
+  }
+
+  subjectName(item: CalendarItem): string {
+    return (
+      this.subjects().find((subject) => Number(subject.id) === item.subject_id)?.name ??
+      'Toda la escuela'
+    );
+  }
+
+  editItem(item: CalendarItem): void {
+    const event = this.events().items.find((row) => row.id === item.id);
+    if (event) this.edit(event);
   }
 
   loadPage(page: number): void {
     this.page.set(page);
-    this.load();
   }
 
   loadEvents(page = this.eventsPage()): void {

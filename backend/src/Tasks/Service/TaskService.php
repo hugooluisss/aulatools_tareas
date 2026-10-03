@@ -48,9 +48,60 @@ final class TaskService
         );
         $result['data'] = array_map(fn (array $task): array => [
             ...$task,
-            'due_at' => $this->isoTimestamp($task['due_at']),
+            'due_at' => $task['due_at'],
         ], $result['data']);
         return $this->paginated($result, $page, $perPage);
+    }
+
+    public function overview(CurrentUser $user, ?string $search, ?string $status): array
+    {
+        if ($user->role !== 'admin') {
+            throw new TaskException('Forbidden.', 403);
+        }
+        $statuses = $status === null || trim($status) === '' ? [] : array_map('trim', explode(',', $status));
+        foreach ($statuses as $value) {
+            if (!in_array($value, ['pending', 'delivered', 'graded', 'cancelled'], true)) {
+                throw new TaskException('Invalid status.', 400);
+            }
+        }
+        $rows = $this->repository->overview(
+            $user->schoolId,
+            $search === null ? null : trim($search),
+            $statuses,
+        );
+        return array_map(static fn (array $row): array => [
+            'delivery_id' => (int) $row['delivery_id'],
+            'status' => $row['status'],
+            'task' => [
+                'id' => (int) $row['task_id'],
+                'title' => $row['task_title'],
+                'description' => $row['task_description'],
+                'due_at' => $row['due_at'],
+            ],
+            'student' => [
+                'id' => (int) $row['student_id'],
+                'first_name' => $row['student_first_name'],
+                'last_name' => $row['student_last_name'],
+            ],
+            'subject' => [
+                'id' => (int) $row['subject_id'],
+                'code' => $row['subject_code'],
+                'name' => $row['subject_name'],
+            ],
+        ], $rows);
+    }
+
+    public function deliveryStatuses(CurrentUser $user): array
+    {
+        if (!in_array($user->role, ['admin', 'teacher', 'student'], true)) {
+            throw new TaskException('Forbidden.', 403);
+        }
+        return array_map(static fn (array $status): array => [
+            'code' => $status['code'],
+            'label' => $status['label'],
+            'color' => $status['color'],
+            'text_color' => $status['text_color'],
+        ], $this->repository->deliveryStatuses());
     }
 
     public function create(CurrentUser $user, int $subjectId, array $data): array
@@ -95,7 +146,7 @@ final class TaskService
             'cycle_id' => (int) $task['cycle_id'],
             'name' => $task['name'],
             'description' => $task['description'],
-            'due_at' => $this->isoTimestamp($task['due_at']),
+            'due_at' => $task['due_at'],
             'status' => $task['status'],
             'teacher' => [
                 'id' => (int) $task['teacher_user_id'],
@@ -207,7 +258,7 @@ final class TaskService
                 'id' => (int) $row['task_id'],
                 'name' => $row['name'],
                 'description' => $row['description'],
-                'due_at' => $this->isoTimestamp($row['due_at']),
+                'due_at' => $row['due_at'],
                 'status' => $row['task_status'],
             ],
             'subject' => ['id' => (int) $row['subject_id'], 'name' => $row['subject_name']],
@@ -235,7 +286,7 @@ final class TaskService
                 'id' => (int) $row['task_id'],
                 'name' => $row['name'],
                 'description' => $row['description'],
-                'due_at' => $this->isoTimestamp($row['due_at']),
+                'due_at' => $row['due_at'],
                 'status' => $row['task_status'],
             ],
             'subject' => ['id' => (int) $row['subject_id'], 'name' => $row['subject_name']],
@@ -325,14 +376,17 @@ final class TaskService
             }
         }
         try {
-            $date = new \DateTimeImmutable($data['due_at']);
+            $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $data['due_at']);
         } catch (\Throwable) {
+            throw new TaskException('Invalid due_at.', 400);
+        }
+        if ($date === false || $date->format('Y-m-d') !== $data['due_at']) {
             throw new TaskException('Invalid due_at.', 400);
         }
         return [
             'name' => trim($data['name']),
             'description' => trim($data['description']),
-            'due_at' => $date->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
+            'due_at' => $date->format('Y-m-d'),
         ];
     }
 

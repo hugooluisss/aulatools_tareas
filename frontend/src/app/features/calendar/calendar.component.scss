@@ -10,6 +10,20 @@
   gap: v.$spacing-md;
 }
 
+.calendar-page__event-row {
+  flex-wrap: wrap;
+}
+
+.calendar-page__event-title {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: v.$primary;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+}
+
 .calendar-page__form,
 .calendar-page__event-list {
   display: grid;
@@ -37,6 +51,12 @@
 
 .calendar-page__day {
   min-height: 8rem;
+  cursor: pointer;
+}
+
+.calendar-page__day--selected {
+  outline: 2px solid v.$primary;
+  outline-offset: -2px;
 }
 
 .calendar-page__day h3 {
@@ -55,6 +75,14 @@
   margin-bottom: v.$spacing-xs;
   padding: v.$spacing-xs;
   border-left: 3px solid v.$primary;
+  cursor: pointer;
+}
+
+.calendar-page__item:focus-visible,
+.calendar-page__event-title:focus-visible,
+.calendar-page__day:focus-visible {
+  outline: 2px solid v.$primary;
+  outline-offset: 2px;
 }
 
 .calendar-page__item small {

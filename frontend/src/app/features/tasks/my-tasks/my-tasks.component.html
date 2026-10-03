@@ -22,10 +22,29 @@
   }
 </header>
 <app-data-table [page]="rows()" [loading]="loading()" (pageChange)="load($event)">
-  <app-column header="Tarea"><ng-template let-row>{{ row.task.name }}</ng-template></app-column>
-  <app-column header="Materia"><ng-template let-row>{{ row.subject.name }}</ng-template></app-column>
-  <app-column header="Calificación"><ng-template let-row>{{ row.delivery.grade ?? '—' }}</ng-template></app-column>
-  <app-column header="Estado"><ng-template let-row>{{ statusLabel(row.delivery.status) }}</ng-template></app-column>
-  <app-column header="Vencimiento"><ng-template let-row>{{ row.task.due_at | date: 'mediumDate' }} @if (row.delivery.overdue) { <span class="badge text-bg-danger">Vencida</span> }</ng-template></app-column>
-  <app-column header="Detalle"><ng-template let-row><a [routerLink]="['/my-tasks', row.delivery.id]">Ver detalle</a></ng-template></app-column>
+  <app-column header="Tarea"
+    ><ng-template let-row>{{ row.task.name }}</ng-template></app-column
+  >
+  <app-column header="Materia"
+    ><ng-template let-row>{{ row.subject.name }}</ng-template></app-column
+  >
+  <app-column header="Calificación"
+    ><ng-template let-row>{{ row.delivery.grade ?? '—' }}</ng-template></app-column
+  >
+  <app-column header="Estado"
+    ><ng-template let-row>{{ statusLabel(row.delivery.status) }}</ng-template></app-column
+  >
+  <app-column header="Vencimiento"
+    ><ng-template let-row
+      >{{ row.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy' }}
+      @if (row.delivery.overdue) {
+        <span class="badge text-bg-danger">Vencida</span>
+      }
+    </ng-template></app-column
+  >
+  <app-column header="Detalle"
+    ><ng-template let-row
+      ><a [routerLink]="['/my-tasks', row.delivery.id]">Ver detalle</a></ng-template
+    ></app-column
+  >
 </app-data-table>

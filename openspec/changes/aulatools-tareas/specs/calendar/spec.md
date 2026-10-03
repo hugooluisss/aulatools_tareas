@@ -21,6 +21,7 @@ Solo el administrativo SHALL poder crear, editar y eliminar eventos (título, de
 Cada usuario SHALL ver un calendario mensual con los eventos de su escuela, los de sus materias y las fechas de vencimiento de sus tareas.
 
 #### Scenario: Task due date shown
+- Task due dates use `YYYY-MM-DD` and appear on that calendar day.
 - **WHEN** el estudiante abre el calendario
 - **THEN** ve el vencimiento de sus tareas junto con los eventos
 

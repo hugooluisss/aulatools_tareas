@@ -33,7 +33,7 @@ Proyecto desde cero (repo vacío). Esta máquina no tiene php/composer/ng; sí t
 - `subjects(id, cycle_id, teacher_id→users, name, status[in_progress|finished])`
 - `groups(id, school_id, name)`; `group_subjects(group_id, subject_id)`
 - `enrollments(student_id, subject_id, source_group_id NULL, PK(student_id,subject_id))`
-- `tasks(id, subject_id, name, description, due_at, status[active|cancelled])`
+- `tasks(id, subject_id, name, description, due_at DATE, status[active|cancelled])`
 - `task_deliveries(id, task_id, student_id, status[pending|delivered|graded|cancelled], delivered_at NULL, grade NULL, UNIQUE(task_id,student_id))`
 - `task_comments(id, delivery_id, author_id→users, body, created_at)` — el hilo es la entrega, lo que da la privacidad por estudiante.
 - `calendar_events(id, school_id, subject_id NULL, title, description, starts_at, ends_at)`

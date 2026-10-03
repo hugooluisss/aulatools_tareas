@@ -14,12 +14,12 @@ body:json {
   {
     "name": "Chapter 1",
     "description": "Read and answer questions 1–5.",
-    "due_at": "2026-10-15T23:59:00-06:00"
+    "due_at": "2026-10-15"
   }
 }
 
 docs {
-  PUT `/tasks/id` Roles: Admin, task's teacher. Path ids: id. JSON body: name, description, due_at; use valid IDs and dates accepted by the API. Response: 200 bare resource object. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  PUT `/tasks/id` Roles: Admin, task's teacher. Path ids: id. JSON body: name, description, due_at (`YYYY-MM-DD`). Response: 200 bare resource object. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {

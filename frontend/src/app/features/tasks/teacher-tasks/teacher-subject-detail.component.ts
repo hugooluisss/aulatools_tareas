@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TasksService, Student, Task } from '../tasks.service';
 import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
@@ -12,7 +13,14 @@ import { ColumnComponent } from '../../../shared/data-table/column.component';
 @Component({
   selector: 'app-teacher-subject-detail',
   standalone: true,
-  imports: [RouterLink, IconButtonComponent, DatePipe, DataTableComponent, ColumnComponent],
+  imports: [
+    RouterLink,
+    IconButtonComponent,
+    DatePipe,
+    FormsModule,
+    DataTableComponent,
+    ColumnComponent,
+  ],
   templateUrl: './teacher-subject-detail.component.html',
   styleUrl: './teacher-subject-detail.component.scss',
 })
@@ -28,6 +36,10 @@ export class TeacherSubjectDetailComponent {
   taskPage = signal(1);
   cycles = signal<any[]>([]);
   cycleId = signal<number | null>(null);
+  taskEditor = signal<Task | null | false>(false);
+  taskName = '';
+  taskDescription = '';
+  taskDueAt = '';
 
   statusLabel(status: string): string {
     return { active: 'Activa', cancelled: 'Cancelada' }[status] ?? status;
@@ -51,7 +63,9 @@ export class TeacherSubjectDetailComponent {
 
   loadStudents(page: number): void {
     this.studentPage.set(page);
-    this.tasks.students(this.subjectId, this.cycleId() ?? undefined, page).subscribe((rows) => this.students.set(rows));
+    this.tasks
+      .students(this.subjectId, this.cycleId() ?? undefined, page)
+      .subscribe((rows) => this.students.set(rows));
   }
 
   filterChanged(): void {
@@ -62,34 +76,40 @@ export class TeacherSubjectDetailComponent {
 
   loadTasks(page = this.taskPage()): void {
     this.taskPage.set(page);
-    this.tasks.tasks(this.subjectId, this.cycleId() ?? undefined, page).subscribe((rows) => this.tasksList.set(rows));
+    this.tasks
+      .tasks(this.subjectId, this.cycleId() ?? undefined, page)
+      .subscribe((rows) => this.tasksList.set(rows));
   }
 
   createTask(): void {
-    const name = prompt('Nombre de la tarea');
-    if (!name?.trim()) return;
-    const description = prompt('Descripción') ?? '';
-    const dueAt = prompt('Fecha y hora de vencimiento (ISO 8601)');
-    if (!dueAt) return;
-    this.tasks
-      .createTask(this.subjectId, {
-        name: name.trim(),
-        description,
-        due_at: dueAt,
-        cycle_id: this.cycleId()!,
-      })
-      .subscribe(() => this.loadTasks());
+    this.taskName = '';
+    this.taskDescription = '';
+    this.taskDueAt = '';
+    this.taskEditor.set(null);
   }
 
   editTask(task: Task): void {
-    const name = prompt('Nombre de la tarea', task.name);
-    if (!name?.trim()) return;
-    const description = prompt('Descripción', task.description) ?? '';
-    const dueAt = prompt('Fecha y hora de vencimiento (ISO 8601)', task.due_at);
-    if (!dueAt) return;
-    this.tasks
-      .updateTask(task.id, { name: name.trim(), description, due_at: dueAt })
-      .subscribe(() => this.loadTasks());
+    this.taskName = task.name;
+    this.taskDescription = task.description;
+    this.taskDueAt = task.due_at;
+    this.taskEditor.set(task);
+  }
+
+  saveTask(): void {
+    const editing = this.taskEditor();
+    if (editing === false || !this.taskName.trim() || !this.taskDueAt) return;
+    const data = {
+      name: this.taskName.trim(),
+      description: this.taskDescription,
+      due_at: this.taskDueAt,
+    };
+    const request = editing
+      ? this.tasks.updateTask(editing.id, data)
+      : this.tasks.createTask(this.subjectId, { ...data, cycle_id: this.cycleId()! });
+    request.subscribe(() => {
+      this.taskEditor.set(false);
+      this.loadTasks();
+    });
   }
 
   cancelTask(task: Task): void {

@@ -1,0 +1,19 @@
+meta {
+  name: /tasks/statuses (GET)
+  type: http
+  seq: 50
+}
+
+get {
+  url: {{baseUrl}}/tasks/statuses
+  auth: inherit
+}
+
+docs {
+  GET `/tasks/statuses` Roles: cualquier usuario autenticado. Response: 200 `[{code,label,color,text_color}]`; ambos colores son valores hexadecimales accesibles.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}

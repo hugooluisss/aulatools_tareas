@@ -147,7 +147,9 @@ class CalendarRepository
               AND calendar_events.starts_at <= :event_to AND {$eventVisibility}
             UNION ALL
             SELECT 'task_due' AS type, tasks.id, tasks.name AS title, tasks.description,
-                   tasks.due_at AS starts_at, tasks.due_at AS ends_at, subjects.id AS subject_id, tasks.id AS task_id
+                   CONCAT(tasks.due_at, ' 00:00:00') AS starts_at,
+                   CONCAT(tasks.due_at, ' 00:00:00') AS ends_at,
+                   subjects.id AS subject_id, tasks.id AS task_id
             FROM tasks
             INNER JOIN subjects ON subjects.id = tasks.subject_id
             INNER JOIN academic_cycles AS task_cycles ON task_cycles.id = tasks.cycle_id

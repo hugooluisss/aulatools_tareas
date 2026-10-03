@@ -1,0 +1,120 @@
+<h1>Tareas</h1>
+<div class="task-overview__filters">
+  <input
+    id="task-overview-search"
+    class="form-control"
+    type="search"
+    aria-label="Buscar estudiante o materia"
+    placeholder="Buscar estudiante o materia"
+    [(ngModel)]="search"
+    (ngModelChange)="filtersChanged()"
+  />
+  <div class="task-overview__status-filters" role="group" aria-label="Filtrar por estado">
+    @for (value of statuses(); track value.code) {
+      <button
+        type="button"
+        class="task-overview__status-button"
+        [class.task-overview__status-button--selected]="selectedStatuses.includes(value.code)"
+        [style.--status-color]="value.color"
+        [style.--status-text-color]="value.text_color"
+        [attr.aria-pressed]="selectedStatuses.includes(value.code)"
+        (click)="toggleStatus(value.code)"
+      >
+        {{ value.label }}
+      </button>
+    }
+  </div>
+</div>
+<app-data-table [page]="tablePage()" [loading]="loading()" (pageChange)="loadPage($event)">
+  <app-column header="Materia"
+    ><ng-template let-row
+      ><span
+        tabindex="0"
+        role="button"
+        (click)="openDetails(row)"
+        (keydown.enter)="openDetails(row)"
+        >{{ row.subject.code }} · {{ row.subject.name }}</span
+      ></ng-template
+    ></app-column
+  >
+  <app-column header="Tarea"
+    ><ng-template let-row
+      ><span
+        tabindex="0"
+        role="button"
+        (click)="openDetails(row)"
+        (keydown.enter)="openDetails(row)"
+        >{{ row.task.title }}</span
+      ></ng-template
+    ></app-column
+  >
+  <app-column header="Estudiante"
+    ><ng-template let-row
+      >{{ row.student.first_name }} {{ row.student.last_name }}</ng-template
+    ></app-column
+  >
+  <app-column header="Entrega"
+    ><ng-template let-row
+      ><span
+        class="task-overview__status-badge"
+        [style.--status-color]="statusByCode().get(row.status)?.color"
+        [style.--status-text-color]="statusByCode().get(row.status)?.text_color"
+        >{{ statusByCode().get(row.status)?.label }}</span
+      ></ng-template
+    ></app-column
+  >
+  <app-column header="Fecha límite"
+    ><ng-template let-row>{{
+      row.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy'
+    }}</ng-template></app-column
+  >
+</app-data-table>
+@if (selectedRow(); as row) {
+  <div class="modal-backdrop fade show"></div>
+  <div
+    class="modal d-block"
+    tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="task-overview-detail-title"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="task-overview-detail-title">{{ row.task.title }}</h2>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Cerrar"
+            (click)="closeDetails()"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>{{ row.task.description }}</p>
+          <dl>
+            <dt>Materia</dt>
+            <dd>{{ row.subject.code }} · {{ row.subject.name }}</dd>
+            <dt>Estudiante</dt>
+            <dd>{{ row.student.first_name }} {{ row.student.last_name }}</dd>
+            <dt>Entrega</dt>
+            <dd>
+              <span
+                class="task-overview__status-badge"
+                [style.--status-color]="statusByCode().get(row.status)?.color"
+                [style.--status-text-color]="statusByCode().get(row.status)?.text_color"
+                >{{ statusByCode().get(row.status)?.label }}</span
+              >
+            </dd>
+            <dt>Fecha límite</dt>
+            <dd>{{ row.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy' }}</dd>
+          </dl>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" (click)="closeDetails()">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
