@@ -36,4 +36,15 @@ describe('AuthService', () => {
     expect(request.request.headers.get('Authorization')).toBe('Bearer jwt');
     request.flush({});
   });
+  it('sends password reset requests with the API contract bodies', () => {
+    service.forgotPassword('a@escuela.mx').subscribe((result) => expect(result.message).toBe('ok'));
+    const forgot = http.expectOne(`${environment.apiUrl}/auth/forgot-password`);
+    expect(forgot.request.method).toBe('POST');
+    expect(forgot.request.body).toEqual({ email: 'a@escuela.mx' });
+    forgot.flush({ message: 'ok' });
+    service.resetPassword('token', 'clave1234').subscribe();
+    const reset = http.expectOne(`${environment.apiUrl}/auth/reset-password`);
+    expect(reset.request.body).toEqual({ token: 'token', password: 'clave1234' });
+    reset.flush({});
+  });
 });

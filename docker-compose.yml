@@ -11,7 +11,17 @@ services:
       - "host.docker.internal:host-gateway"
     env_file:
       - .env
+    environment:
+      MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@aulatools.local}
+      APP_URL: ${APP_URL:-http://localhost:4330/aulatools-tareas_frontend}
     command: ["php", "-S", "0.0.0.0:8080", "-t", "public", "public/index.php"]
+    restart: unless-stopped
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     restart: unless-stopped
   frontend:
     image: node:22-alpine

@@ -1,31 +1,85 @@
 @use 'variables' as v;
 
-/* Authentication form card */
+/* Keep the original single-column card for school registration and password change. */
 .auth-card {
   width: min(100% - 2 * v.$spacing-lg, v.$auth-width);
   margin: 6vh auto;
   padding: v.$spacing-xl;
 }
 
-/* Authentication form headings */
 .auth-card h1 {
   color: v.$sidebar;
   font-size: v.$auth-heading-size;
 }
 
-/* Authentication form controls */
 .auth-card form {
   display: grid;
   gap: v.$spacing-sm;
   margin: 1.4rem 0;
 }
 
-.auth-card input {
-  margin-bottom: v.$spacing-md;
+.auth-card input { margin-bottom: v.$spacing-md; }
+.auth-card .error { color: v.$danger; min-height: 1rem; }
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, v.$sidebar, v.$primary);
 }
 
-/* Authentication feedback */
-.auth-card .error {
-  color: v.$danger;
-  min-height: 1rem;
+.auth-split {
+  width: min(100%, 920px);
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  overflow: hidden;
+  background: white;
+}
+
+.auth-brand {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: v.$sidebar;
+  background: v.$lavender;
+  text-align: center;
+}
+
+.auth-brand__badge {
+  width: 9rem;
+  aspect-ratio: 1;
+  display: grid;
+  place-content: center;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 8px 28px v.$shadow-soft;
+  font-size: 1.5rem;
+  font-weight: 750;
+}
+
+.auth-brand__badge small { display: block; font-size: 1rem; font-weight: 500; }
+
+.auth-content { padding: clamp(1.5rem, 5vw, 3.5rem); }
+.auth-content h1 { color: v.$sidebar; font-size: v.$auth-heading-size; }
+.auth-content form { display: grid; gap: v.$spacing-sm; margin: 1.4rem 0; }
+.auth-content label { font-weight: 600; }
+.auth-field { position: relative; }
+.auth-field i { position: absolute; top: 50%; left: 1rem; transform: translateY(-50%); color: v.$primary; }
+.auth-field input { min-height: 48px; padding-left: 2.8rem; border-radius: 999px; background: v.$lavender; }
+.auth-content .btn { min-height: 48px; border-radius: 999px; }
+.auth-content .error { min-height: 1rem; margin: 0; color: v.$danger; }
+.auth-links { display: grid; justify-items: center; gap: .75rem; }
+.auth-links a { min-height: 44px; display: inline-flex; align-items: center; color: v.$primary; }
+.auth-message { color: v.$success; }
+
+@media (max-width: 767.98px) {
+  .auth-page { padding: 1rem; }
+  .auth-split { grid-template-columns: 1fr; width: 100%; }
+  .auth-brand { padding: .75rem; }
+  .auth-brand__badge { width: 4.5rem; box-shadow: none; font-size: 1rem; }
+  .auth-brand__badge small { font-size: .7rem; }
+  .auth-content { padding: 1.5rem; }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Health\Controller\HealthController;
 use App\Auth\Controller\AuthController;
+use App\Auth\Controller\PasswordResetController;
 use App\Auth\Middleware\AuthenticationMiddleware;
 use App\Auth\Middleware\RoleRestrictionMiddleware;
 use App\Subjects\Controller\SubjectController;
@@ -22,6 +23,8 @@ return [
     Route::get('/reports/attendance')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([ReportController::class, 'attendance']),
     Route::post('/auth/register-school')->action([AuthController::class, 'registerSchool']),
     Route::post('/auth/login')->action([AuthController::class, 'login']),
+    Route::post('/auth/forgot-password')->action([PasswordResetController::class, 'request']),
+    Route::post('/auth/reset-password')->action([PasswordResetController::class, 'reset']),
     Route::post('/auth/change-password')->middleware(AuthenticationMiddleware::class)->action([AuthController::class, 'changePassword']),
     Route::get('/school')->middleware(AuthenticationMiddleware::class)->action([SchoolController::class, 'view']),
     Route::put('/school')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SchoolController::class, 'update']),

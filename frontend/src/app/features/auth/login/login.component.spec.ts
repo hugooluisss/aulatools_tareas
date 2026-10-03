@@ -34,4 +34,10 @@ describe('LoginComponent', () => {
     await fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/home');
   });
+  it('renders the split brand and password recovery link', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('.auth-split')?.classList.contains('card')).toBe(true);
+    expect(element.textContent).toContain('aulatools');
+    expect(element.querySelector('a[href="/forgot-password"]')).not.toBeNull();
+  });
 });

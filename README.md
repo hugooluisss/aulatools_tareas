@@ -26,6 +26,8 @@ Aplicación web escolar para organizar ciclos, materias, grupos e inscripciones,
 
 La API queda en <http://localhost:8090> y Angular en <http://localhost:4330>. El origen de API del frontend está en `frontend/src/environments/environment.ts`.
 
+El correo de recuperación usa Mailpit en desarrollo: `docker compose up -d mailpit`; su interfaz está en <http://localhost:8025>. Compose configura `MAILER_DSN`, `MAIL_FROM` y `APP_URL` con valores predeterminados. El endpoint de solicitud no limita intentos en este alcance.
+
 ## Publicación en agents-dev
 
 La publicación de desarrollo usa <https://agents-dev.hugosantiago.dev/aulatools-tareas_frontend/> para Angular y <https://agents-dev.hugosantiago.dev/aulatools-tareas_backend> para la API. Caddy conserva el prefijo del frontend y lo elimina para las rutas del backend. El servidor Angular corre en modo desarrollo con recarga en vivo; Docker Compose publica los puertos locales 4330 (frontend) y 8090 (backend), y MySQL sigue en el host.

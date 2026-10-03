@@ -16,6 +16,12 @@ export class AuthService {
       .post<{ token: string }>(`${environment.apiUrl}/auth/login`, data)
       .pipe(tap(({ token }) => this.tokens.setToken(token)));
   }
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${environment.apiUrl}/auth/forgot-password`, { email });
+  }
+  resetPassword(token: string, password: string): Observable<unknown> {
+    return this.http.post(`${environment.apiUrl}/auth/reset-password`, { token, password });
+  }
   changePassword(data: { current_password: string; new_password: string }): Observable<unknown> {
     return this.http.post(`${environment.apiUrl}/auth/change-password`, data);
   }
