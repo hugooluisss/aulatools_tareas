@@ -18,11 +18,9 @@ export class HomeComponent {
     if (this.role === 'student') {
       this.tasks
         .myTasks()
-        .subscribe((response) =>
-          this.count.set(Number(response.headers.get('X-Total-Count') ?? 0)),
-        );
+        .subscribe((response) => this.count.set(response.total));
     } else {
-      this.tasks.subjects().subscribe((rows) => this.count.set(rows.length));
+      this.tasks.subjects().subscribe((response) => this.count.set(response.total));
     }
   }
 }

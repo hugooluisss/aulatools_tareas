@@ -4,11 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TasksService, TaskRow } from '../tasks.service';
 import { CyclesService } from '../../admin/cycles.service';
+import { Page } from '../../../core/models/page';
+import { DataTableComponent } from '../../../shared/data-table/data-table.component';
+import { ColumnComponent } from '../../../shared/data-table/column.component';
 
 @Component({
   selector: 'app-my-tasks',
   standalone: true,
-  imports: [RouterLink, DatePipe, FormsModule],
+  imports: [RouterLink, DatePipe, FormsModule, DataTableComponent, ColumnComponent],
   templateUrl: './my-tasks.component.html',
   styleUrl: './my-tasks.component.scss',
 })
@@ -22,7 +25,8 @@ export class MyTasksComponent {
     { value: 'cancelled', label: 'Cancelada' },
   ];
   status = 'pending';
-  rows = signal<TaskRow[]>([]);
+  rows = signal<Page<TaskRow>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  page = signal(1);
   loading = signal(true);
   cycles = signal<any[]>([]);
   cycleId = signal<number | null>(null);
@@ -39,21 +43,24 @@ export class MyTasksComponent {
   }
 
   constructor() {
-    this.cyclesApi.list().subscribe((rows) => {
+    this.cyclesApi.all().subscribe((rows) => {
       this.cycles.set(rows.filter((row) => row.status === 'active'));
       if (this.cycles().length === 1) this.cycleId.set(Number(this.cycles()[0].id));
       this.load();
     });
   }
 
-  load(): void {
+  load(page = 1): void {
+    this.page.set(page);
     this.loading.set(true);
-    this.tasks.myTasks(this.status, this.cycleId() ?? undefined).subscribe({
+    this.tasks.myTasks(this.status, this.cycleId() ?? undefined, page).subscribe({
       next: (response) => {
-        this.rows.set(response.body ?? []);
+        this.rows.set(response);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
   }
+
+  filterChanged(): void { this.load(1); }
 }

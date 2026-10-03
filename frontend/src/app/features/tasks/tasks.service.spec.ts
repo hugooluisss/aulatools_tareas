@@ -20,9 +20,9 @@ describe('TasksService', () => {
 
   it('uses the documented student task filter endpoint', () => {
     service.myTasks().subscribe();
-    const request = http.expectOne(`${environment.apiUrl}/me/tasks?status=pending`);
+    const request = http.expectOne(`${environment.apiUrl}/me/tasks?status=pending&page=1&per_page=20`);
     expect(request.request.method).toBe('GET');
-    request.flush([]);
+    request.flush({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
   });
 
   it('posts comments to the delivery thread', () => {

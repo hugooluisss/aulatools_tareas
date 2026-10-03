@@ -43,7 +43,7 @@
         >
           Agregar nota
         </button>
-        @for (note of notes(); track note.id) {
+        @for (note of notes().items; track note.id) {
           <article class="border-top py-3">
             <p class="mb-1">{{ note.body }}</p>
             <small class="text-body-secondary"
@@ -55,6 +55,9 @@
           @if (!loading()) {
             <p>No hay notas.</p>
           }
+        }
+        @if (notes().total_pages > 1) {
+          <app-paginator [page]="page()" [totalPages]="notes().total_pages" [total]="notes().total" (pageChange)="load($event)" />
         }
       </div>
       <div class="modal-footer">

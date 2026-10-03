@@ -7,11 +7,13 @@ import { TokenStorageService } from '../../core/auth/token-storage.service';
 import { IconButtonComponent } from '../../shared/icon-button/icon-button.component';
 import { SubjectsService } from '../admin/subjects.service';
 import { CalendarEvent, CalendarItem, CalendarService } from './calendar.service';
+import { Page } from '../../core/models/page';
+import { PaginatorComponent } from '../../shared/paginator/paginator.component';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [DatePipe, ReactiveFormsModule, IconButtonComponent],
+  imports: [DatePipe, ReactiveFormsModule, IconButtonComponent, PaginatorComponent],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.scss',
 })
@@ -29,8 +31,10 @@ export class CalendarComponent {
     starts_at: ['', Validators.required],
     ends_at: ['', Validators.required],
   });
-  items = signal<CalendarItem[]>([]);
-  events = signal<CalendarEvent[]>([]);
+  items = signal<Page<CalendarItem>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  events = signal<Page<CalendarEvent>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  page = signal(1);
+  eventsPage = signal(1);
   subjects = signal<{ id: string; name: string }[]>([]);
   formOpen = signal(false);
   month = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -40,7 +44,7 @@ export class CalendarComponent {
   constructor() {
     if (this.isAdmin) {
       this.api.events().subscribe((rows) => this.events.set(rows));
-      this.subjectsApi.list().subscribe((rows) => this.subjects.set(rows));
+      this.subjectsApi.all().subscribe((rows) => this.subjects.set(rows));
     }
     this.load();
   }
@@ -68,11 +72,21 @@ export class CalendarComponent {
   load(): void {
     const from = new Date(this.month.getFullYear(), this.month.getMonth(), 1).toISOString();
     const to = new Date(this.month.getFullYear(), this.month.getMonth() + 1, 1).toISOString();
-    this.api.list(from, to).subscribe((rows) => this.items.set(rows));
+    this.api.list(from, to, this.page()).subscribe((rows) => this.items.set(rows));
+  }
+
+  loadPage(page: number): void {
+    this.page.set(page);
+    this.load();
+  }
+
+  loadEvents(page = this.eventsPage()): void {
+    this.eventsPage.set(page);
+    this.api.events(page).subscribe((rows) => this.events.set(rows));
   }
 
   itemsFor(day: Date): CalendarItem[] {
-    return this.items().filter((item) => {
+    return this.items().items.filter((item) => {
       const date = new Date(item.starts_at);
       return (
         date.getFullYear() === day.getFullYear() &&
@@ -151,7 +165,11 @@ export class CalendarComponent {
     this.editing = null;
     this.formOpen.set(false);
     this.form.reset({ subject_id: '', title: '', description: '', starts_at: '', ends_at: '' });
-    this.api.events().subscribe((rows) => this.events.set(rows));
+    const page = this.eventsPage();
+    this.api.events(page).subscribe((rows) => {
+      if (page > 1 && !rows.items.length && rows.total_pages < page) this.loadEvents(page - 1);
+      else this.events.set(rows);
+    });
     this.load();
   }
 

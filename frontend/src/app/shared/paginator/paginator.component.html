@@ -1,0 +1,19 @@
+<nav aria-label="Paginación">
+  <ul class="pagination justify-content-center mb-0">
+    <li class="page-item" [class.disabled]="page() <= 1">
+      <app-icon-button icon="chevron-left" label="Página anterior" variant="outline-primary" [disabled]="page() <= 1" (clicked)="select(page() - 1)" />
+    </li>
+    @for (item of pages(); track $index) {
+      @if (item === '…') {
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      } @else {
+        <li class="page-item" [class.active]="item === page()">
+          <button class="page-link" type="button" [attr.aria-current]="item === page() ? 'page' : null" (click)="select(item)">{{ item }}</button>
+        </li>
+      }
+    }
+    <li class="page-item" [class.disabled]="page() >= totalPages()">
+      <app-icon-button icon="chevron-right" label="Página siguiente" variant="outline-primary" [disabled]="page() >= totalPages()" (clicked)="select(page() + 1)" />
+    </li>
+  </ul>
+</nav>

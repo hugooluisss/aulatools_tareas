@@ -1,0 +1,18 @@
+@if (page().items.length) {
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead><tr>@for (column of columns(); track $index) { <th scope="col">{{ column.header() }}</th> }</tr></thead>
+      <tbody>
+        @for (row of page().items; track $index) {
+          <tr>@for (column of columns(); track $index) { <td><ng-container [ngTemplateOutlet]="column.cell()" [ngTemplateOutletContext]="{ $implicit: row }" /></td> }</tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (page().total_pages > 1) {
+    <app-paginator [page]="page().page" [totalPages]="page().total_pages" [total]="page().total" (pageChange)="pageChange.emit($event)" />
+  }
+} @else if (!loading()) {
+  <p class="text-center text-muted py-4">No hay registros</p>
+}
+<ng-content select="app-column" />

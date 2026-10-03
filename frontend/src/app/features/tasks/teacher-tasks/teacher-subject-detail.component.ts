@@ -5,11 +5,14 @@ import { TasksService, Student, Task } from '../tasks.service';
 import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
 import { CyclesService } from '../../admin/cycles.service';
 import { TokenStorageService } from '../../../core/auth/token-storage.service';
+import { Page } from '../../../core/models/page';
+import { DataTableComponent } from '../../../shared/data-table/data-table.component';
+import { ColumnComponent } from '../../../shared/data-table/column.component';
 
 @Component({
   selector: 'app-teacher-subject-detail',
   standalone: true,
-  imports: [RouterLink, IconButtonComponent, DatePipe],
+  imports: [RouterLink, IconButtonComponent, DatePipe, DataTableComponent, ColumnComponent],
   templateUrl: './teacher-subject-detail.component.html',
   styleUrl: './teacher-subject-detail.component.scss',
 })
@@ -19,8 +22,10 @@ export class TeacherSubjectDetailComponent {
   private readonly cyclesApi = inject(CyclesService);
   readonly isAdmin = inject(TokenStorageService).getRole() === 'admin';
   readonly subjectId = Number(this.route.snapshot.paramMap.get('subjectId'));
-  students = signal<Student[]>([]);
-  tasksList = signal<Task[]>([]);
+  students = signal<Page<Student>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  tasksList = signal<Page<Task>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  studentPage = signal(1);
+  taskPage = signal(1);
   cycles = signal<any[]>([]);
   cycleId = signal<number | null>(null);
 
@@ -29,7 +34,7 @@ export class TeacherSubjectDetailComponent {
   }
 
   constructor() {
-    this.cyclesApi.list().subscribe((rows) => {
+    this.cyclesApi.all().subscribe((rows) => {
       this.cycles.set(rows.filter((row) => row.status === 'active'));
       if (this.cycles().length === 1) this.cycleId.set(Number(this.cycles()[0].id));
       this.load();
@@ -39,15 +44,25 @@ export class TeacherSubjectDetailComponent {
   load(): void {
     if (this.cycles().length > 1 && !this.cycleId()) return;
     this.tasks
-      .students(this.subjectId, this.cycleId() ?? undefined)
+      .students(this.subjectId, this.cycleId() ?? undefined, this.studentPage())
       .subscribe((rows) => this.students.set(rows));
     this.loadTasks();
   }
 
-  loadTasks(): void {
-    this.tasks
-      .tasks(this.subjectId, this.cycleId() ?? undefined)
-      .subscribe((rows) => this.tasksList.set(rows));
+  loadStudents(page: number): void {
+    this.studentPage.set(page);
+    this.tasks.students(this.subjectId, this.cycleId() ?? undefined, page).subscribe((rows) => this.students.set(rows));
+  }
+
+  filterChanged(): void {
+    this.studentPage.set(1);
+    this.taskPage.set(1);
+    this.load();
+  }
+
+  loadTasks(page = this.taskPage()): void {
+    this.taskPage.set(page);
+    this.tasks.tasks(this.subjectId, this.cycleId() ?? undefined, page).subscribe((rows) => this.tasksList.set(rows));
   }
 
   createTask(): void {

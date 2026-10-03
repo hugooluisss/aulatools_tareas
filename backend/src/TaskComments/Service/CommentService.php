@@ -19,10 +19,7 @@ final class CommentService
         $this->pagination($page, $perPage);
         $result = $this->repository->list($deliveryId, ($page - 1) * $perPage, $perPage);
         $result['data'] = array_map([$this, 'format'], $result['data']);
-        return [
-            'data' => $result['data'],
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     public function create(CurrentUser $user, int $deliveryId, array $data): array

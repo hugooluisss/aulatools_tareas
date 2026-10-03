@@ -16,14 +16,6 @@ final class JsonResponse
         }
 
         $response = $factory->createResponse($status)->withHeader('Content-Type', 'application/json');
-        if (is_array($body) && array_key_exists('data', $body) && isset($body['meta']) && is_array($body['meta'])) {
-            $meta = $body['meta'];
-            $body = $body['data'];
-            $response = $response
-                ->withHeader('X-Total-Count', (string) ($meta['total'] ?? 0))
-                ->withHeader('X-Page', (string) ($meta['page'] ?? 1))
-                ->withHeader('X-Per-Page', (string) ($meta['per_page'] ?? 20));
-        }
         $response->getBody()->write(json_encode($body, JSON_THROW_ON_ERROR));
         return $response;
     }

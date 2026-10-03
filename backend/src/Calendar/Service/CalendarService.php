@@ -33,10 +33,7 @@ final class CalendarService
             $perPage,
         );
         $result['data'] = array_map(fn (array $item): array => $this->calendarItem($item), $result['data']);
-        return [
-            'data' => $result['data'],
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     public function listEvents(CurrentUser $user, array $query): array
@@ -45,10 +42,7 @@ final class CalendarService
         [$page, $perPage] = $this->pagination($query);
         $result = $this->repository->listEvents($user->schoolId, ($page - 1) * $perPage, $perPage);
         $result['data'] = array_map(fn (array $item): array => $this->formatEvent($item), $result['data']);
-        return [
-            'data' => $result['data'],
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     public function event(CurrentUser $user, int $id): array
@@ -185,12 +179,12 @@ final class CalendarService
 
     private function pagination(array $query): array
     {
-        $page = filter_var($query['page'] ?? 1, FILTER_VALIDATE_INT);
-        $perPage = filter_var($query['per_page'] ?? 20, FILTER_VALIDATE_INT);
-        if ($page === false || $perPage === false || $page < 1 || $perPage < 1 || $perPage > 100) {
-            throw new CalendarException('Invalid pagination.', 400);
+        try {
+            $page = \App\Shared\Paginator::parse($query);
+        } catch (\InvalidArgumentException $exception) {
+            throw new CalendarException($exception->getMessage(), 400);
         }
-        return [(int) $page, (int) $perPage];
+        return [$page['page'], $page['perPage']];
     }
 
     private function admin(CurrentUser $user): void

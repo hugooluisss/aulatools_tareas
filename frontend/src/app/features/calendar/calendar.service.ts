@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Page } from '../../core/models/page';
 
 export interface CalendarItem {
   id: number;
@@ -28,14 +29,14 @@ export class CalendarService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/calendar`;
 
-  list(from: string, to: string): Observable<CalendarItem[]> {
-    return this.http.get<CalendarItem[]>(this.api, {
-      params: new HttpParams().set('from', from).set('to', to),
+  list(from: string, to: string, page = 1): Observable<Page<CalendarItem>> {
+    return this.http.get<Page<CalendarItem>>(this.api, {
+      params: new HttpParams().set('from', from).set('to', to).set('page', page).set('per_page', 20),
     });
   }
 
-  events(): Observable<CalendarEvent[]> {
-    return this.http.get<CalendarEvent[]>(`${this.api}/events`);
+  events(page = 1): Observable<Page<CalendarEvent>> {
+    return this.http.get<Page<CalendarEvent>>(`${this.api}/events`, { params: { page, per_page: 20 } });
   }
 
   save(id: number | null, event: Omit<CalendarEvent, 'id'>): Observable<unknown> {

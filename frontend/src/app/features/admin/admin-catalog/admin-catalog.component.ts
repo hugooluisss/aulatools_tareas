@@ -15,6 +15,14 @@ import { finalize } from 'rxjs/operators';
 import { ImageCroppedEvent, ImageCropperComponent } from 'ngx-image-cropper';
 import { environment } from '../../../../environments/environment';
 import { StudentNotesModalComponent } from '../../tasks/student-notes-modal/student-notes-modal.component';
+import { Page } from '../../../core/models/page';
+import { DataTableComponent } from '../../../shared/data-table/data-table.component';
+import { ColumnComponent } from '../../../shared/data-table/column.component';
+import { StudentRow } from '../students.service';
+import { TeacherRow } from '../teachers.service';
+import { CycleRow } from '../cycles.service';
+import { GroupRow } from '../groups.service';
+import { SubjectRow } from '../subjects.service';
 
 @Component({
   selector: 'app-admin-catalog',
@@ -24,6 +32,8 @@ import { StudentNotesModalComponent } from '../../tasks/student-notes-modal/stud
     IconButtonComponent,
     ImageCropperComponent,
     StudentNotesModalComponent,
+    DataTableComponent,
+    ColumnComponent,
   ],
   templateUrl: './admin-catalog.component.html',
   styleUrl: './admin-catalog.component.scss',
@@ -56,12 +66,13 @@ export class AdminCatalogComponent {
     finished: 'Finalizado',
     in_progress: 'En curso',
   };
-  rows = signal<any[]>([]);
-  cycles = signal<any[]>([]);
+  page = signal<Page<StudentRow | TeacherRow | CycleRow | GroupRow | SubjectRow>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  currentPage = signal(1);
+  cycles = signal<CycleRow[]>([]);
   activeCycles = computed(() => this.cycles().filter((cycle) => cycle.status === 'active'));
-  groups = signal<any[]>([]);
-  teachers = signal<any[]>([]);
-  subjects = signal<any[]>([]);
+  groups = signal<GroupRow[]>([]);
+  teachers = signal<TeacherRow[]>([]);
+  subjects = signal<SubjectRow[]>([]);
   studyPlans = signal<StudyPlan[]>([]);
   cycleSubjects = computed(() => this.subjects().filter((subject) => subject.status === 'active'));
   subjectEnrollment = signal<any | null>(null);
@@ -110,10 +121,10 @@ export class AdminCatalogComponent {
     this.configureForm();
     this.reload();
     if (this.kind === 'subjects' || this.kind === 'groups') {
-      this.cyclesApi.list().subscribe((r) => this.cycles.set(r));
-      this.teachersApi.list().subscribe((r) => this.teachers.set(r));
+      this.cyclesApi.all().subscribe((r) => this.cycles.set(r));
+      this.teachersApi.all().subscribe((r) => this.teachers.set(r));
       this.subjectsApi
-        .list(this.kind === 'groups' ? 'active' : undefined)
+        .all(this.kind === 'groups' ? 'active' : undefined)
         .subscribe((r) => this.subjects.set(r));
     }
     if (this.kind === 'subjects')
@@ -122,17 +133,27 @@ export class AdminCatalogComponent {
         .subscribe((r) => this.studyPlans.set(r.filter((p) => p.status === 'active')));
   }
   reload(): void {
-    const api =
-      this.kind === 'students'
-        ? this.studentsApi
-        : this.kind === 'teachers'
-          ? this.teachersApi
-          : this.kind === 'cycles'
-            ? this.cyclesApi
-            : this.kind === 'subjects'
-              ? this.subjectsApi
-              : this.groupsApi;
-    api.list().subscribe((r) => this.rows.set(r));
+    const page = this.currentPage();
+    const onPage = <T extends StudentRow | TeacherRow | CycleRow | GroupRow | SubjectRow>(
+      result: Page<T>,
+    ) => this.setPage(result);
+    if (this.kind === 'students') this.studentsApi.list(page).subscribe(onPage);
+    else if (this.kind === 'teachers') this.teachersApi.list(page).subscribe(onPage);
+    else if (this.kind === 'cycles') this.cyclesApi.list(page).subscribe(onPage);
+    else if (this.kind === 'subjects') this.subjectsApi.list(undefined, page).subscribe(onPage);
+    else this.groupsApi.list(page).subscribe(onPage);
+  }
+  pageChange(page: number): void {
+    this.currentPage.set(page);
+    this.reload();
+  }
+  private setPage<T extends StudentRow | TeacherRow | CycleRow | GroupRow | SubjectRow>(
+    result: Page<T>,
+  ): void {
+    if (!result.items.length && result.page > 1 && result.total > 0) {
+      this.currentPage.set(result.page - 1);
+      this.reload();
+    } else this.page.set(result as Page<StudentRow | TeacherRow | CycleRow | GroupRow | SubjectRow>);
   }
   openNew(): void {
     this.editing = null;
@@ -241,7 +262,10 @@ export class AdminCatalogComponent {
           : this.kind === 'subjects'
             ? this.subjectsApi
             : this.groupsApi;
-    if ('remove' in api) api.remove(id).subscribe(() => this.done('Registro eliminado.'));
+    if ('remove' in api) api.remove(id).subscribe(() => {
+      if (this.page().items.length === 1 && this.currentPage() > 1) this.currentPage.update((page) => page - 1);
+      this.done('Registro eliminado.');
+    });
   }
   confirmRemove(): void {
     if (this.editing && window.confirm('¿Eliminar este estudiante? No se puede deshacer.'))

@@ -421,117 +421,47 @@
       </div>
     </div>
   }
-  <div class="table-responsive">
-    <table class="table align-middle">
-      <thead>
-        <tr>
+  <app-data-table [page]="page()" (pageChange)="pageChange($event)">
+    @if (kind === 'subjects') {<ng-container>
+      <app-column header="Clave"><ng-template let-row>{{ row.code }}</ng-template></app-column>
+      <app-column header="Plan"><ng-template let-row>{{ row.plan_name || '—' }}</ng-template></app-column>
+      <app-column header="Estado"><ng-template let-row>{{ statusLabels[row.status] ?? row.status }}</ng-template></app-column>
+      <app-column header="Estudiantes"><ng-template let-row>{{ row.students_count ?? 0 }}</ng-template></app-column>
+      <app-column header="Materia"><ng-template let-row>{{ detail(row) }}</ng-template></app-column>
+    </ng-container>} @else {<ng-container>
+      <app-column header="Nombre"><ng-template let-row>{{ row.name || row.first_name + ' ' + row.last_name }}</ng-template></app-column>
+      <app-column [header]="kind === 'subjects' ? 'Materia' : 'Detalle'">
+        <ng-template let-row>
+          @if (kind === 'teachers' && row.phone) {
+            <a [href]="'https://wa.me/' + row.phone" target="_blank" rel="noopener">{{ row.phone }}</a>
+          } @else { {{ detail(row) }} }
+        </ng-template>
+      </app-column>
+      <app-column header="Estado"><ng-template let-row>{{ row.status ? (statusLabels[row.status] ?? row.status) : '—' }}</ng-template></app-column>
+    </ng-container>}
+    <app-column header="Acciones">
+      <ng-template let-row>
+        <div class="admin-catalog__actions">
+          @if (kind === 'teachers' || kind === 'groups') { <app-icon-button icon="eye" label="Ver detalle" (click)="view(row)" /> }
+          @if (kind !== 'cycles') { <app-icon-button icon="pencil" label="Editar" (click)="edit(row)" /> }
+          @if (kind === 'cycles' && row.status === 'active') { <app-icon-button icon="check-circle" label="Finalizar ciclo" variant="success" (click)="finish(row.id)" /> }
           @if (kind === 'subjects') {
-            <th>Clave</th>
-            <th>Plan</th>
-            <th>Estado</th>
-            <th>Estudiantes</th>
+            <app-icon-button icon="person-plus" label="Agregar estudiante" [disabled]="!canAddSubjectStudents(row)" (click)="openAddStudents(row)" />
+            <app-icon-button icon="people" label="Ver estudiantes" [disabled]="!canAddSubjectStudents(row)" (click)="viewStudents(row.id)" />
           }
-          @if (kind !== 'subjects') {
-            <th>Nombre</th>
+          @if (kind === 'students') {
+            <app-icon-button icon="journal-text" label="Notas del estudiante" (click)="notesStudentId.set(row.id)" />
+            <app-icon-button [icon]="row.status === 'active' ? 'person-dash' : 'person-check'" label="Cambiar estado" (click)="toggle(row)" />
+            <app-icon-button icon="key" label="Restablecer contraseña" (click)="reset(row.id)" />
           }
-          <th>{{ kind === 'subjects' ? 'Materia' : 'Detalle' }}</th>
-          @if (kind !== 'subjects') {
-            <th>Estado</th>
+          @if (kind === 'teachers') { <app-icon-button icon="key" label="Restablecer contraseña" (click)="reset(row.id)" /> }
+          @if (kind !== 'cycles' && kind !== 'students') {
+            <app-icon-button icon="trash" label="Eliminar" variant="danger" [disabled]="kind === 'subjects' && hasEnrolledStudents(row)" (click)="remove(row.id)" />
           }
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (row of rows(); track row.id) {
-          <tr>
-            @if (kind === 'subjects') {
-              <td>{{ row.code }}</td>
-              <td>{{ row.plan_name || '—' }}</td>
-              <td>{{ statusLabels[row.status] ?? row.status }}</td>
-              <td>{{ row.students_count ?? 0 }}</td>
-            }
-            @if (kind !== 'subjects') {
-              <td>{{ row.name || row.first_name + ' ' + row.last_name }}</td>
-            }
-            <td>
-              @if (kind === 'teachers' && row.phone) {
-                <a [href]="'https://wa.me/' + row.phone" target="_blank" rel="noopener">{{
-                  row.phone
-                }}</a>
-              } @else {
-                {{ detail(row) }}
-              }
-            </td>
-            @if (kind !== 'subjects') {
-              <td>{{ row.status ? (statusLabels[row.status] ?? row.status) : '—' }}</td>
-            }
-            <td class="admin-catalog__actions">
-              @if (kind === 'teachers' || kind === 'groups') {
-                <app-icon-button icon="eye" label="Ver detalle" (click)="view(row)" />
-              }
-              @if (kind !== 'cycles') {
-                <app-icon-button icon="pencil" label="Editar" (click)="edit(row)" />
-              }
-              @if (kind === 'cycles' && row.status === 'active') {
-                <app-icon-button
-                  icon="check-circle"
-                  label="Finalizar ciclo"
-                  variant="success"
-                  (click)="finish(row.id)"
-                />
-              }
-              @if (kind === 'subjects') {
-                <app-icon-button
-                  icon="person-plus"
-                  label="Agregar estudiante"
-                  [disabled]="!canAddSubjectStudents(row)"
-                  (click)="openAddStudents(row)"
-                />
-                <app-icon-button
-                  icon="people"
-                  label="Ver estudiantes"
-                  [disabled]="!canAddSubjectStudents(row)"
-                  (click)="viewStudents(row.id)"
-                />
-              }
-              @if (kind === 'students') {
-                <app-icon-button
-                  icon="journal-text"
-                  label="Notas del estudiante"
-                  (click)="notesStudentId.set(row.id)"
-                />
-                <app-icon-button
-                  [icon]="row.status === 'active' ? 'person-dash' : 'person-check'"
-                  label="Cambiar estado"
-                  (click)="toggle(row)"
-                /><app-icon-button
-                  icon="key"
-                  label="Restablecer contraseña"
-                  (click)="reset(row.id)"
-                />
-              }
-              @if (kind === 'teachers') {
-                <app-icon-button
-                  icon="key"
-                  label="Restablecer contraseña"
-                  (click)="reset(row.id)"
-                />
-              }
-              @if (kind !== 'cycles' && kind !== 'students') {
-                <app-icon-button
-                  icon="trash"
-                  label="Eliminar"
-                  variant="danger"
-                  [disabled]="kind === 'subjects' && hasEnrolledStudents(row)"
-                  (click)="remove(row.id)"
-                />
-              }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+        </div>
+      </ng-template>
+    </app-column>
+  </app-data-table>
   @if (selectedRecord(); as record) {
     <section aria-label="Detalle del registro">
       <h2>Detalle</h2>

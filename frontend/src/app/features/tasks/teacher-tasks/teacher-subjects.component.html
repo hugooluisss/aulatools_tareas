@@ -5,7 +5,7 @@
     id="teacher-cycle"
     class="form-select mb-3"
     [value]="cycleId() ?? 0"
-    (change)="cycleId.set(+$any($event.target).value); load()"
+    (change)="cycleId.set(+$any($event.target).value); filterChanged()"
   >
     <option value="0">Selecciona un ciclo</option>
     @for (cycle of cycles(); track cycle.id) {
@@ -14,7 +14,7 @@
   </select>
 }
 <div class="subject-list">
-  @for (subject of subjects(); track subject.id) {
+  @for (subject of subjects().items; track subject.id) {
     <article class="card p-4">
       <h2>{{ subject.name }}</h2>
       <p>Estado: {{ subject.status }}</p>
@@ -24,5 +24,8 @@
     </article>
   } @empty {
     <p>No hay materias asignadas.</p>
+  }
+  @if (subjects().total_pages > 1) {
+    <app-paginator [page]="page()" [totalPages]="subjects().total_pages" [total]="subjects().total" (pageChange)="loadPage($event)" />
   }
 </div>

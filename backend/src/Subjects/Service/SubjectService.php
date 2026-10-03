@@ -18,7 +18,7 @@ final class SubjectService
     public function list(CurrentUser $user, array $filters, int $page, int $perPage): array
     {
         $result = $this->repository->list($user->schoolId, $user->role, $user->id, $filters, ($page - 1) * $perPage, $perPage);
-        return $result['data'];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     public function view(CurrentUser $user, int $id): array
@@ -80,7 +80,7 @@ final class SubjectService
             throw new DomainException('Subject not found.');
         }
         $result = $this->repository->students($id, ($page - 1) * $perPage, $perPage, $cycleId);
-        return $result;
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     private function assertAssignments(CurrentUser $user, int $teacherId, mixed $planId): void

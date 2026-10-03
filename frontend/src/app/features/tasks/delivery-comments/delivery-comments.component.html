@@ -1,6 +1,6 @@
 <h1>Comentarios</h1>
 <section class="comment-thread">
-  @for (comment of comments(); track comment.id) {
+  @for (comment of comments().items; track comment.id) {
     <article class="card p-3">
       <p class="comment-thread__author">
         {{ comment.author.first_name }} {{ comment.author.last_name }} · {{ comment.author.role }}
@@ -10,6 +10,9 @@
     </article>
   } @empty {
     <p>Aún no hay comentarios.</p>
+  }
+  @if (comments().total_pages > 1) {
+    <app-paginator [page]="page()" [totalPages]="comments().total_pages" [total]="comments().total" (pageChange)="load($event)" />
   }
 </section>
 <form class="card p-3" (ngSubmit)="submit()">

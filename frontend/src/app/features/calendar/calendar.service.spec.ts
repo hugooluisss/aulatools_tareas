@@ -23,7 +23,8 @@ describe('CalendarService', () => {
     const request = http.expectOne((req) => req.url === `${environment.apiUrl}/calendar`);
     expect(request.request.params.get('from')).toBe('2026-10-01T00:00:00Z');
     expect(request.request.params.get('to')).toBe('2026-11-01T00:00:00Z');
-    request.flush([]);
+    expect(request.request.params.get('per_page')).toBe('20');
+    request.flush({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
   });
 
   it('creates and deletes events', () => {

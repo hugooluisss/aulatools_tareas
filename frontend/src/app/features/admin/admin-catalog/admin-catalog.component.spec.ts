@@ -17,7 +17,8 @@ describe('AdminCatalogComponent', () => {
   let fixture: ComponentFixture<AdminCatalogComponent>;
   let kind = 'cycles';
   const api = {
-    list: () => of([]),
+    list: () => of({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 }),
+    all: () => of([]),
     save: () => of({}),
     remove: () => of(void 0),
     status: () => of({}),
@@ -65,7 +66,7 @@ describe('AdminCatalogComponent', () => {
       providers: [
         {
           provide: StudentNotesService,
-          useValue: { list: () => of({ data: [], meta: {} }), add: () => of({}) },
+          useValue: { list: () => of([]), add: () => of({}) },
         },
         {
           provide: ActivatedRoute,

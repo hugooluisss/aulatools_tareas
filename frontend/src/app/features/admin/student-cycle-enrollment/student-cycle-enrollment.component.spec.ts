@@ -38,7 +38,7 @@ describe('StudentCycleEnrollmentComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { data: { type: 'reenrollment' } } } },
         { provide: CyclesService, useValue: api },
-        { provide: GroupsService, useValue: { list: () => of([{ id: '11', cycle_id: '15' }]) } },
+        { provide: GroupsService, useValue: { all: () => of([{ id: '11', cycle_id: '15' }]) } },
         { provide: InscriptionsService, useValue: api },
         { provide: ToastService, useValue: { show: () => undefined } },
       ],

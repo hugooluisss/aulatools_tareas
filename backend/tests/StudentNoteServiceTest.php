@@ -50,7 +50,7 @@ final class StudentNoteServiceTest extends TestCase
         $service = new StudentNoteService($repository);
         $teacher = new CurrentUser(8, 'teacher', 2);
         self::assertSame('teacher', $service->create($teacher, 7, ['body' => ' Note '])['author']['role']);
-        self::assertSame(['data' => [], 'meta' => ['page' => 1, 'per_page' => 20, 'total' => 0]], $service->list($teacher, 7, 1, 20));
+        self::assertSame(['items' => [], 'page' => 1, 'per_page' => 20, 'total' => 0, 'total_pages' => 1], $service->list($teacher, 7, 1, 20));
 
         foreach ([
             [new CurrentUser(9, 'teacher', 2), 7, ['body' => 'Ok'], 403],

@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { Observable } from 'rxjs';
+import { Page } from '../../core/models/page';
 
 export interface StudentNote {
   id: number;
@@ -15,12 +17,9 @@ export class StudentNotesService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/users/students`;
 
-  list(studentId: number) {
-    return this.http.get<{
-      data: StudentNote[];
-      meta: { page: number; per_page: number; total: number };
-    }>(`${this.url}/${studentId}/notes`, {
-      params: new HttpParams().set('page', 1).set('per_page', 100),
+  list(studentId: number, page = 1): Observable<Page<StudentNote>> {
+    return this.http.get<Page<StudentNote>>(`${this.url}/${studentId}/notes`, {
+      params: new HttpParams().set('page', page).set('per_page', 20),
     });
   }
 

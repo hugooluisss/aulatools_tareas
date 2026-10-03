@@ -136,8 +136,8 @@ final class CalendarServiceTest extends TestCase
             ['from' => '2026-10-01T00:00:00Z', 'to' => '2026-10-31T23:59:59Z'],
         );
 
-        self::assertSame('event', $result['data'][0]['type']);
-        self::assertStringContainsString('calendar.google.com', $result['data'][0]['google_calendar_url']);
-        self::assertSame(9, $result['data'][1]['task_id']);
+        self::assertSame('event', $result['items'][0]['type']);
+        self::assertStringContainsString('calendar.google.com', $result['items'][0]['google_calendar_url']);
+        self::assertSame(9, $result['items'][1]['task_id']);
     }
 }

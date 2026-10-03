@@ -23,7 +23,7 @@ export class AttendanceReportComponent {
   selectedGroup = computed(() => this.groups().find((group) => group.id === this.groupId()));
 
   constructor() {
-    this.groupsApi.list().subscribe((groups) => this.groups.set(groups));
+    this.groupsApi.all().subscribe((groups) => this.groups.set(groups));
   }
 
   download(): void {

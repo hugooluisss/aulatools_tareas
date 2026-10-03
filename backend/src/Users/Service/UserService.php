@@ -54,10 +54,7 @@ final class UserService
         } else {
             $data = array_map($this->formatPhoto(...), $data);
         }
-        return [
-            'data' => $data,
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($data, $result['total'], $page, $perPage);
     }
 
     public function find(CurrentUser $user, string $role, int $id): array

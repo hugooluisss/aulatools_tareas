@@ -7,7 +7,7 @@ import { MyTasksComponent } from './my-tasks.component';
 
 describe('MyTasksComponent', () => {
   let fixture: ComponentFixture<MyTasksComponent>;
-  const tasks = { myTasks: vi.fn().mockReturnValue(of([])) };
+  const tasks = { myTasks: vi.fn().mockReturnValue(of({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 })) };
 
   beforeEach(() => {
     tasks.myTasks.mockClear();
@@ -15,7 +15,7 @@ describe('MyTasksComponent', () => {
       imports: [MyTasksComponent],
       providers: [
         { provide: TasksService, useValue: tasks },
-        { provide: CyclesService, useValue: { list: () => of([{ id: '14', status: 'active' }]) } },
+        { provide: CyclesService, useValue: { all: () => of([{ id: '14', status: 'active' }]) } },
         provideRouter([]),
       ],
     });
@@ -24,7 +24,7 @@ describe('MyTasksComponent', () => {
   });
 
   it('loads pending tasks by default', () => {
-    expect(tasks.myTasks).toHaveBeenCalledWith('pending', 14);
+    expect(tasks.myTasks).toHaveBeenCalledWith('pending', 14, 1);
     expect(fixture.nativeElement.textContent).toContain('Mis tareas');
   });
 });

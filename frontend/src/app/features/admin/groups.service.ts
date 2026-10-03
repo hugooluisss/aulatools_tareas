@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Page } from '../../core/models/page';
 
 export interface GroupInput {
   name: string;
@@ -23,8 +24,11 @@ export interface GroupRow {
 export class GroupsService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/groups`;
-  list(): Observable<GroupRow[]> {
-    return this.http.get<GroupRow[]>(this.url);
+  list(page = 1): Observable<Page<GroupRow>> {
+    return this.http.get<Page<GroupRow>>(this.url, { params: { page, per_page: 20 } });
+  }
+  all(): Observable<GroupRow[]> {
+    return this.http.get<Page<GroupRow>>(this.url, { params: { per_page: 100 } }).pipe(map((page) => page.items));
   }
   save(id: number | null, data: GroupInput): Observable<GroupRow> {
     return id

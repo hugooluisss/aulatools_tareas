@@ -103,9 +103,9 @@ final class UserServiceTest extends TestCase
 
         self::assertSame([
             'id' => 5, 'cycle_id' => 14, 'cycle_name' => '2026', 'group_id' => 11, 'group_name' => '1A',
-        ], $result['data'][0]['enrollment']);
-        self::assertNull($result['data'][1]['enrollment']);
-        self::assertArrayNotHasKey('enrollment_id', $result['data'][0]);
+        ], $result['items'][0]['enrollment']);
+        self::assertNull($result['items'][1]['enrollment']);
+        self::assertArrayNotHasKey('enrollment_id', $result['items'][0]);
     }
 
     public function testPhotoRejectsInvalidTypeAndOversizeThenReplacesOldPhoto(): void

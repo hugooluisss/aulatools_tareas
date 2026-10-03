@@ -16,14 +16,14 @@ describe('DeliveryCommentsComponent', () => {
           provide: TasksService,
           useValue: {
             comments: () =>
-              of([
+              of({ items: [
                 {
                   id: 1,
                   author: { first_name: 'Ana', last_name: 'Paz', role: 'teacher' },
                   body: 'Buen trabajo',
                   created_at: '2026-09-30T12:00:00Z',
                 },
-              ]),
+              ], page: 1, per_page: 20, total: 1, total_pages: 1 }),
           },
         },
       ],

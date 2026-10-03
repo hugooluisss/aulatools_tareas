@@ -6,7 +6,7 @@ import { StudentNotesModalComponent } from './student-notes-modal.component';
 describe('StudentNotesModalComponent', () => {
   it('loads notes and adds the new note to the history', () => {
     const api = {
-      list: () => of({ data: [], meta: { page: 1, per_page: 100, total: 0 } }),
+      list: vi.fn().mockReturnValue(of({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 })),
       add: (_id: number, body: string) =>
         of({
           id: 3,
@@ -26,7 +26,7 @@ describe('StudentNotesModalComponent', () => {
     fixture.detectChanges();
     component.body.set('Seguimiento');
     component.add();
-    expect(component.notes()[0].body).toBe('Seguimiento');
-    expect(component.notes().map((note) => note.id)).toEqual([3]);
+    expect(component.notes().items).toEqual([]);
+    expect(api.list).toHaveBeenCalledTimes(2);
   });
 });

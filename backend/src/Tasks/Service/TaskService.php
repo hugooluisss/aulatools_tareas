@@ -353,9 +353,6 @@ final class TaskService
 
     private function paginated(array $result, int $page, int $perPage): array
     {
-        return [
-            'data' => $result['data'],
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 }

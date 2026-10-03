@@ -5,7 +5,7 @@
     id="task-cycle"
     class="form-select mb-3"
     [value]="cycleId() ?? 0"
-    (change)="cycleId.set(+$any($event.target).value); load()"
+    (change)="cycleId.set(+$any($event.target).value); filterChanged()"
   >
     <option value="0">Selecciona un ciclo</option>
     @for (cycle of cycles(); track cycle.id) {
@@ -15,28 +15,10 @@
 }
 <section class="card p-4 mb-4">
   <h2>Estudiantes inscritos</h2>
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th scope="col">Estudiante</th>
-          <th scope="col">Matrícula</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (student of students(); track student.id) {
-          <tr>
-            <td>{{ student.first_name }} {{ student.last_name }}</td>
-            <td>{{ student.id }}</td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="2">No hay estudiantes inscritos.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+  <app-data-table [page]="students()" (pageChange)="loadStudents($event)">
+    <app-column header="Estudiante"><ng-template let-row>{{ row.first_name }} {{ row.last_name }}</ng-template></app-column>
+    <app-column header="Matrícula"><ng-template let-row>{{ row.enrollment_number }}</ng-template></app-column>
+  </app-data-table>
 </section>
 <section class="card p-4">
   <div class="section-heading">
@@ -45,23 +27,11 @@
       <app-icon-button icon="plus-circle" label="Agregar tarea" (click)="createTask()" />
     }
   </div>
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th scope="col">Nombre</th>
-          <th scope="col">Vencimiento</th>
-          <th scope="col">Estado</th>
-          <th scope="col">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (task of tasksList(); track task.id) {
-          <tr>
-            <td>{{ task.name }}</td>
-            <td>{{ task.due_at | date: 'medium' }}</td>
-            <td>{{ statusLabel(task.status) }}</td>
-            <td class="row-actions">
+  <app-data-table [page]="tasksList()" (pageChange)="loadTasks($event)">
+    <app-column header="Nombre"><ng-template let-row>{{ row.name }}</ng-template></app-column>
+    <app-column header="Vencimiento"><ng-template let-row>{{ row.due_at | date: 'medium' }}</ng-template></app-column>
+    <app-column header="Estado"><ng-template let-row>{{ statusLabel(row.status) }}</ng-template></app-column>
+    <app-column header="Acciones"><ng-template let-task>
               <app-icon-button
                 icon="eye"
                 label="Ver entregas"
@@ -75,14 +45,6 @@
                   (click)="cancelTask(task)"
                 />
               }
-            </td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="4">No hay tareas.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+    </ng-template></app-column>
+  </app-data-table>
 </section>

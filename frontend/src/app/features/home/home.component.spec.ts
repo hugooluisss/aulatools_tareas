@@ -6,16 +6,17 @@ import { HomeComponent } from './home.component';
 
 describe('HomeComponent', () => {
   let fixture: ComponentFixture<HomeComponent>;
+  let role = 'student';
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HomeComponent],
       providers: [
-        { provide: TokenStorageService, useValue: { getRole: () => 'student' } },
+        { provide: TokenStorageService, useValue: { getRole: () => role } },
         {
           provide: TasksService,
           useValue: {
-            myTasks: () => of({ headers: { get: () => '3' }, body: [] }),
-            subjects: () => of([]),
+            myTasks: () => of({ items: [], page: 1, per_page: 20, total: 3, total_pages: 1 }),
+            subjects: () => of({ items: [], page: 1, per_page: 20, total: 37, total_pages: 2 }),
           },
         },
       ],
@@ -30,5 +31,12 @@ describe('HomeComponent', () => {
     expect(text).toContain('3');
     expect(text).toContain('Calendario');
     expect(text).toContain('Avisos');
+  });
+
+  it('uses the total subjects header for the school KPI', () => {
+    role = 'admin';
+    fixture = TestBed.createComponent(HomeComponent);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.count()).toBe(37);
   });
 });

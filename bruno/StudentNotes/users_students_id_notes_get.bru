@@ -10,13 +10,14 @@ get {
 }
 
 docs {
-  GET `/users/students/id/notes?page&per_page` Roles: same-school admin and teachers assigned through the student's subject binding or subject. Returns `{data:[{id,student_id,author:{id,first_name,last_name,role},body,created_at}],meta:{page,per_page,total}}`. Students receive 404; unrelated teachers receive 403.
+  GET `/users/students/id/notes?page&per_page` Roles: same-school admin and teachers assigned through the student's subject binding or subject. Returns {items:[note objects],page,per_page,total,total_pages}. Students receive 404; unrelated teachers receive 403.
 }
 
 assert {
   res.status: eq 200
-  res.body.data: isArray
-  res.body.meta.page: isDefined
-  res.body.meta.per_page: isDefined
-  res.body.meta.total: isDefined
+  res.body.items: isArray
+  res.body.page: isDefined
+  res.body.per_page: isDefined
+  res.body.total: isDefined
+  res.body.total_pages: isDefined
 }

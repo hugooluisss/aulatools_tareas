@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Page } from '../../core/models/page';
 
 export interface TaskRow {
   task: { id: number; name: string; description: string; due_at: string; status: string };
@@ -62,12 +63,11 @@ export class TasksService {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiUrl;
 
-  myTasks(status = 'pending', cycleId?: number) {
-    let params = new HttpParams().set('status', status);
+  myTasks(status = 'pending', cycleId?: number, page = 1): Observable<Page<TaskRow>> {
+    let params = new HttpParams().set('status', status).set('page', page).set('per_page', 20);
     if (cycleId) params = params.set('cycle_id', cycleId);
-    return this.http.get<TaskRow[]>(`${this.api}/me/tasks`, {
+    return this.http.get<Page<TaskRow>>(`${this.api}/me/tasks`, {
       params,
-      observe: 'response' as const,
     });
   }
 
@@ -75,8 +75,8 @@ export class TasksService {
     return this.http.get<TaskDetail>(`${this.api}/me/tasks/${deliveryId}`);
   }
 
-  comments(deliveryId: number) {
-    return this.http.get<Comment[]>(`${this.api}/deliveries/${deliveryId}/comments`);
+  comments(deliveryId: number, page = 1): Observable<Page<Comment>> {
+    return this.http.get<Page<Comment>>(`${this.api}/deliveries/${deliveryId}/comments`, { params: { page, per_page: 20 } });
   }
 
   addComment(deliveryId: number, body: string): Observable<Comment> {
@@ -85,21 +85,27 @@ export class TasksService {
     });
   }
 
-  subjects(cycleId?: number) {
-    return this.http.get<Subject[]>(`${this.api}/subjects`, {
-      params: cycleId ? { cycle_id: cycleId } : {},
+  subjects(cycleId?: number, page = 1): Observable<Page<Subject>> {
+    let params = new HttpParams().set('page', page).set('per_page', 20);
+    if (cycleId) params = params.set('cycle_id', cycleId);
+    return this.http.get<Page<Subject>>(`${this.api}/subjects`, {
+      params,
     });
   }
 
-  students(subjectId: number, cycleId?: number) {
-    return this.http.get<Student[]>(`${this.api}/subjects/${subjectId}/students`, {
-      params: cycleId ? { cycle_id: cycleId } : {},
+  students(subjectId: number, cycleId?: number, page = 1): Observable<Page<Student>> {
+    let params = new HttpParams().set('page', page).set('per_page', 20);
+    if (cycleId) params = params.set('cycle_id', cycleId);
+    return this.http.get<Page<Student>>(`${this.api}/subjects/${subjectId}/students`, {
+      params,
     });
   }
 
-  tasks(subjectId: number, cycleId?: number) {
-    return this.http.get<Task[]>(`${this.api}/subjects/${subjectId}/tasks`, {
-      params: cycleId ? { cycle_id: cycleId } : {},
+  tasks(subjectId: number, cycleId?: number, page = 1): Observable<Page<Task>> {
+    let params = new HttpParams().set('page', page).set('per_page', 20);
+    if (cycleId) params = params.set('cycle_id', cycleId);
+    return this.http.get<Page<Task>>(`${this.api}/subjects/${subjectId}/tasks`, {
+      params,
     });
   }
 
@@ -121,8 +127,8 @@ export class TasksService {
     return this.http.post<Task>(`${this.api}/tasks/${taskId}/cancel`, {});
   }
 
-  deliveries(taskId: number) {
-    return this.http.get<DeliveryRow[]>(`${this.api}/tasks/${taskId}/deliveries`);
+  deliveries(taskId: number, page = 1): Observable<Page<DeliveryRow>> {
+    return this.http.get<Page<DeliveryRow>>(`${this.api}/tasks/${taskId}/deliveries`, { params: { page, per_page: 20 } });
   }
 
   markDelivered(deliveryId: number): Observable<unknown> {

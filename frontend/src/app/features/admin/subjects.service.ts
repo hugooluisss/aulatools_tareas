@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Page } from '../../core/models/page';
 
 export interface SubjectRow {
   id: string;
@@ -18,8 +19,11 @@ export interface SubjectRow {
 export class SubjectsService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/subjects`;
-  list(status?: 'active'): Observable<SubjectRow[]> {
-    return this.http.get<SubjectRow[]>(this.url, { params: status ? { status } : {} });
+  list(status?: 'active', page?: number): Observable<Page<SubjectRow>> {
+    return this.http.get<Page<SubjectRow>>(this.url, { params: { ...(status ? { status } : {}), page: page ?? 1, per_page: 20 } });
+  }
+  all(status?: 'active'): Observable<SubjectRow[]> {
+    return this.http.get<Page<SubjectRow>>(this.url, { params: { ...(status ? { status } : {}), per_page: 100 } }).pipe(map((page) => page.items));
   }
   save(id: number | null, data: unknown): Observable<any> {
     return id ? this.http.put(`${this.url}/${id}`, data) : this.http.post(this.url, data);

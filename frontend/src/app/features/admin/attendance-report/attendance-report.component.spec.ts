@@ -8,7 +8,7 @@ import { ToastService } from '../../../core/services/toast.service';
 
 describe('AttendanceReportComponent', () => {
   it('shows group subjects and downloads the selected attendance PDF', async () => {
-    const groups = { list: vi.fn().mockReturnValue({ subscribe: (next: (rows: any[]) => void) => next([{ id: '7', name: '2A', subjects: [{ id: '8', name: 'Matemáticas' }] }]) }) };
+    const groups = { all: vi.fn().mockReturnValue({ subscribe: (next: (rows: any[]) => void) => next([{ id: '7', name: '2A', subjects: [{ id: '8', name: 'Matemáticas' }] }]) }) };
     const reports = { attendance: vi.fn().mockReturnValue({ subscribe: (observer: any) => observer.next(new Blob(['pdf'])) }) };
     TestBed.configureTestingModule({
       imports: [AttendanceReportComponent],
@@ -27,7 +27,7 @@ describe('AttendanceReportComponent', () => {
   });
 
   it('shows API errors through ToastService', () => {
-    const groups = { list: () => ({ subscribe: () => {} }) };
+    const groups = { all: () => ({ subscribe: () => {} }) };
     const reports = { attendance: () => ({ subscribe: (observer: any) => observer.error(new Error('Error de reporte')) }) };
     const toast = { show: vi.fn() };
     TestBed.configureTestingModule({ imports: [AttendanceReportComponent], providers: [provideHttpClient(), provideHttpClientTesting(), { provide: GroupsService, useValue: groups }, { provide: ReportsService, useValue: reports }, { provide: ToastService, useValue: toast }] });
@@ -38,7 +38,7 @@ describe('AttendanceReportComponent', () => {
   });
 
   it('limits attendance reports to 14 days', () => {
-    const groups = { list: () => ({ subscribe: () => {} }) };
+    const groups = { all: () => ({ subscribe: () => {} }) };
     const attendance = vi.fn();
     TestBed.configureTestingModule({ imports: [AttendanceReportComponent], providers: [provideHttpClient(), provideHttpClientTesting(), { provide: GroupsService, useValue: groups }, { provide: ReportsService, useValue: { attendance } }, { provide: ToastService, useValue: { show: () => undefined } }] });
     const fixture = TestBed.createComponent(AttendanceReportComponent);

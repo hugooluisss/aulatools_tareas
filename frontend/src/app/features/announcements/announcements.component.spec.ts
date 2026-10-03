@@ -6,7 +6,8 @@ import { AnnouncementsComponent } from './announcements.component';
 
 describe('AnnouncementsComponent', () => {
   let fixture: ComponentFixture<AnnouncementsComponent>;
-  const api = { active: vi.fn().mockReturnValue(of([])), list: vi.fn().mockReturnValue(of([])) };
+  const page = { items: [], page: 1, per_page: 20, total: 0, total_pages: 1 };
+  const api = { active: vi.fn().mockReturnValue(of(page)), list: vi.fn().mockReturnValue(of(page)) };
 
   beforeEach(() => {
     api.active.mockClear();

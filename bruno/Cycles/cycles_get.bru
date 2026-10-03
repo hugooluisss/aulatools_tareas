@@ -10,15 +10,16 @@ get {
 }
 
 docs {
-  GET `/cycles` Roles: Admin. Response: 200 bare JSON array; pagination in X-Total-Count, X-Page, X-Per-Page headers. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  GET `/cycles` Roles: Admin. Response: 200 {items:[...],page,per_page,total,total_pages}. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
-  res.body: isArray
-  res.headers["X-Total-Count"][0]: isDefined
-  res.headers["X-Page"][0]: isDefined
-  res.headers["X-Per-Page"][0]: isDefined
+  res.body.items: isArray
+  res.body.page: isDefined
+  res.body.per_page: isDefined
+  res.body.total: isDefined
+  res.body.total_pages: isDefined
 
 }

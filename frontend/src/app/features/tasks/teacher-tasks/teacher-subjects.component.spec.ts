@@ -13,11 +13,11 @@ describe('TeacherSubjectsComponent', () => {
       providers: [
         provideRouter([]),
         { provide: TokenStorageService, useValue: { getRole: () => 'teacher' } },
-        { provide: CyclesService, useValue: { list: () => of([{ id: '14', status: 'active' }]) } },
+        { provide: CyclesService, useValue: { all: () => of([{ id: '14', status: 'active' }]) } },
         {
           provide: TasksService,
           useValue: {
-            subjects: () => of([{ id: '1', name: 'Ciencias', status: 'active' }]),
+            subjects: () => of({ items: [{ id: '1', name: 'Ciencias', status: 'active' }], page: 1, per_page: 20, total: 1, total_pages: 1 }),
           },
         },
       ],

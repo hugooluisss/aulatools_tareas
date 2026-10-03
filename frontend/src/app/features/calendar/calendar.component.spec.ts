@@ -8,8 +8,8 @@ import { TokenStorageService } from '../../core/auth/token-storage.service';
 describe('CalendarComponent', () => {
   let fixture: ComponentFixture<CalendarComponent>;
   const calendar = {
-    list: vi.fn().mockReturnValue(of([])),
-    events: vi.fn().mockReturnValue(of([])),
+    list: vi.fn().mockReturnValue(of({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 })),
+    events: vi.fn().mockReturnValue(of({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 })),
     save: vi.fn().mockReturnValue(of({})),
   };
 
@@ -20,7 +20,7 @@ describe('CalendarComponent', () => {
       imports: [CalendarComponent],
       providers: [
         { provide: CalendarService, useValue: calendar },
-        { provide: SubjectsService, useValue: { list: () => of([]) } },
+        { provide: SubjectsService, useValue: { all: () => of([]) } },
         { provide: TokenStorageService, useValue: { getRole: () => 'student' } },
       ],
     });

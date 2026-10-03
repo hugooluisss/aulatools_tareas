@@ -57,6 +57,12 @@ final class SubjectServiceTest extends TestCase
         $this->expectException(DomainException::class);
         $service->view(new CurrentUser(5, 'teacher', 2), 7);
     }
+
+    public function testListReturnsPaginationMetadata(): void
+    {
+        $result = (new SubjectService(new FakeSubjectRepository()))->list(new CurrentUser(4, 'admin', 2), [], 2, 10);
+        self::assertSame(['items' => [], 'page' => 2, 'per_page' => 10, 'total' => 0, 'total_pages' => 1], $result);
+    }
 }
 
 final class FakeSubjectRepository extends SubjectRepository

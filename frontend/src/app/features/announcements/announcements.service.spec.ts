@@ -20,9 +20,9 @@ describe('AnnouncementsService', () => {
 
   it('loads active announcements for the community', () => {
     service.active().subscribe();
-    const request = http.expectOne(`${environment.apiUrl}/announcements/active`);
+    const request = http.expectOne(`${environment.apiUrl}/announcements/active?page=1&per_page=20`);
     expect(request.request.method).toBe('GET');
-    request.flush([]);
+    request.flush({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
   });
 
   it('updates an announcement', () => {

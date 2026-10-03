@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, output } from '@angular/core';
 import { AppTooltipDirective } from '../tooltip/app-tooltip.directive';
 
 @Component({
@@ -9,6 +9,7 @@ import { AppTooltipDirective } from '../tooltip/app-tooltip.directive';
   styleUrl: './icon-button.component.scss',
 })
 export class IconButtonComponent {
+  clicked = output<void>();
   @Input({ required: true }) icon = '';
   @Input({ required: true }) label = '';
   @Input() variant = 'secondary';

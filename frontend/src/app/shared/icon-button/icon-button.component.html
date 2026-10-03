@@ -4,6 +4,7 @@
   [appTooltip]="label"
   [attr.aria-label]="label"
   [disabled]="disabled"
+  (click)="clicked.emit()"
 >
   <i [class]="iconClass" aria-hidden="true"></i>
 </button>

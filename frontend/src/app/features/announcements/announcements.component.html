@@ -39,7 +39,7 @@
     }
   }
   <div class="announcements-page__list">
-    @for (announcement of announcements(); track announcement.id) {
+    @for (announcement of announcements().items; track announcement.id) {
       <article class="announcements-page__item card">
         <header class="announcements-page__item-header">
           <h2>{{ announcement.title }}</h2>
@@ -63,4 +63,7 @@
       <p class="card announcements-page__empty">No hay avisos para mostrar.</p>
     }
   </div>
+  @if (announcements().total_pages > 1) {
+    <app-paginator [page]="page()" [totalPages]="announcements().total_pages" [total]="announcements().total" (pageChange)="load($event)" />
+  }
 </section>

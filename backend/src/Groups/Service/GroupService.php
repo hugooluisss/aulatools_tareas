@@ -20,10 +20,7 @@ final class GroupService
     public function list(CurrentUser $user, int $page, int $perPage): array
     {
         $result = $this->repository->list($user->schoolId, ($page - 1) * $perPage, $perPage);
-        return [
-            'data' => $result['data'],
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     public function view(CurrentUser $user, int $id): array
@@ -68,10 +65,7 @@ final class GroupService
     {
         $this->view($user, $id);
         $result = $this->repository->subjects($user->schoolId, $id, ($page - 1) * $perPage, $perPage);
-        return [
-            'data' => $result['data'],
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     private function validate(CurrentUser $user, array $data): array

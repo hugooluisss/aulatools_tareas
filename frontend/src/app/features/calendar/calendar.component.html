@@ -45,6 +45,9 @@
       </div>
     }
   }
+  @if (items().total_pages > 1) {
+    <app-paginator [page]="page()" [totalPages]="items().total_pages" [total]="items().total" (pageChange)="loadPage($event)" />
+  }
   <div class="calendar-page__grid card" role="grid" [attr.aria-label]="monthLabel">
     @for (name of ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']; track name) {
       <div class="calendar-page__weekday" role="columnheader">{{ name }}</div>
@@ -76,7 +79,7 @@
   @if (isAdmin) {
     <section class="calendar-page__event-list card">
       <h2>Eventos administrables</h2>
-      @for (event of events(); track event.id) {
+      @for (event of events().items; track event.id) {
         <div class="calendar-page__event-row">
           <span>{{ event.title }} · {{ event.starts_at | date: 'medium' }}</span>
           <app-icon-button icon="pencil" label="Editar evento" (click)="edit(event)" />
@@ -89,6 +92,9 @@
         </div>
       } @empty {
         <p>No hay eventos registrados.</p>
+      }
+      @if (events().total_pages > 1) {
+        <app-paginator [page]="eventsPage()" [totalPages]="events().total_pages" [total]="events().total" (pageChange)="loadEvents($event)" />
       }
     </section>
   }

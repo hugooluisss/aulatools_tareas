@@ -17,7 +17,7 @@ describe('TaskDeliveriesComponent', () => {
           provide: TasksService,
           useValue: {
             deliveries: () =>
-              of([
+              of({ items: [
                 {
                   delivery: { id: 5, status: 'pending', delivered_at: null, grade: null },
                   student: {
@@ -27,7 +27,7 @@ describe('TaskDeliveriesComponent', () => {
                     enrollment_number: 'E3',
                   },
                 },
-              ]),
+              ], page: 1, per_page: 20, total: 1, total_pages: 1 }),
           },
         },
       ],

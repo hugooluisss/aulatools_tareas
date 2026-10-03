@@ -60,10 +60,7 @@ final class AnnouncementService
     {
         $this->pagination($page, $perPage);
         $result = $this->repository->list($user->schoolId, $activeOnly, ($page - 1) * $perPage, $perPage);
-        return [
-            'data' => $result['data'],
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     private function validate(array $data): array

@@ -19,10 +19,7 @@ final class CycleService
         $this->admin($user);
         $this->pagination($page, $perPage);
         $result = $this->repository->list($user->schoolId, ($page - 1) * $perPage, $perPage);
-        return [
-            'data' => $result['data'],
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build($result['data'], $result['total'], $page, $perPage);
     }
 
     public function find(CurrentUser $user, int $id): array

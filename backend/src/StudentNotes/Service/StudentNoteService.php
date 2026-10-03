@@ -18,10 +18,7 @@ final class StudentNoteService
         $this->access($user, $studentId);
         $this->pagination($page, $perPage);
         $result = $this->repository->list($studentId, ($page - 1) * $perPage, $perPage);
-        return [
-            'data' => array_map([$this, 'format'], $result['data']),
-            'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
-        ];
+        return \App\Shared\Paginator::build(array_map([$this, 'format'], $result['data']), $result['total'], $page, $perPage);
     }
 
     public function create(CurrentUser $user, int $studentId, array $data): array

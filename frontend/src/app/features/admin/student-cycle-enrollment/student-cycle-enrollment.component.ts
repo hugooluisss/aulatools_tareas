@@ -43,8 +43,8 @@ export class StudentCycleEnrollmentComponent {
   );
 
   constructor() {
-    this.cyclesApi.list().subscribe((rows) => this.cycles.set(rows));
-    this.groupsApi.list().subscribe((rows) => this.groups.set(rows));
+    this.cyclesApi.all().subscribe((rows) => this.cycles.set(rows));
+    this.groupsApi.all().subscribe((rows) => this.groups.set(rows));
     this.reload();
   }
 
