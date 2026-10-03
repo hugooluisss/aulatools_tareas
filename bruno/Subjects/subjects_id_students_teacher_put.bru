@@ -1,0 +1,28 @@
+meta {
+  name: /subjects/{id}/students/teacher (PUT)
+  type: http
+  seq: 23
+}
+
+put {
+  url: {{baseUrl}}/subjects/{{subjectId}}/students/teacher
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "cycle_id": "{{cycleId}}",
+    "student_ids": {{studentIds}},
+    "teacher_id": {{teacherId}}
+  }
+}
+
+docs {
+  PUT `/subjects/id/students/teacher` Roles: Admin. Path ids: id. JSON body: cycle_id, student_ids, teacher_id (null for none). Response: 200 {updated: n}; Errors: {error:{code,message}} with HTTP 400/401/403/404/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isJson
+}

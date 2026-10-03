@@ -19,4 +19,10 @@ describe('IconButtonComponent', () => {
     expect(button.getAttribute('data-bs-title')).toBe('Editar');
     expect(button.querySelector('i')?.getAttribute('class')).toBe('bi bi-pencil');
   });
+
+  it('disables the native button when requested', () => {
+    fixture.componentRef.setInput('disabled', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('button').disabled).toBe(true);
+  });
 });

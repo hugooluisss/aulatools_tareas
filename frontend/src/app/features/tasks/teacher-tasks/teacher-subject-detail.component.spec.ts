@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { TasksService } from '../tasks.service';
+import { CyclesService } from '../../admin/cycles.service';
 import { TeacherSubjectDetailComponent } from './teacher-subject-detail.component';
 
 describe('TeacherSubjectDetailComponent', () => {
@@ -14,11 +15,14 @@ describe('TeacherSubjectDetailComponent', () => {
         {
           provide: TasksService,
           useValue: {
-            students: () =>
-              of([{ id: 1, first_name: 'Leo', last_name: 'Ruiz', enrollment_number: 'A1' }]),
+            students: () => of([{ id: 1, first_name: 'Leo', last_name: 'Ruiz' }]),
             tasks: () =>
               of([{ id: 2, name: 'Proyecto', description: '', due_at: '', status: 'active' }]),
           },
+        },
+        {
+          provide: CyclesService,
+          useValue: { list: () => of([{ id: '14', name: '2026', status: 'active' }]) },
         },
       ],
     });

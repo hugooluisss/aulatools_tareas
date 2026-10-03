@@ -1,0 +1,18 @@
+meta {
+  name: /enrollments/{id} (DELETE)
+  type: http
+  seq: 66
+}
+
+delete {
+  url: {{baseUrl}}/enrollments/{{inscriptionId}}
+  auth: inherit
+}
+
+docs {
+  DELETE `/enrollments/{id}` Roles: Admin. Path ids: id. Response: 204; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 204
+}

@@ -25,6 +25,7 @@ export class AnnouncementsComponent {
     ends_on: ['', Validators.required],
   });
   announcements = signal<Announcement[]>([]);
+  formOpen = signal(false);
   editing: number | null = null;
   error = signal('');
 
@@ -40,6 +41,21 @@ export class AnnouncementsComponent {
   edit(announcement: Announcement): void {
     this.editing = announcement.id;
     this.form.patchValue(announcement);
+    this.formOpen.set(true);
+  }
+
+  openNew(): void {
+    this.editing = null;
+    this.form.reset({ title: '', body: '', starts_on: '', ends_on: '' });
+    this.error.set('');
+    this.formOpen.set(true);
+  }
+
+  closeForm(): void {
+    this.formOpen.set(false);
+    this.editing = null;
+    this.form.reset({ title: '', body: '', starts_on: '', ends_on: '' });
+    this.error.set('');
   }
 
   save(): void {
@@ -63,6 +79,7 @@ export class AnnouncementsComponent {
   private done(message: string): void {
     this.toast.show(message);
     this.editing = null;
+    this.formOpen.set(false);
     this.form.reset({ title: '', body: '', starts_on: '', ends_on: '' });
     this.load();
   }

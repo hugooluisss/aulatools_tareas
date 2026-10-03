@@ -1,0 +1,18 @@
+meta {
+  name: /study-plans/{id} (DELETE)
+  type: http
+  seq: 75
+}
+
+delete {
+  url: {{baseUrl}}/study-plans/{{studyPlanId}}
+  auth: inherit
+}
+
+docs {
+  DELETE `/study-plans/id` Roles: Admin. Path id. Response: 204 No Content. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 204
+}

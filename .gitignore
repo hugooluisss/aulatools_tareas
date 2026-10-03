@@ -3,3 +3,4 @@ backend/vendor/
 frontend/node_modules/
 frontend/dist/
 frontend/.angular/
+bruno/environments/local.bru

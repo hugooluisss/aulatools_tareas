@@ -1,4 +1,18 @@
 <h1>Materia</h1>
+@if (cycles().length > 1) {
+  <label for="task-cycle">Ciclo</label>
+  <select
+    id="task-cycle"
+    class="form-select mb-3"
+    [value]="cycleId() ?? 0"
+    (change)="cycleId.set(+$any($event.target).value); load()"
+  >
+    <option value="0">Selecciona un ciclo</option>
+    @for (cycle of cycles(); track cycle.id) {
+      <option [value]="cycle.id">{{ cycle.name }}</option>
+    }
+  </select>
+}
 <section class="card p-4 mb-4">
   <h2>Estudiantes inscritos</h2>
   <div class="table-responsive">
@@ -13,7 +27,7 @@
         @for (student of students(); track student.id) {
           <tr>
             <td>{{ student.first_name }} {{ student.last_name }}</td>
-            <td>{{ student.enrollment_number }}</td>
+            <td>{{ student.id }}</td>
           </tr>
         } @empty {
           <tr>
@@ -49,7 +63,7 @@
               <app-icon-button
                 icon="eye"
                 label="Ver entregas"
-                [routerLink]="['/tareas', task.id, 'entregas']"
+                [routerLink]="['/tasks', task.id, 'deliveries']"
               />
               <app-icon-button icon="pencil" label="Editar tarea" (click)="editTask(task)" />
               <app-icon-button icon="x-circle" label="Cancelar tarea" (click)="cancelTask(task)" />

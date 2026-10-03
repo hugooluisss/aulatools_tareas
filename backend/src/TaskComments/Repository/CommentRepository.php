@@ -15,12 +15,11 @@ class CommentRepository
     public function delivery(int $schoolId, int $deliveryId): ?array
     {
         return $this->db->createCommand(<<<'SQL'
-            SELECT task_deliveries.id, task_deliveries.student_id, subjects.teacher_id, academic_cycles.school_id
+            SELECT task_deliveries.id, task_deliveries.student_id, subjects.teacher_id, subjects.school_id
             FROM task_deliveries
             INNER JOIN tasks ON tasks.id = task_deliveries.task_id
             INNER JOIN subjects ON subjects.id = tasks.subject_id
-            INNER JOIN academic_cycles ON academic_cycles.id = subjects.cycle_id
-            WHERE task_deliveries.id = :delivery_id AND academic_cycles.school_id = :school_id
+            WHERE task_deliveries.id = :delivery_id AND subjects.school_id = :school_id
             SQL, [':delivery_id' => $deliveryId, ':school_id' => $schoolId])->queryOne() ?: null;
     }
 

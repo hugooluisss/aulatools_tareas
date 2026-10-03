@@ -1,0 +1,24 @@
+meta {
+  name: /enrollments (GET)
+  type: http
+  seq: 63
+}
+
+get {
+  url: {{baseUrl}}/enrollments
+  auth: inherit
+}
+
+params:query {
+  cycle_id: {{cycleId}}
+  student_id: {{studentId}}
+}
+
+docs {
+  GET `/enrollments?cycle_id&student_id` Roles: Admin. Query params: cycle_id, student_id (optional). Response: 200 bare JSON array. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}

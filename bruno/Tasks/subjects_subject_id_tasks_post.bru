@@ -6,10 +6,13 @@ meta {
 
 post {
   url: {{baseUrl}}/subjects/{{subjectId}}/tasks
+  body: json
+  auth: inherit
 }
 
 body:json {
   {
+    "cycle_id": {{cycleId}},
     "name": "Chapter 1",
     "description": "Read and answer questions 1–5.",
     "due_at": "2026-10-15T23:59:00-06:00"
@@ -17,12 +20,12 @@ body:json {
 }
 
 docs {
-  POST `/subjects/subject_id/tasks` Roles: Admin, assigned teacher. Path ids: subject_id. JSON body: name, description, due_at; use valid IDs and dates accepted by the API. Response: 201 bare resource object. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  POST `/subjects/subject_id/tasks` Roles: Admin, assigned teacher. Path ids: subject_id. JSON body: cycle_id, name, description, due_at. Response: 201 bare resource object. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 201
-  res.body: isObject
+  res.body: isJson
 
 }

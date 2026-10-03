@@ -21,7 +21,7 @@ class UserRepository
             $params[':status'] = $status;
         }
         $listSql = <<<SQL
-            {$this->selectSql($role)}
+            {$this->listSelectSql($role)}
             WHERE {$where} ORDER BY users.id LIMIT :limit OFFSET :offset
             SQL;
         $rows = $this->db->createCommand(
@@ -96,11 +96,10 @@ class UserRepository
             $this->db->createCommand(
                 <<<'SQL'
                     INSERT INTO students (user_id, enrollment_number, birth_date, status)
-                    VALUES (:user_id, :enrollment_number, :birth_date, :status)
+                    VALUES (:user_id, :user_id, :birth_date, :status)
                     SQL,
                 [
                     ':user_id' => $id,
-                    ':enrollment_number' => $data['enrollment_number'],
                     ':birth_date' => $data['birth_date'],
                     ':status' => $data['status'] ?? 'active',
                 ],
@@ -123,11 +122,10 @@ class UserRepository
             $this->db->createCommand(
                 <<<'SQL'
                     UPDATE students
-                    SET enrollment_number = :enrollment_number, birth_date = :birth_date, status = :status
+                    SET birth_date = :birth_date, status = :status
                     WHERE user_id = :id
                     SQL,
                 [
-                    ':enrollment_number' => $data['enrollment_number'],
                     ':birth_date' => $data['birth_date'],
                     ':status' => $data['status'],
                     ':id' => $id,
@@ -175,6 +173,41 @@ class UserRepository
             SELECT users.id, users.school_id, users.role, users.email, users.first_name, users.last_name
                    {$this->studentColumns($role)}
             FROM users {$this->joinSql($role)}
+            SQL;
+    }
+
+    private function listSelectSql(string $role): string
+    {
+        if ($role !== 'student') {
+            return $this->selectSql($role);
+        }
+
+        return <<<'SQL'
+            SELECT users.id, users.school_id, users.role, users.email, users.first_name, users.last_name,
+                   students.enrollment_number, students.birth_date, students.status,
+                   active_enrollments.id AS enrollment_id,
+                   active_enrollments.cycle_id AS enrollment_cycle_id,
+                   active_enrollments.cycle_name AS enrollment_cycle_name,
+                   active_enrollments.group_id AS enrollment_group_id,
+                   active_enrollments.group_name AS enrollment_group_name
+            FROM users
+            INNER JOIN students ON students.user_id = users.id
+            LEFT JOIN (
+                SELECT ranked.id, ranked.student_id, ranked.cycle_id, ranked.cycle_name,
+                       ranked.group_id, ranked.group_name
+                FROM (
+                    SELECT enrollments.id, enrollments.student_id, enrollments.cycle_id,
+                           academic_cycles.name AS cycle_name, enrollments.group_id, `groups`.name AS group_name,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY enrollments.student_id ORDER BY enrollments.created_at DESC, enrollments.id DESC
+                           ) AS enrollment_rank
+                    FROM enrollments
+                    INNER JOIN academic_cycles ON academic_cycles.id = enrollments.cycle_id
+                    INNER JOIN `groups` ON `groups`.id = enrollments.group_id
+                    WHERE academic_cycles.status = 'active'
+                ) AS ranked
+                WHERE ranked.enrollment_rank = 1
+            ) AS active_enrollments ON active_enrollments.student_id = users.id
             SQL;
     }
 

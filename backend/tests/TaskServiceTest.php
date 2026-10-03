@@ -30,9 +30,14 @@ final class TaskServiceTest extends TestCase
                 return ['id' => $subjectId, 'teacher_id' => 7];
             }
 
-            public function create(int $subjectId, array $data): int
+            public function cycle(int $schoolId, int $cycleId): ?array
             {
-                $this->created = [$subjectId, $data];
+                return ['id' => $cycleId, 'status' => 'active'];
+            }
+
+            public function create(int $subjectId, int $cycleId, array $data): int
+            {
+                $this->created = [$subjectId, $cycleId, $data];
                 return 9;
             }
 
@@ -41,6 +46,7 @@ final class TaskServiceTest extends TestCase
                 return [
                     'id' => $taskId,
                     'subject_id' => 4,
+                    'cycle_id' => 14,
                     'name' => 'Essay',
                     'description' => 'Write',
                     'due_at' => '2026-10-08 12:00:00',
@@ -52,9 +58,9 @@ final class TaskServiceTest extends TestCase
                 ];
             }
 
-            public function createForEnrollment(int $studentId, int $subjectId): void
+            public function createForEnrollment(int $studentId, int $subjectId, int $cycleId): void
             {
-                $this->enrollment = [$studentId, $subjectId];
+                $this->enrollment = [$studentId, $subjectId, $cycleId];
             }
         };
         $transaction = $this->createMock(TransactionInterface::class);
@@ -66,12 +72,12 @@ final class TaskServiceTest extends TestCase
         $task = $service->create(
             new CurrentUser(7, 'teacher', 2),
             4,
-            ['name' => ' Essay ', 'description' => 'Write', 'due_at' => '2026-10-08T12:00:00Z'],
+            ['name' => ' Essay ', 'description' => 'Write', 'due_at' => '2026-10-08T12:00:00Z', 'cycle_id' => 14],
         );
-        (new TaskDeliveryService($repository))->createForEnrollment(15, 4);
+        (new TaskDeliveryService($repository))->createForEnrollment(15, 4, 14);
 
-        self::assertSame('Essay', $repository->created[1]['name']);
-        self::assertSame([15, 4], $repository->enrollment);
+        self::assertSame('Essay', $repository->created[2]['name']);
+        self::assertSame([15, 4, 14], $repository->enrollment);
         self::assertSame(9, $task['id']);
     }
 

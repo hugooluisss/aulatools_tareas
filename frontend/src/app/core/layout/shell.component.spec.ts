@@ -17,5 +17,24 @@ describe('ShellComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Mis tareas');
     expect(fixture.nativeElement.textContent).not.toContain('Profesores');
+    expect(fixture.nativeElement.textContent).not.toContain('Inicio');
+    expect(fixture.nativeElement.textContent).not.toContain('Control escolar');
+    expect(fixture.nativeElement.textContent).not.toContain('Catálogos');
+  });
+
+  it('shows collapsible admin groups and opens the active group', () => {
+    TestBed.configureTestingModule({
+      imports: [ShellComponent],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
+    const token = TestBed.inject(TokenStorageService);
+    token.setToken(`e30.${btoa(JSON.stringify({ role: 'admin' }))}.x`);
+    const fixture = TestBed.createComponent(ShellComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Control escolar');
+    expect(fixture.nativeElement.textContent).toContain('Catálogos');
+    expect(fixture.nativeElement.querySelectorAll('details').length).toBe(2);
+    expect(fixture.nativeElement.textContent).not.toContain('Inicio');
   });
 });

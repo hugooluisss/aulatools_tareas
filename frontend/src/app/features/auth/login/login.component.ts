@@ -22,7 +22,7 @@ export class LoginComponent {
   submit(): void {
     if (this.form.invalid) return;
     this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigateByUrl('/inicio'),
+      next: () => this.router.navigateByUrl('/home'),
       error: () => this.error.set('No se pudo iniciar sesión. Revisa tus datos.'),
     });
   }

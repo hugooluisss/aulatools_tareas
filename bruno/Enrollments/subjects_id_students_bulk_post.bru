@@ -1,0 +1,27 @@
+meta {
+  name: /subjects/{id}/students/bulk (POST)
+  type: http
+  seq: 70
+}
+
+post {
+  url: {{baseUrl}}/subjects/{{subjectId}}/students/bulk
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "cycle_id": {{cycleId}},
+    "student_ids": [{{bulkStudentIds}}]
+  }
+}
+
+docs {
+  POST `/subjects/id/students/bulk` Roles: Admin. Path ids: id. JSON body: cycle_id, student_ids. Response: 201 bare JSON array; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 201
+  res.body: isJson
+}

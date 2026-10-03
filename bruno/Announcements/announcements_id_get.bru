@@ -6,6 +6,7 @@ meta {
 
 get {
   url: {{baseUrl}}/announcements/{{announcementId}}
+  auth: inherit
 }
 
 docs {
@@ -15,6 +16,6 @@ docs {
 assert {
 
   res.status: eq 200
-  res.body: isObject
+  res.body: isJson
 
 }

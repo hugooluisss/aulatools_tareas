@@ -6,6 +6,7 @@ namespace App\Subjects\Controller;
 
 use App\Auth\CurrentUser;
 use App\Subjects\Service\SubjectService;
+use App\Subjects\Service\SubjectException;
 use DomainException;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -59,6 +60,7 @@ final class SubjectController
             $id,
             $this->page($query, 'page', 1),
             $this->page($query, 'per_page', 20),
+            isset($query['cycle_id']) && filter_var($query['cycle_id'], FILTER_VALIDATE_INT) !== false ? (int) $query['cycle_id'] : null,
         ));
     }
 
@@ -86,6 +88,8 @@ final class SubjectController
                 return $this->responseFactory->createResponse(204);
             }
             return $this->json($success, $result);
+        } catch (SubjectException $exception) {
+            return \App\Shared\JsonResponse::error($this->responseFactory, $exception->status, $exception->getMessage());
         } catch (DomainException $exception) {
             return \App\Shared\JsonResponse::error($this->responseFactory, 404, $exception->getMessage());
         } catch (\InvalidArgumentException $exception) {

@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TasksService, Subject } from '../tasks.service';
+import { CyclesService } from '../../admin/cycles.service';
 
 @Component({
   selector: 'app-teacher-subjects',
@@ -11,9 +12,20 @@ import { TasksService, Subject } from '../tasks.service';
 })
 export class TeacherSubjectsComponent {
   private readonly tasks = inject(TasksService);
+  private readonly cyclesApi = inject(CyclesService);
   subjects = signal<Subject[]>([]);
+  cycles = signal<any[]>([]);
+  cycleId = signal<number | null>(null);
 
   constructor() {
-    this.tasks.subjects().subscribe((rows) => this.subjects.set(rows));
+    this.cyclesApi.list().subscribe((rows) => {
+      this.cycles.set(rows.filter((row) => row.status === 'active'));
+      if (this.cycles().length === 1) this.cycleId.set(Number(this.cycles()[0].id));
+      this.load();
+    });
+  }
+  load(): void {
+    if (this.cycles().length > 1 && !this.cycleId()) return;
+    this.tasks.subjects(this.cycleId() ?? undefined).subscribe((rows) => this.subjects.set(rows));
   }
 }

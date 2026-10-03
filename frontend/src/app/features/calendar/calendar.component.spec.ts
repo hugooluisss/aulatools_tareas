@@ -10,10 +10,12 @@ describe('CalendarComponent', () => {
   const calendar = {
     list: vi.fn().mockReturnValue(of([])),
     events: vi.fn().mockReturnValue(of([])),
+    save: vi.fn().mockReturnValue(of({})),
   };
 
   beforeEach(() => {
     calendar.list.mockClear();
+    calendar.save.mockClear();
     TestBed.configureTestingModule({
       imports: [CalendarComponent],
       providers: [
@@ -22,13 +24,26 @@ describe('CalendarComponent', () => {
         { provide: TokenStorageService, useValue: { getRole: () => 'student' } },
       ],
     });
-    fixture = TestBed.createComponent(CalendarComponent);
-    fixture.detectChanges();
   });
 
   it('loads and shows a monthly grid', () => {
+    fixture = TestBed.createComponent(CalendarComponent);
+    fixture.detectChanges();
     expect(calendar.list).toHaveBeenCalledOnce();
     expect(fixture.nativeElement.textContent).toContain('Calendario');
     expect(fixture.nativeElement.querySelectorAll('[role="gridcell"]').length).toBe(42);
+  });
+
+  it('opens and closes the event form in a modal', () => {
+    TestBed.overrideProvider(TokenStorageService, { useValue: { getRole: () => 'admin' } });
+    fixture = TestBed.createComponent(CalendarComponent);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('button').click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="grid"]')).not.toBeNull();
+    fixture.nativeElement.querySelector('.modal-footer .btn-outline-secondary').click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
   });
 });

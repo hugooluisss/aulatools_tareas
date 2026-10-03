@@ -69,9 +69,9 @@
                 }
                 @if (kind === 'students') {
                   <div class="col-md-6">
-                    <label class="form-label" for="enrollment">Matrícula</label>
+                    <label class="form-label" for="enrollment-number">Matrícula</label>
                     <input
-                      id="enrollment"
+                      id="enrollment-number"
                       class="form-control"
                       formControlName="enrollment_number"
                       required
@@ -128,14 +128,27 @@
                   <input id="name" class="form-control" formControlName="name" required />
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label" for="cycle">Ciclo</label>
-                  <select id="cycle" class="form-select" formControlName="cycle_id" required>
-                    <option [value]="0">Selecciona un ciclo</option>
-                    @for (cycle of cycles(); track cycle.id) {
-                      <option [value]="cycle.id">{{ cycle.name }}</option>
+                  <label class="form-label" for="code">Clave</label>
+                  <input id="code" class="form-control" formControlName="code" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="plan">Plan de estudio</label>
+                  <select id="plan" class="form-select" formControlName="plan_id">
+                    <option [ngValue]="null">Sin plan</option>
+                    @for (plan of studyPlans(); track plan.id) {
+                      <option [value]="plan.id">{{ plan.name }}</option>
                     }
                   </select>
                 </div>
+                @if (editing) {
+                  <div class="col-md-6">
+                    <label class="form-label" for="subject-status">Estado</label>
+                    <select id="subject-status" class="form-select" formControlName="status">
+                      <option value="active">Activo</option>
+                      <option value="inactive">Inactivo</option>
+                    </select>
+                  </div>
+                }
                 <div class="col-md-6">
                   <label class="form-label" for="teacher">Profesor</label>
                   <select id="teacher" class="form-select" formControlName="teacher_id" required>
@@ -154,9 +167,29 @@
                   <input id="name" class="form-control" formControlName="name" required />
                 </div>
                 <div class="col-12">
+                  <label class="form-label" for="group-cycle">Ciclo</label>
+                  <select id="group-cycle" class="form-select" formControlName="cycle_id" required>
+                    <option [value]="0">Selecciona un ciclo</option>
+                    @for (cycle of cycles(); track cycle.id) {
+                      <option [value]="cycle.id">{{ cycle.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="group-teacher">Profesor</label>
+                  <select id="group-teacher" class="form-select" formControlName="teacher_id">
+                    <option [value]="0">Sin profesor</option>
+                    @for (teacher of teachers(); track teacher.id) {
+                      <option [value]="teacher.id">
+                        {{ teacher.first_name }} {{ teacher.last_name }}
+                      </option>
+                    }
+                  </select>
+                </div>
+                <div class="col-12">
                   <label class="form-label" for="subjects">Materias del grupo</label>
                   <select id="subjects" class="form-select" multiple formControlName="subject_ids">
-                    @for (subject of subjects(); track subject.id) {
+                    @for (subject of cycleSubjects(); track subject.id) {
                       <option [value]="subject.id">{{ subject.name }}</option>
                     }
                   </select>
@@ -188,22 +221,153 @@
       </div>
     </div>
   }
+  @if (subjectEnrollment(); as subject) {
+    <div class="modal-backdrop fade show"></div>
+    <div
+      class="modal d-block"
+      tabindex="-1"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-students-title"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="add-students-title">
+              Agregar estudiantes · {{ subject.name }}
+            </h2>
+            <button
+              type="button"
+              class="btn-close"
+              aria-label="Cerrar"
+              (click)="closeAddStudents()"
+            ></button>
+          </div>
+          <div class="modal-body">
+            @if (activeCycles().length > 1) {
+              <label class="form-label" for="enrollment-cycle">Ciclo</label>
+              <select
+                id="enrollment-cycle"
+                class="form-select mb-3"
+                [value]="subjectCycleId() ?? 0"
+                (change)="subjectCycleId.set(+$any($event.target).value); loadSubjectCandidates()"
+              >
+                <option value="0">Selecciona un ciclo</option>
+                @for (cycle of activeCycles(); track cycle.id) {
+                  <option [value]="cycle.id">{{ cycle.name }}</option>
+                }
+              </select>
+            }
+            @if (loadingSubjectCandidates()) {
+              <p role="status">Cargando estudiantes…</p>
+            } @else {
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th scope="col">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          aria-label="Seleccionar todos los estudiantes"
+                          [disabled]="!subjectCandidates().length"
+                          (change)="toggleSubjectStudents($any($event.target).checked)"
+                        />
+                      </th>
+                      <th scope="col">Matrícula</th>
+                      <th scope="col">Nombre</th>
+                      <th scope="col">Apellidos</th>
+                      @if (hasCandidateGroups()) {
+                        <th scope="col">Grupo</th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (student of subjectCandidates(); track student.student_id) {
+                      <tr>
+                        <td>
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            [attr.aria-label]="'Seleccionar estudiante ' + student.student_id"
+                            [checked]="isSubjectStudentSelected(student.student_id)"
+                            (change)="
+                              toggleSubjectStudent(student.student_id, $any($event.target).checked)
+                            "
+                          />
+                        </td>
+                        <td>{{ student.student_id }}</td>
+                        <td>{{ student.student_first_name }}</td>
+                        <td>{{ student.student_last_name }}</td>
+                        @if (hasCandidateGroups()) {
+                          <td>{{ student.group_name || '—' }}</td>
+                        }
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td [attr.colspan]="hasCandidateGroups() ? 5 : 4">
+                          No hay estudiantes disponibles.
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" type="button" (click)="closeAddStudents()">
+              Cancelar
+            </button>
+            <button
+              class="btn btn-primary"
+              type="button"
+              [disabled]="!selectedSubjectStudentIds().length || loadingSubjectCandidates()"
+              (click)="addSelectedStudents()"
+            >
+              Agregar seleccionados
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
   <div class="table-responsive">
     <table class="table align-middle">
       <thead>
         <tr>
-          <th>Nombre</th>
-          <th>Detalle</th>
-          <th>Estado</th>
+          @if (kind === 'subjects') {
+            <th>Clave</th>
+            <th>Plan</th>
+            <th>Estado</th>
+            <th>Estudiantes</th>
+          }
+          @if (kind !== 'subjects') {
+            <th>Nombre</th>
+          }
+          <th>{{ kind === 'subjects' ? 'Materia' : 'Detalle' }}</th>
+          @if (kind !== 'subjects') {
+            <th>Estado</th>
+          }
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
         @for (row of rows(); track row.id) {
           <tr>
-            <td>{{ row.name || row.first_name + ' ' + row.last_name }}</td>
+            @if (kind === 'subjects') {
+              <td>{{ row.code }}</td>
+              <td>{{ row.plan_name || '—' }}</td>
+              <td>{{ statusLabels[row.status] ?? row.status }}</td>
+              <td>{{ row.students_count ?? 0 }}</td>
+            }
+            @if (kind !== 'subjects') {
+              <td>{{ row.name || row.first_name + ' ' + row.last_name }}</td>
+            }
             <td>{{ detail(row) }}</td>
-            <td>{{ row.status ? (statusLabels[row.status] ?? row.status) : '—' }}</td>
+            @if (kind !== 'subjects') {
+              <td>{{ row.status ? (statusLabels[row.status] ?? row.status) : '—' }}</td>
+            }
             <td class="admin-catalog__actions">
               @if (kind === 'teachers' || kind === 'groups') {
                 <app-icon-button icon="eye" label="Ver detalle" (click)="view(row)" />
@@ -221,8 +385,15 @@
               }
               @if (kind === 'subjects') {
                 <app-icon-button
+                  icon="person-plus"
+                  label="Agregar estudiante"
+                  [disabled]="!canAddSubjectStudents(row)"
+                  (click)="openAddStudents(row)"
+                />
+                <app-icon-button
                   icon="people"
                   label="Ver estudiantes"
+                  [disabled]="!canAddSubjectStudents(row)"
                   (click)="viewStudents(row.id)"
                 />
               }
@@ -244,31 +415,12 @@
                   (click)="reset(row.id)"
                 />
               }
-              @if (kind === 'groups' || kind === 'subjects') {
-                <label class="visually-hidden" [for]="'student-' + row.id"
-                  >Estudiante a inscribir</label
-                ><select
-                  class="form-select form-select-sm"
-                  [id]="'student-' + row.id"
-                  #studentSelect
-                >
-                  <option value="">Estudiante</option>
-                  @for (student of students(); track student.id) {
-                    <option [value]="student.id">
-                      {{ student.first_name }} {{ student.last_name }}
-                    </option>
-                  }</select
-                ><app-icon-button
-                  icon="person-plus"
-                  label="Inscribir estudiante"
-                  (click)="enroll(row.id, +studentSelect.value)"
-                />
-              }
               @if (kind !== 'cycles' && kind !== 'students') {
                 <app-icon-button
                   icon="trash"
                   label="Eliminar"
                   variant="danger"
+                  [disabled]="kind === 'subjects' && hasEnrolledStudents(row)"
                   (click)="remove(row.id)"
                 />
               }
@@ -286,14 +438,69 @@
     </section>
   }
   @if (selectedStudents(); as enrolledStudents) {
-    <section aria-label="Estudiantes inscritos">
-      <h2>Estudiantes inscritos</h2>
-      @for (student of enrolledStudents; track student.id) {
-        <p>{{ student.first_name }} {{ student.last_name }} · {{ student.enrollment_number }}</p>
-      }
-      @if (enrolledStudents.length === 0) {
-        <p>No hay estudiantes inscritos.</p>
-      }
-    </section>
+    <div class="modal-backdrop fade show"></div>
+    <div
+      class="modal d-block"
+      tabindex="-1"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="students-title"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="students-title">Estudiantes inscritos</h2>
+            <button
+              type="button"
+              class="btn-close"
+              aria-label="Cerrar"
+              (click)="closeStudents()"
+            ></button>
+          </div>
+          <div class="modal-body">
+            @if (activeCycles().length > 1) {
+              <label class="form-label" for="view-cycle">Ciclo</label>
+              <select
+                id="view-cycle"
+                class="form-select mb-3"
+                [value]="subjectCycleId() ?? 0"
+                (change)="subjectCycleId.set(+$any($event.target).value); loadSubjectStudents()"
+              >
+                <option value="0">Selecciona un ciclo</option>
+                @for (cycle of activeCycles(); track cycle.id) {
+                  <option [value]="cycle.id">{{ cycle.name }}</option>
+                }
+              </select>
+            }
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Matrícula</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Apellidos</th>
+                    <th scope="col">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (student of enrolledStudents; track student.id) {
+                    <tr>
+                      <td>{{ student.id }}</td>
+                      <td>{{ student.first_name }}</td>
+                      <td>{{ student.last_name }}</td>
+                      <td>{{ statusLabels[student.status] ?? student.status ?? '—' }}</td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="4">No hay estudiantes inscritos.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   }
 </section>

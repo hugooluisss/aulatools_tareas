@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { TasksService } from '../tasks.service';
 import { TeacherSubjectsComponent } from './teacher-subjects.component';
+import { CyclesService } from '../../admin/cycles.service';
 
 describe('TeacherSubjectsComponent', () => {
   it('renders assigned subjects', () => {
@@ -10,10 +11,11 @@ describe('TeacherSubjectsComponent', () => {
       imports: [TeacherSubjectsComponent],
       providers: [
         provideRouter([]),
+        { provide: CyclesService, useValue: { list: () => of([{ id: '14', status: 'active' }]) } },
         {
           provide: TasksService,
           useValue: {
-            subjects: () => of([{ id: 1, name: 'Ciencias', status: 'in_progress' }]),
+            subjects: () => of([{ id: '1', name: 'Ciencias', status: 'active' }]),
           },
         },
       ],

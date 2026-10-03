@@ -1,0 +1,26 @@
+meta {
+  name: /enrollments/{id} (PUT)
+  type: http
+  seq: 65
+}
+
+put {
+  url: {{baseUrl}}/enrollments/{{inscriptionId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "group_id": {{groupId}}
+  }
+}
+
+docs {
+  PUT `/enrollments/{id}` Roles: Admin. Path ids: id. JSON body: group_id. Response: 200 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isJson
+}

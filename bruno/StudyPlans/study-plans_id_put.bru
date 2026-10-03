@@ -1,0 +1,28 @@
+meta {
+  name: /study-plans/{id} (PUT)
+  type: http
+  seq: 74
+}
+
+put {
+  url: {{baseUrl}}/study-plans/{{studyPlanId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "code": "{{studyPlanCode}}",
+    "name": "{{studyPlanName}}",
+    "status": "active"
+  }
+}
+
+docs {
+  PUT `/study-plans/id` Roles: Admin. Path id. JSON body: code, name, status (`active` or `inactive`). Response: 200 bare plan object. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isJson
+}

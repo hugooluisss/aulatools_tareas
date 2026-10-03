@@ -6,6 +6,20 @@
       <option [value]="filter.value">{{ filter.label }}</option>
     }
   </select>
+  @if (cycles().length > 1) {
+    <label for="student-cycle">Ciclo</label>
+    <select
+      id="student-cycle"
+      class="form-select"
+      [value]="cycleId() ?? 0"
+      (change)="cycleId.set(+$any($event.target).value); load()"
+    >
+      <option value="0">Selecciona un ciclo</option>
+      @for (cycle of cycles(); track cycle.id) {
+        <option [value]="cycle.id">{{ cycle.name }}</option>
+      }
+    </select>
+  }
 </header>
 <div class="card table-responsive">
   <table class="table align-middle mb-0">
@@ -32,7 +46,7 @@
               <span class="badge text-bg-danger">Vencida</span>
             }
           </td>
-          <td><a [routerLink]="['/mis-tareas', row.delivery.id]">Ver detalle</a></td>
+          <td><a [routerLink]="['/my-tasks', row.delivery.id]">Ver detalle</a></td>
         </tr>
       } @empty {
         @if (!loading()) {

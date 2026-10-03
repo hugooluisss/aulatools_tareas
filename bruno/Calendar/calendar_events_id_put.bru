@@ -6,6 +6,8 @@ meta {
 
 put {
   url: {{baseUrl}}/calendar/events/{{eventId}}
+  body: json
+  auth: inherit
 }
 
 body:json {
@@ -25,6 +27,6 @@ docs {
 assert {
 
   res.status: eq 200
-  res.body: isObject
+  res.body: isJson
 
 }

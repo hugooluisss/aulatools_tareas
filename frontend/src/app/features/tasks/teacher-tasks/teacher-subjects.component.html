@@ -1,10 +1,24 @@
 <h1>Mis materias</h1>
+@if (cycles().length > 1) {
+  <label for="teacher-cycle">Ciclo</label>
+  <select
+    id="teacher-cycle"
+    class="form-select mb-3"
+    [value]="cycleId() ?? 0"
+    (change)="cycleId.set(+$any($event.target).value); load()"
+  >
+    <option value="0">Selecciona un ciclo</option>
+    @for (cycle of cycles(); track cycle.id) {
+      <option [value]="cycle.id">{{ cycle.name }}</option>
+    }
+  </select>
+}
 <div class="subject-list">
   @for (subject of subjects(); track subject.id) {
     <article class="card p-4">
       <h2>{{ subject.name }}</h2>
       <p>Estado: {{ subject.status }}</p>
-      <a [routerLink]="['/mis-materias', subject.id]">Ver estudiantes y tareas</a>
+      <a [routerLink]="['/my-subjects', subject.id]">Ver estudiantes y tareas</a>
     </article>
   } @empty {
     <p>No hay materias asignadas.</p>

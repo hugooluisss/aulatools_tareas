@@ -8,27 +8,27 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    path: 'registro-escuela',
+    path: 'register-school',
     loadComponent: () =>
       import('./features/auth/register-school/register-school.component').then(
         (m) => m.RegisterSchoolComponent,
       ),
   },
-  { path: '', pathMatch: 'full', redirectTo: 'inicio' },
+  { path: '', pathMatch: 'full', redirectTo: 'home' },
   {
     path: '',
     canActivate: [roleGuard],
     loadComponent: () => import('./core/layout/shell.component').then((m) => m.ShellComponent),
     children: [
       {
-        path: 'mis-tareas',
+        path: 'my-tasks',
         canActivate: [roleGuard],
         data: { roles: ['student'] },
         loadComponent: () =>
           import('./features/tasks/my-tasks/my-tasks.component').then((m) => m.MyTasksComponent),
       },
       {
-        path: 'mis-tareas/:deliveryId',
+        path: 'my-tasks/:deliveryId',
         canActivate: [roleGuard],
         data: { roles: ['student'] },
         loadComponent: () =>
@@ -37,7 +37,7 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'mis-materias',
+        path: 'my-subjects',
         canActivate: [roleGuard],
         data: { roles: ['teacher'] },
         loadComponent: () =>
@@ -46,7 +46,7 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'mis-materias/:subjectId',
+        path: 'my-subjects/:subjectId',
         canActivate: [roleGuard],
         data: { roles: ['teacher'] },
         loadComponent: () =>
@@ -54,9 +54,9 @@ export const routes: Routes = [
             (m) => m.TeacherSubjectDetailComponent,
           ),
       },
-      { path: 'tareas', pathMatch: 'full', redirectTo: 'mis-materias' },
+      { path: 'tasks', pathMatch: 'full', redirectTo: 'my-subjects' },
       {
-        path: 'tareas/:taskId/entregas',
+        path: 'tasks/:taskId/deliveries',
         canActivate: [roleGuard],
         data: { roles: ['teacher'] },
         loadComponent: () =>
@@ -65,7 +65,7 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'entregas/:deliveryId/comentarios',
+        path: 'deliveries/:deliveryId/comments',
         canActivate: [roleGuard],
         data: { roles: ['admin', 'teacher', 'student'] },
         loadComponent: () =>
@@ -74,11 +74,11 @@ export const routes: Routes = [
           ),
       },
       ...[
-        ['estudiantes', 'students'],
-        ['profesores', 'teachers'],
-        ['ciclos', 'cycles'],
-        ['admin/materias', 'subjects'],
-        ['grupos', 'groups'],
+        ['students', 'students'],
+        ['teachers', 'teachers'],
+        ['cycles', 'cycles'],
+        ['admin/subjects', 'subjects'],
+        ['groups', 'groups'],
       ].map(([path, kind]) => ({
         path,
         canActivate: [roleGuard],
@@ -89,32 +89,53 @@ export const routes: Routes = [
           ),
       })),
       {
-        path: 'escuela',
+        path: 'study-plans',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./features/admin/study-plans/study-plans.component').then(
+            (m) => m.StudyPlansComponent,
+          ),
+      },
+      ...[
+        ['enrollments', 'enrollment'],
+        ['re-enrollments', 'reenrollment'],
+      ].map(([path, type]) => ({
+        path,
+        canActivate: [roleGuard],
+        data: { roles: ['admin'], type },
+        loadComponent: () =>
+          import('./features/admin/student-cycle-enrollment/student-cycle-enrollment.component').then(
+            (m) => m.StudentCycleEnrollmentComponent,
+          ),
+      })),
+      {
+        path: 'school',
         canActivate: [roleGuard],
         data: { roles: ['admin'] },
         loadComponent: () =>
           import('./features/admin/school/school.component').then((m) => m.SchoolComponent),
       },
       {
-        path: 'inicio',
+        path: 'home',
         loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
       },
       {
-        path: 'cambiar-contrasena',
+        path: 'change-password',
         loadComponent: () =>
           import('./features/auth/change-password/change-password.component').then(
             (m) => m.ChangePasswordComponent,
           ),
       },
       {
-        path: 'calendario',
+        path: 'calendar',
         canActivate: [roleGuard],
         data: { roles: ['admin', 'teacher', 'student'] },
         loadComponent: () =>
           import('./features/calendar/calendar.component').then((m) => m.CalendarComponent),
       },
       {
-        path: 'avisos',
+        path: 'announcements',
         canActivate: [roleGuard],
         data: { roles: ['admin', 'teacher', 'student'] },
         loadComponent: () =>
@@ -123,14 +144,14 @@ export const routes: Routes = [
           ),
       },
       ...[
-        'mis-tareas',
-        'materias',
-        'mis-materias',
-        'tareas',
-        'estudiantes',
-        'profesores',
-        'ciclos',
-        'grupos',
+        'my-tasks',
+        'subjects',
+        'my-subjects',
+        'tasks',
+        'students',
+        'teachers',
+        'cycles',
+        'groups',
       ].map((path) => ({
         path,
         canActivate: [roleGuard],
@@ -139,12 +160,12 @@ export const routes: Routes = [
       })),
     ],
   },
-  { path: '**', redirectTo: 'inicio' },
+  { path: '**', redirectTo: 'home' },
 ];
 
 function rolesFor(path: string): string[] {
-  if (path === 'mis-tareas') return ['student'];
-  if (path === 'mis-materias' || path === 'tareas') return ['teacher'];
-  if (['estudiantes', 'profesores', 'ciclos', 'grupos'].includes(path)) return ['admin'];
+  if (path === 'my-tasks') return ['student'];
+  if (path === 'my-subjects' || path === 'tasks') return ['teacher'];
+  if (['students', 'teachers', 'cycles', 'groups'].includes(path)) return ['admin'];
   return ['admin', 'teacher', 'student'];
 }

@@ -10,5 +10,7 @@ namespace App\Enrollments\Service;
  */
 interface TaskDeliveryEnrollmentHook
 {
-    public function onStudentEnrolled(int $studentId, int $subjectId): void;
+    public function onStudentEnrolled(int $studentId, int $subjectId, int $cycleId): void;
+
+    public function onGroupSubjectsAdded(int $groupId, int $cycleId, array $subjectIds): void;
 }

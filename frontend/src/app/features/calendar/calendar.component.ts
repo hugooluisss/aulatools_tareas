@@ -31,7 +31,8 @@ export class CalendarComponent {
   });
   items = signal<CalendarItem[]>([]);
   events = signal<CalendarEvent[]>([]);
-  subjects = signal<{ id: number; name: string }[]>([]);
+  subjects = signal<{ id: string; name: string }[]>([]);
+  formOpen = signal(false);
   month = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   editing: number | null = null;
   error = signal('');
@@ -90,6 +91,21 @@ export class CalendarComponent {
       starts_at: this.toLocalDateTime(event.starts_at),
       ends_at: this.toLocalDateTime(event.ends_at),
     });
+    this.formOpen.set(true);
+  }
+
+  openNew(): void {
+    this.editing = null;
+    this.form.reset({ subject_id: '', title: '', description: '', starts_at: '', ends_at: '' });
+    this.error.set('');
+    this.formOpen.set(true);
+  }
+
+  closeForm(): void {
+    this.formOpen.set(false);
+    this.editing = null;
+    this.form.reset({ subject_id: '', title: '', description: '', starts_at: '', ends_at: '' });
+    this.error.set('');
   }
 
   save(): void {
@@ -133,6 +149,7 @@ export class CalendarComponent {
   private done(message: string): void {
     this.toast.show(message);
     this.editing = null;
+    this.formOpen.set(false);
     this.form.reset({ subject_id: '', title: '', description: '', starts_at: '', ends_at: '' });
     this.api.events().subscribe((rows) => this.events.set(rows));
     this.load();

@@ -6,6 +6,8 @@ meta {
 
 put {
   url: {{baseUrl}}/users/students/{{studentId}}
+  body: json
+  auth: inherit
 }
 
 body:json {
@@ -13,19 +15,18 @@ body:json {
     "first_name": "Riley",
     "last_name": "Student",
     "email": "riley.student@example.test",
-    "enrollment_number": "STU-2026-001",
     "birth_date": "2012-05-14",
     "status": "active"
   }
 }
 
 docs {
-  PUT `/users/students/id` Roles: Admin. Path ids: id. JSON body: first_name, last_name, email, enrollment_number, birth_date, status; use valid IDs and dates accepted by the API. Response: 200 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  PUT `/users/students/id` Roles: Admin. Path ids: id. JSON body: first_name, last_name, email, birth_date, status; use valid IDs and dates accepted by the API. Response: 200 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
-  res.body: isObject
+  res.body: isJson
 
 }

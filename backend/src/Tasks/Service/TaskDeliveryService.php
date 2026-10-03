@@ -12,8 +12,13 @@ final class TaskDeliveryService
     {
     }
 
-    public function createForEnrollment(int $studentId, int $subjectId): void
+    public function createForEnrollment(int $studentId, int $subjectId, int $cycleId): void
     {
-        $this->repository->createForEnrollment($studentId, $subjectId);
+        $this->repository->createForEnrollment($studentId, $subjectId, $cycleId);
+    }
+
+    public function createForGroupSubjects(int $groupId, int $cycleId, array $subjectIds): void
+    {
+        $this->repository->createForGroupSubjects($groupId, $cycleId, $subjectIds);
     }
 }

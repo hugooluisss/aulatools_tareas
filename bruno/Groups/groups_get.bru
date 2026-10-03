@@ -6,10 +6,11 @@ meta {
 
 get {
   url: {{baseUrl}}/groups
+  auth: inherit
 }
 
 docs {
-  GET `/groups` Roles: Admin. Response: 200 bare JSON array; pagination in X-Total-Count, X-Page, X-Per-Page headers. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  GET `/groups` Roles: Admin. Response: 200 bare JSON array including teacher_id; pagination in X-Total-Count, X-Page, X-Per-Page headers. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {

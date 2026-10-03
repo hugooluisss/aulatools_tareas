@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TasksService, Student, Task } from '../tasks.service';
 import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
+import { CyclesService } from '../../admin/cycles.service';
 
 @Component({
   selector: 'app-teacher-subject-detail',
@@ -14,21 +15,37 @@ import { IconButtonComponent } from '../../../shared/icon-button/icon-button.com
 export class TeacherSubjectDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly tasks = inject(TasksService);
+  private readonly cyclesApi = inject(CyclesService);
   readonly subjectId = Number(this.route.snapshot.paramMap.get('subjectId'));
   students = signal<Student[]>([]);
   tasksList = signal<Task[]>([]);
+  cycles = signal<any[]>([]);
+  cycleId = signal<number | null>(null);
 
   statusLabel(status: string): string {
     return { active: 'Activa', cancelled: 'Cancelada' }[status] ?? status;
   }
 
   constructor() {
-    this.tasks.students(this.subjectId).subscribe((rows) => this.students.set(rows));
+    this.cyclesApi.list().subscribe((rows) => {
+      this.cycles.set(rows.filter((row) => row.status === 'active'));
+      if (this.cycles().length === 1) this.cycleId.set(Number(this.cycles()[0].id));
+      this.load();
+    });
+  }
+
+  load(): void {
+    if (this.cycles().length > 1 && !this.cycleId()) return;
+    this.tasks
+      .students(this.subjectId, this.cycleId() ?? undefined)
+      .subscribe((rows) => this.students.set(rows));
     this.loadTasks();
   }
 
   loadTasks(): void {
-    this.tasks.tasks(this.subjectId).subscribe((rows) => this.tasksList.set(rows));
+    this.tasks
+      .tasks(this.subjectId, this.cycleId() ?? undefined)
+      .subscribe((rows) => this.tasksList.set(rows));
   }
 
   createTask(): void {
@@ -38,7 +55,12 @@ export class TeacherSubjectDetailComponent {
     const dueAt = prompt('Fecha y hora de vencimiento (ISO 8601)');
     if (!dueAt) return;
     this.tasks
-      .createTask(this.subjectId, { name: name.trim(), description, due_at: dueAt })
+      .createTask(this.subjectId, {
+        name: name.trim(),
+        description,
+        due_at: dueAt,
+        cycle_id: this.cycleId()!,
+      })
       .subscribe(() => this.loadTasks());
   }
 

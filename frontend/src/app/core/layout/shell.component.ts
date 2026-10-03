@@ -1,5 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map, startWith } from 'rxjs';
 import { SchoolService } from '../../features/admin/school.service';
 import { TokenStorageService } from '../auth/token-storage.service';
 
@@ -13,25 +15,49 @@ import { TokenStorageService } from '../auth/token-storage.service';
 export class ShellComponent {
   private readonly tokens = inject(TokenStorageService);
   private readonly school = inject(SchoolService);
+  private readonly router = inject(Router);
   schoolName = signal('');
+  controlEscolarOpen = signal(false);
+  catalogosOpen = signal(false);
   constructor() {
     this.school.get().subscribe((r) => this.schoolName.set(r.name));
   }
   menu = [
-    { label: 'Inicio', path: '/inicio', roles: ['admin', 'teacher', 'student'] },
-    { label: 'Mis tareas', path: '/mis-tareas', roles: ['student'] },
-    { label: 'Materias', path: '/materias', roles: ['student'] },
-    { label: 'Mis materias', path: '/mis-materias', roles: ['teacher'] },
-    { label: 'Tareas', path: '/tareas', roles: ['teacher'] },
-    { label: 'Estudiantes', path: '/estudiantes', roles: ['admin'] },
-    { label: 'Profesores', path: '/profesores', roles: ['admin'] },
-    { label: 'Ciclos', path: '/ciclos', roles: ['admin'] },
-    { label: 'Grupos', path: '/grupos', roles: ['admin'] },
-    { label: 'Materias', path: '/admin/materias', roles: ['admin'] },
-    { label: 'Escuela', path: '/escuela', roles: ['admin'] },
-    { label: 'Calendario', path: '/calendario', roles: ['admin', 'teacher', 'student'] },
-    { label: 'Avisos', path: '/avisos', roles: ['admin', 'teacher', 'student'] },
+    { label: 'Mis tareas', path: '/my-tasks', roles: ['student'] },
+    { label: 'Materias', path: '/subjects', roles: ['student'] },
+    { label: 'Mis materias', path: '/my-subjects', roles: ['teacher'] },
+    { label: 'Tareas', path: '/tasks', roles: ['teacher'] },
+    { label: 'Calendario', path: '/calendar', roles: ['admin', 'teacher', 'student'] },
+    { label: 'Avisos', path: '/announcements', roles: ['admin', 'teacher', 'student'] },
+    { label: 'Escuela', path: '/school', roles: ['admin'] },
+    { label: 'Profesores', path: '/teachers', roles: ['admin'] },
   ];
+  controlEscolar = [
+    { label: 'Estudiantes', path: '/students' },
+    { label: 'Inscripciones', path: '/enrollments' },
+    { label: 'Reinscripciones', path: '/re-enrollments' },
+  ];
+  catalogos = [
+    { label: 'Ciclos', path: '/cycles' },
+    { label: 'Grupos', path: '/groups' },
+    { label: 'Materias', path: '/admin/subjects' },
+    { label: 'Planes de estudio', path: '/study-plans' },
+  ];
+  private readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+      startWith(this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+  isAdmin = computed(() => this.tokens.getRole() === 'admin');
+  controlEscolarActive = computed(() =>
+    this.controlEscolar.some((item) => this.currentUrl().startsWith(item.path)),
+  );
+  catalogosActive = computed(() =>
+    this.catalogos.some((item) => this.currentUrl().startsWith(item.path)),
+  );
   get visibleMenu() {
     const role = this.tokens.getRole();
     return this.menu.filter((item) => item.roles.includes(role ?? ''));

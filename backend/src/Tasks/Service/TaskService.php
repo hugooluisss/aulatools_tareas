@@ -14,7 +14,7 @@ final class TaskService
     {
     }
 
-    public function listSubjectTasks(CurrentUser $user, int $subjectId, int $page, int $perPage): array
+    public function listSubjectTasks(CurrentUser $user, int $subjectId, ?int $cycleId, int $page, int $perPage): array
     {
         $this->pagination($page, $perPage);
         $subject = $this->subject($user, $subjectId);
@@ -24,6 +24,16 @@ final class TaskService
         if ($user->role === 'student' && !$this->repository->enrolled($subjectId, $user->id)) {
             throw new TaskException('Subject not found.', 404);
         }
+        if ($cycleId !== null) {
+            if ($this->repository->cycle($user->schoolId, $cycleId) === null) {
+                throw new TaskException('Cycle not found.', 404);
+            }
+            $cycleIds = [$cycleId];
+        } elseif ($user->role === 'student') {
+            $cycleIds = $this->repository->studentCycles($subjectId, $user->id);
+        } else {
+            $cycleIds = array_map('intval', array_column($this->repository->activeCycles($user->schoolId), 'id'));
+        }
         if (!in_array($user->role, ['admin', 'teacher', 'student'], true)) {
             throw new TaskException('Forbidden.', 403);
         }
@@ -32,6 +42,7 @@ final class TaskService
             $user->role,
             $user->id,
             $subjectId,
+            $cycleIds,
             ($page - 1) * $perPage,
             $perPage,
         );
@@ -46,8 +57,20 @@ final class TaskService
     {
         $subject = $this->subject($user, $subjectId);
         $this->manage($user, $subject);
+        $cycleId = $data['cycle_id'] ?? null;
+        if (filter_var($cycleId, FILTER_VALIDATE_INT) === false || (int) $cycleId < 1) {
+            throw new TaskException('Invalid cycle_id.', 400);
+        }
+        $cycleId = (int) $cycleId;
+        $cycle = $this->repository->cycle($user->schoolId, $cycleId);
+        if ($cycle === null) {
+            throw new TaskException('Cycle not found.', 404);
+        }
+        if ($cycle['status'] !== 'active') {
+            throw new TaskException('Cycle is finished.', 422);
+        }
         $data = $this->validate($data);
-        $id = $this->transactions->run(fn (): int => $this->repository->create($subjectId, $data));
+        $id = $this->transactions->run(fn (): int => $this->repository->create($subjectId, $cycleId, $data));
         return $this->find($user, $id);
     }
 
@@ -60,7 +83,7 @@ final class TaskService
         if ($user->role === 'teacher' && (int) $task['teacher_id'] !== $user->id) {
             throw new TaskException('Forbidden.', 403);
         }
-        if ($user->role === 'student' && !$this->repository->enrolled((int) $task['subject_id'], $user->id)) {
+        if ($user->role === 'student' && !$this->repository->enrolled((int) $task['subject_id'], $user->id, (int) $task['cycle_id'])) {
             throw new TaskException('Task not found.', 404);
         }
         if (!in_array($user->role, ['admin', 'teacher', 'student'], true)) {
@@ -69,6 +92,7 @@ final class TaskService
         return [
             'id' => (int) $task['id'],
             'subject_id' => (int) $task['subject_id'],
+            'cycle_id' => (int) $task['cycle_id'],
             'name' => $task['name'],
             'description' => $task['description'],
             'due_at' => $this->isoTimestamp($task['due_at']),

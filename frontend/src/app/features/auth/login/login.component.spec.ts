@@ -13,7 +13,7 @@ describe('LoginComponent', () => {
     TestBed.configureTestingModule({
       imports: [LoginComponent],
       providers: [
-        provideRouter([{ path: 'inicio', children: [] }] as Routes),
+        provideRouter([{ path: 'home', children: [] }] as Routes),
         { provide: AuthService, useValue: auth },
       ],
     });
@@ -32,6 +32,6 @@ describe('LoginComponent', () => {
     fixture.componentInstance.submit();
     expect(auth.login).toHaveBeenCalledWith({ email: 'admin@escuela.mx', password: 'secreto' });
     await fixture.whenStable();
-    expect(TestBed.inject(Router).url).toBe('/inicio');
+    expect(TestBed.inject(Router).url).toBe('/home');
   });
 });

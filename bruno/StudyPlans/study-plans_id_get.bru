@@ -1,0 +1,19 @@
+meta {
+  name: /study-plans/{id} (GET)
+  type: http
+  seq: 73
+}
+
+get {
+  url: {{baseUrl}}/study-plans/{{studyPlanId}}
+  auth: inherit
+}
+
+docs {
+  GET `/study-plans/id` Roles: Admin. Path id. Response: 200 bare plan object. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isJson
+}

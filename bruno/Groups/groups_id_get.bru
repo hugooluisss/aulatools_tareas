@@ -6,15 +6,16 @@ meta {
 
 get {
   url: {{baseUrl}}/groups/{{groupId}}
+  auth: inherit
 }
 
 docs {
-  GET `/groups/id` Roles: Admin. Path ids: id. Response: 200 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  GET `/groups/id` Roles: Admin. Path ids: id. Response: 200 bare resource object including teacher_id; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
-  res.body: isObject
+  res.body: isJson
 
 }

@@ -5,7 +5,8 @@ meta {
 }
 
 delete {
-  url: {{baseUrl}}/subjects/{{subjectId}}/students/{{studentId}}
+  url: {{baseUrl}}/subjects/{{subjectId}}/students/{{studentId}}?cycle_id={{cycleId}}
+  auth: inherit
 }
 
 docs {

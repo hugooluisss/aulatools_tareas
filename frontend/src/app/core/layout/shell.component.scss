@@ -37,6 +37,28 @@
   display: grid;
   gap: v.$spacing-xs;
 }
+.app-sidebar__group {
+  display: block;
+}
+.app-sidebar__group summary {
+  cursor: pointer;
+  list-style: none;
+}
+.app-sidebar__group summary::-webkit-details-marker {
+  display: none;
+}
+.app-sidebar__group summary::after {
+  content: '⌄';
+  float: right;
+}
+.app-sidebar__group[open] summary::after {
+  content: '⌃';
+}
+.app-sidebar__nav-link--nested {
+  display: block;
+  margin-left: v.$spacing-md;
+  margin-top: v.$spacing-xs;
+}
 .app-sidebar__nav-link,
 .app-sidebar__password-link {
   color: v.$sidebar-text;

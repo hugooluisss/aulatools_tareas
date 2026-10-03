@@ -6,6 +6,7 @@ meta {
 
 post {
   url: {{baseUrl}}/auth/register-school
+  body: json
 }
 
 
@@ -26,6 +27,6 @@ docs {
 assert {
 
   res.status: eq 201
-  res.body: isObject
+  res.body: isJson
 
 }

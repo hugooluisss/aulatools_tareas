@@ -6,24 +6,27 @@ meta {
 
 put {
   url: {{baseUrl}}/subjects/{{subjectId}}
+  body: json
+  auth: inherit
 }
 
 body:json {
   {
-    "cycle_id": "{{cycleId}}",
+    "code": "{{subjectCode}}",
     "teacher_id": "{{teacherId}}",
     "name": "Science",
-    "status": "in_progress"
+    "plan_id": {{planId}},
+    "status": "active"
   }
 }
 
 docs {
-  PUT `/subjects/id` Roles: Admin. Path ids: id. JSON body: cycle_id, teacher_id, name, status; use valid IDs and dates accepted by the API. Response: 200 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  PUT `/subjects/id` Roles: Admin. Path ids: id. JSON body: code, name, teacher_id, optional plan_id, status (`active` or `inactive`). Response: 200 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 200
-  res.body: isObject
+  res.body: isJson
 
 }

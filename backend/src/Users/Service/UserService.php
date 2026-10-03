@@ -31,8 +31,28 @@ final class UserService
             throw new UserException('Invalid pagination or status.', 400);
         }
         $result = $this->repository->list($user->schoolId, $role, ($page - 1) * $perPage, $perPage, $status);
+        $data = $result['data'];
+        if ($role === 'student') {
+            $data = array_map(static function (array $student): array {
+                $student['enrollment'] = $student['enrollment_id'] === null ? null : [
+                    'id' => (int) $student['enrollment_id'],
+                    'cycle_id' => (int) $student['enrollment_cycle_id'],
+                    'cycle_name' => $student['enrollment_cycle_name'],
+                    'group_id' => (int) $student['enrollment_group_id'],
+                    'group_name' => $student['enrollment_group_name'],
+                ];
+                unset(
+                    $student['enrollment_id'],
+                    $student['enrollment_cycle_id'],
+                    $student['enrollment_cycle_name'],
+                    $student['enrollment_group_id'],
+                    $student['enrollment_group_name'],
+                );
+                return $student;
+            }, $data);
+        }
         return [
-            'data' => $result['data'],
+            'data' => $data,
             'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
         ];
     }
@@ -47,11 +67,9 @@ final class UserService
     {
         $this->admin($user);
         $this->validate($role, $data, true);
+        unset($data['enrollment_number']);
         if ($this->repository->emailExists($data['email'])) {
             throw new UserException('Email already registered.', 400);
-        }
-        if ($role === 'student' && $this->repository->enrollmentExists($user->schoolId, $data['enrollment_number'])) {
-            throw new UserException('Enrollment number already exists.', 400);
         }
         $id = $this->transactions->run(fn (): int => $this->repository->create(
             $user->schoolId,
@@ -72,12 +90,6 @@ final class UserService
         $this->validate($role, $data, false);
         if ($this->repository->emailExists($data['email'], $id)) {
             throw new UserException('Email already registered.', 400);
-        }
-        if (
-            $role === 'student'
-            && $this->repository->enrollmentExists($user->schoolId, $data['enrollment_number'], $id)
-        ) {
-            throw new UserException('Enrollment number already exists.', 400);
         }
         $this->repository->update($user->schoolId, $role, $id, $data);
         return $this->find($user, $role, $id);
@@ -119,7 +131,7 @@ final class UserService
             $fields[] = 'password';
         }
         if ($role === 'student') {
-            array_push($fields, 'enrollment_number', 'birth_date');
+            $fields[] = 'birth_date';
         }
         foreach ($fields as $field) {
             if (!isset($data[$field]) || !is_string($data[$field]) || trim($data[$field]) === '') {

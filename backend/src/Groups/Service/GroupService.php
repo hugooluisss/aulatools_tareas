@@ -6,12 +6,14 @@ namespace App\Groups\Service;
 
 use App\Auth\CurrentUser;
 use App\Groups\Repository\GroupRepository;
+use App\Enrollments\Service\TaskDeliveryEnrollmentHook;
 use App\Shared\TransactionRunner;
 use DomainException;
+use App\Groups\Service\GroupException;
 
 final class GroupService
 {
-    public function __construct(private GroupRepository $repository, private TransactionRunner $transactions)
+    public function __construct(private GroupRepository $repository, private TransactionRunner $transactions, private TaskDeliveryEnrollmentHook $deliveryHook)
     {
     }
 
@@ -36,9 +38,9 @@ final class GroupService
 
     public function create(CurrentUser $user, array $data): array
     {
-        [$name, $subjectIds] = $this->validate($user, $data);
-        $id = $this->transactions->run(function () use ($user, $name, $subjectIds): int {
-            $id = $this->repository->create($user->schoolId, $name);
+        [$name, $cycleId, $subjectIds, $teacherId] = $this->validate($user, $data);
+        $id = $this->transactions->run(function () use ($user, $name, $cycleId, $subjectIds, $teacherId): int {
+            $id = $this->repository->create($user->schoolId, $cycleId, $name, $teacherId);
             $this->repository->replaceSubjects($id, $subjectIds);
             return $id;
         });
@@ -48,10 +50,10 @@ final class GroupService
     public function update(CurrentUser $user, int $id, array $data): array
     {
         $this->view($user, $id);
-        [$name, $subjectIds] = $this->validate($user, $data);
-        $this->transactions->run(function () use ($id, $name, $subjectIds): void {
-            $this->repository->update($id, $name);
-            $this->repository->replaceSubjects($id, $subjectIds);
+        [$name, $cycleId, $subjectIds, $teacherId] = $this->validate($user, $data);
+        $this->transactions->run(function () use ($id, $name, $cycleId, $subjectIds, $teacherId, $user): void {
+            $this->repository->update($id, $cycleId, $name, $teacherId);
+            $this->repository->replaceSubjects($id, $subjectIds, $cycleId, $this->deliveryHook);
         });
         return $this->view($user, $id);
     }
@@ -78,8 +80,12 @@ final class GroupService
             !isset($data['name'])
             || !is_string($data['name'])
             || trim($data['name']) === ''
+            || !isset($data['cycle_id'])
+            || filter_var($data['cycle_id'], FILTER_VALIDATE_INT) === false
+            || (int) $data['cycle_id'] < 1
             || !isset($data['subject_ids'])
             || !is_array($data['subject_ids'])
+            || (isset($data['teacher_id']) && (filter_var($data['teacher_id'], FILTER_VALIDATE_INT) === false || (int) $data['teacher_id'] < 1))
         ) {
             throw new \InvalidArgumentException('Invalid group data.');
         }
@@ -90,9 +96,17 @@ final class GroupService
             }
             $ids[] = (int) $subjectId;
         }
-        if (!$this->repository->subjectIdsBelongToSchool($user->schoolId, $ids)) {
-            throw new DomainException('Subject not found.');
+        $cycleId = (int) $data['cycle_id'];
+        if (!$this->repository->cycleBelongsToSchool($user->schoolId, $cycleId)) {
+            throw new \InvalidArgumentException('Invalid cycle_id.');
         }
-        return [trim($data['name']), array_values(array_unique($ids))];
+        if (!$this->repository->subjectIdsActiveInSchool($user->schoolId, $ids)) {
+            throw new GroupException('Every subject must be active and belong to the school.', 400);
+        }
+        $teacherId = isset($data['teacher_id']) ? (int) $data['teacher_id'] : null;
+        if ($teacherId !== null && !$this->repository->teacherBelongsToSchool($user->schoolId, $teacherId)) {
+            throw new DomainException('Teacher not found.');
+        }
+        return [trim($data['name']), $cycleId, array_values(array_unique($ids)), $teacherId];
     }
 }

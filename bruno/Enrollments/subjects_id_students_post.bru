@@ -6,21 +6,24 @@ meta {
 
 post {
   url: {{baseUrl}}/subjects/{{subjectId}}/students
+  body: json
+  auth: inherit
 }
 
 body:json {
   {
-    "student_id": "{{studentId}}"
+    "student_id": "{{studentId}}",
+    "cycle_id": {{cycleId}}
   }
 }
 
 docs {
-  POST `/subjects/id/students` Roles: Admin. Path ids: id. JSON body: student_id; use valid IDs and dates accepted by the API. Response: 201 bare object with student_id and subject_id. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  POST `/subjects/id/students` Roles: Admin. Path ids: id. JSON body: student_id, cycle_id. Response: 201 bare object with student_id, subject_id and cycle_id. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 201
-  res.body: isObject
+  res.body: isJson
 
 }

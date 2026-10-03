@@ -1,0 +1,19 @@
+meta {
+  name: /study-plans (GET)
+  type: http
+  seq: 71
+}
+
+get {
+  url: {{baseUrl}}/study-plans
+  auth: inherit
+}
+
+docs {
+  GET `/study-plans` Roles: Admin. Response: 200 bare JSON array of plans with subjects_count. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}

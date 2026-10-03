@@ -1,0 +1,19 @@
+meta {
+  name: /enrollments/aspirants (GET)
+  type: http
+  seq: 67
+}
+
+get {
+  url: {{baseUrl}}/enrollments/aspirants
+  auth: inherit
+}
+
+docs {
+  GET `/enrollments/aspirants` Roles: Admin. Response: 200 bare JSON array of aspirant students; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}

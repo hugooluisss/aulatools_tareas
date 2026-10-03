@@ -23,6 +23,7 @@ final class TaskController
         return $this->run(fn () => $this->service->listSubjectTasks(
             $this->user($request),
             $subject_id,
+            isset($query['cycle_id']) ? $this->number($query, 'cycle_id', 0) : null,
             $this->number($query, 'page', 1),
             $this->number($query, 'per_page', 20),
         ));

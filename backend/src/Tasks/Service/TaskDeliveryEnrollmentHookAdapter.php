@@ -12,8 +12,13 @@ final class TaskDeliveryEnrollmentHookAdapter implements TaskDeliveryEnrollmentH
     {
     }
 
-    public function onStudentEnrolled(int $studentId, int $subjectId): void
+    public function onStudentEnrolled(int $studentId, int $subjectId, int $cycleId): void
     {
-        $this->deliveries->createForEnrollment($studentId, $subjectId);
+        $this->deliveries->createForEnrollment($studentId, $subjectId, $cycleId);
+    }
+
+    public function onGroupSubjectsAdded(int $groupId, int $cycleId, array $subjectIds): void
+    {
+        $this->deliveries->createForGroupSubjects($groupId, $cycleId, $subjectIds);
     }
 }

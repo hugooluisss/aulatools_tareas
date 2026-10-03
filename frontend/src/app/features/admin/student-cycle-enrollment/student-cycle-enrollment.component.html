@@ -1,0 +1,88 @@
+<section class="card p-4">
+  <h1>{{ title }}</h1>
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <label class="form-label" for="destination-cycle">Ciclo destino</label>
+      <select
+        id="destination-cycle"
+        class="form-select"
+        [value]="cycleId()"
+        (change)="cycleId.set(+$any($event.target).value); groupId.set(0)"
+      >
+        <option [value]="0">Selecciona un ciclo</option>
+        @for (cycle of activeCycles(); track cycle.id) {
+          <option [value]="cycle.id">{{ cycle.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label" for="destination-group">Grupo</label>
+      <select
+        id="destination-group"
+        class="form-select"
+        [value]="groupId()"
+        (change)="groupId.set(+$any($event.target).value)"
+      >
+        <option [value]="0">Selecciona un grupo</option>
+        @for (group of availableGroups(); track group.id) {
+          <option [value]="group.id">{{ group.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>
+            <input
+              aria-label="Seleccionar todos"
+              type="checkbox"
+              (change)="toggleAll($any($event.target).checked)"
+            />
+          </th>
+          <th>Estudiante</th>
+          <th>Último ciclo / grupo</th>
+          @if (isReenrollment) {
+            <th>Ciclo finalizado</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (student of candidates(); track student.student_id) {
+          <tr>
+            <td>
+              <input
+                type="checkbox"
+                [attr.aria-label]="'Seleccionar ' + student.first_name + ' ' + student.last_name"
+                [checked]="isSelected(student.student_id)"
+                (change)="toggle(student.student_id, $any($event.target).checked)"
+              />
+            </td>
+            <td>{{ student.first_name }} {{ student.last_name }}</td>
+            <td>
+              @if (isReenrollment) {
+                {{ student.cycle_name }} · {{ student.group_name }}
+              } @else {
+                —
+              }
+            </td>
+          </tr>
+        }
+        @if (candidates().length === 0) {
+          <tr>
+            <td [attr.colspan]="isReenrollment ? 4 : 3">No hay estudiantes disponibles.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <button
+    class="btn btn-primary align-self-start"
+    type="button"
+    [disabled]="!selectedIds().length || !cycleId() || !groupId()"
+    (click)="submit()"
+  >
+    {{ action }}
+  </button>
+</section>

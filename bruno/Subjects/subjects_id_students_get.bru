@@ -6,10 +6,11 @@ meta {
 
 get {
   url: {{baseUrl}}/subjects/{{subjectId}}/students
+  auth: inherit
 }
 
 docs {
-  GET `/subjects/id/students` Roles: Admin, assigned teacher, enrolled student. Path ids: id. Response: 200 bare JSON array; pagination in X-Total-Count, X-Page, X-Per-Page headers. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  GET `/subjects/id/students` Roles: Admin, assigned teacher, enrolled student. Path ids: id. Response: 200 bare JSON array with teacher_id per row; pagination in X-Total-Count, X-Page, X-Per-Page headers. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {

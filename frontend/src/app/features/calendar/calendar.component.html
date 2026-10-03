@@ -1,6 +1,9 @@
 <section class="calendar-page">
   <header class="calendar-page__header">
     <h1>Calendario</h1>
+    @if (isAdmin) {
+      <button class="btn btn-primary" type="button" (click)="openNew()">Nuevo evento</button>
+    }
     <div class="calendar-page__navigation">
       <app-icon-button icon="chevron-left" label="Mes anterior" (click)="moveMonth(-1)" />
       <h2>{{ monthLabel }}</h2>
@@ -8,57 +11,39 @@
     </div>
   </header>
   @if (isAdmin) {
-    <form class="calendar-page__form card" [formGroup]="form" (ngSubmit)="save()">
-      <h2>{{ editing ? 'Editar evento' : 'Agregar evento' }}</h2>
-      <label for="calendar-title">Título</label>
-      <input id="calendar-title" class="form-control" formControlName="title" required />
-      <label for="calendar-description">Descripción</label>
-      <textarea
-        id="calendar-description"
-        class="form-control"
-        formControlName="description"
-      ></textarea>
-      <label for="calendar-subject">Ámbito</label>
-      <select id="calendar-subject" class="form-select" formControlName="subject_id">
-        <option value="">Toda la escuela</option>
-        @for (subject of subjects(); track subject.id) {
-          <option [value]="subject.id">{{ subject.name }}</option>
-        }
-      </select>
-      <label for="calendar-start">Fecha y hora de inicio</label>
-      <input
-        id="calendar-start"
-        class="form-control"
-        type="datetime-local"
-        formControlName="starts_at"
-        required
-      />
-      <label for="calendar-end">Fecha y hora de fin</label>
-      <input
-        id="calendar-end"
-        class="form-control"
-        type="datetime-local"
-        formControlName="ends_at"
-        required
-      />
-      <div class="calendar-page__form-actions">
-        <button class="btn btn-primary" type="submit">
-          {{ editing ? 'Guardar cambios' : 'Crear evento' }}
-        </button>
-        @if (editing) {
-          <button
-            class="btn btn-outline-secondary"
-            type="button"
-            (click)="editing = null; form.reset()"
-          >
-            Cancelar
-          </button>
-        }
+    @if (formOpen()) {
+      <div class="modal-backdrop fade show"></div>
+      <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="calendar-form-title">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+          <form class="modal-content" [formGroup]="form" (ngSubmit)="save()">
+            <div class="modal-header">
+              <h2 class="modal-title fs-5" id="calendar-form-title">{{ editing ? 'Editar evento' : 'Agregar evento' }}</h2>
+              <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeForm()"></button>
+            </div>
+            <div class="modal-body">
+              <label class="form-label" for="calendar-title">Título</label>
+              <input id="calendar-title" class="form-control mb-3" formControlName="title" required />
+              <label class="form-label" for="calendar-description">Descripción</label>
+              <textarea id="calendar-description" class="form-control mb-3" formControlName="description"></textarea>
+              <label class="form-label" for="calendar-subject">Ámbito</label>
+              <select id="calendar-subject" class="form-select mb-3" formControlName="subject_id">
+                <option value="">Toda la escuela</option>
+                @for (subject of subjects(); track subject.id) { <option [value]="subject.id">{{ subject.name }}</option> }
+              </select>
+              <label class="form-label" for="calendar-start">Fecha y hora de inicio</label>
+              <input id="calendar-start" class="form-control mb-3" type="datetime-local" formControlName="starts_at" required />
+              <label class="form-label" for="calendar-end">Fecha y hora de fin</label>
+              <input id="calendar-end" class="form-control" type="datetime-local" formControlName="ends_at" required />
+              @if (error()) { <p class="text-danger mt-3 mb-0" role="alert">{{ error() }}</p> }
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" type="button" (click)="closeForm()">Cancelar</button>
+              <button class="btn btn-primary" type="submit">{{ editing ? 'Guardar cambios' : 'Crear evento' }}</button>
+            </div>
+          </form>
+        </div>
       </div>
-      @if (error()) {
-        <p class="text-danger" role="alert">{{ error() }}</p>
-      }
-    </form>
+    }
   }
   <div class="calendar-page__grid card" role="grid" [attr.aria-label]="monthLabel">
     @for (name of ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']; track name) {

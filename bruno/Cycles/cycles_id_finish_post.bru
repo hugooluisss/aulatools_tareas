@@ -6,6 +6,8 @@ meta {
 
 post {
   url: {{baseUrl}}/cycles/{{cycleId}}/finish
+  body: json
+  auth: inherit
 }
 
 body:json {
@@ -19,6 +21,6 @@ docs {
 assert {
 
   res.status: eq 200
-  res.body: isObject
+  res.body: isJson
 
 }

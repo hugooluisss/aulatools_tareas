@@ -62,9 +62,11 @@ export class TasksService {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiUrl;
 
-  myTasks(status = 'pending') {
+  myTasks(status = 'pending', cycleId?: number) {
+    let params = new HttpParams().set('status', status);
+    if (cycleId) params = params.set('cycle_id', cycleId);
     return this.http.get<TaskRow[]>(`${this.api}/me/tasks`, {
-      params: new HttpParams().set('status', status),
+      params,
       observe: 'response' as const,
     });
   }
@@ -83,21 +85,27 @@ export class TasksService {
     });
   }
 
-  subjects() {
-    return this.http.get<Subject[]>(`${this.api}/subjects`);
+  subjects(cycleId?: number) {
+    return this.http.get<Subject[]>(`${this.api}/subjects`, {
+      params: cycleId ? { cycle_id: cycleId } : {},
+    });
   }
 
-  students(subjectId: number) {
-    return this.http.get<Student[]>(`${this.api}/subjects/${subjectId}/students`);
+  students(subjectId: number, cycleId?: number) {
+    return this.http.get<Student[]>(`${this.api}/subjects/${subjectId}/students`, {
+      params: cycleId ? { cycle_id: cycleId } : {},
+    });
   }
 
-  tasks(subjectId: number) {
-    return this.http.get<Task[]>(`${this.api}/subjects/${subjectId}/tasks`);
+  tasks(subjectId: number, cycleId?: number) {
+    return this.http.get<Task[]>(`${this.api}/subjects/${subjectId}/tasks`, {
+      params: cycleId ? { cycle_id: cycleId } : {},
+    });
   }
 
   createTask(
     subjectId: number,
-    task: Pick<Task, 'name' | 'description' | 'due_at'>,
+    task: Pick<Task, 'name' | 'description' | 'due_at'> & { cycle_id: number },
   ): Observable<Task> {
     return this.http.post<Task>(`${this.api}/subjects/${subjectId}/tasks`, task);
   }

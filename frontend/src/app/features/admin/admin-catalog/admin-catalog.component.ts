@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
@@ -8,6 +8,10 @@ import { TeachersService } from '../teachers.service';
 import { CyclesService } from '../cycles.service';
 import { SubjectsService } from '../subjects.service';
 import { GroupsService } from '../groups.service';
+import { StudyPlansService, StudyPlan } from '../study-plans.service';
+import { InscriptionsService, Inscription } from '../inscriptions.service';
+import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-admin-catalog',
@@ -24,6 +28,8 @@ export class AdminCatalogComponent {
   private readonly cyclesApi = inject(CyclesService);
   private readonly subjectsApi = inject(SubjectsService);
   private readonly groupsApi = inject(GroupsService);
+  private readonly plansApi = inject(StudyPlansService);
+  private readonly inscriptionsApi = inject(InscriptionsService);
   private readonly toast = inject(ToastService);
   readonly kind = this.route.snapshot.data['kind'] as string;
   readonly title = (
@@ -35,6 +41,7 @@ export class AdminCatalogComponent {
       groups: 'Grupos',
     } as Record<string, string>
   )[this.kind];
+  readonly activeSubjectsOnly = this.kind === 'groups';
   readonly statusLabels: Record<string, string> = {
     active: 'Activo',
     inactive: 'Inactivo',
@@ -43,10 +50,18 @@ export class AdminCatalogComponent {
   };
   rows = signal<any[]>([]);
   cycles = signal<any[]>([]);
+  activeCycles = computed(() => this.cycles().filter((cycle) => cycle.status === 'active'));
+  groups = signal<any[]>([]);
   teachers = signal<any[]>([]);
   subjects = signal<any[]>([]);
-  students = signal<any[]>([]);
+  studyPlans = signal<StudyPlan[]>([]);
+  cycleSubjects = computed(() => this.subjects().filter((subject) => subject.status === 'active'));
+  subjectEnrollment = signal<any | null>(null);
+  subjectCandidates = signal<Inscription[]>([]);
+  selectedSubjectStudentIds = signal<number[]>([]);
+  loadingSubjectCandidates = signal(false);
   selectedStudents = signal<any[] | null>(null);
+  selectedStudentSubjectId = signal<number | null>(null);
   selectedRecord = signal<any | null>(null);
   error = signal('');
   editing: number | null = null;
@@ -54,9 +69,9 @@ export class AdminCatalogComponent {
   form = this.fb.nonNullable.group({
     first_name: [''],
     last_name: [''],
+    enrollment_number: [''],
     email: [''],
     password: [''],
-    enrollment_number: [''],
     birth_date: [''],
     status: ['active'],
     name: [''],
@@ -65,7 +80,8 @@ export class AdminCatalogComponent {
     cycle_id: [0],
     teacher_id: [0],
     subject_ids: [[] as number[]],
-    student_id: [0],
+    code: [''],
+    plan_id: [null as number | null],
     new_password: [''],
   });
   constructor() {
@@ -74,9 +90,14 @@ export class AdminCatalogComponent {
     if (this.kind === 'subjects' || this.kind === 'groups') {
       this.cyclesApi.list().subscribe((r) => this.cycles.set(r));
       this.teachersApi.list().subscribe((r) => this.teachers.set(r));
-      this.subjectsApi.list().subscribe((r) => this.subjects.set(r));
-      this.studentsApi.list().subscribe((r) => this.students.set(r));
+      this.subjectsApi
+        .list(this.kind === 'groups' ? 'active' : undefined)
+        .subscribe((r) => this.subjects.set(r));
     }
+    if (this.kind === 'subjects')
+      this.plansApi
+        .list()
+        .subscribe((r) => this.studyPlans.set(r.filter((p) => p.status === 'active')));
   }
   reload(): void {
     const api =
@@ -128,16 +149,16 @@ export class AdminCatalogComponent {
     }
     if (this.kind === 'students' || this.kind === 'teachers') {
       const api = this.kind === 'students' ? this.studentsApi : this.teachersApi;
-      const { first_name, last_name, email, password, enrollment_number, birth_date, status } =
+      const { first_name, last_name, enrollment_number, email, password, birth_date, status } =
         this.form.getRawValue();
       const data =
         this.kind === 'students'
           ? {
               first_name,
               last_name,
+              enrollment_number,
               email,
               ...(password ? { password } : {}),
-              enrollment_number,
               birth_date,
               status,
             }
@@ -149,19 +170,25 @@ export class AdminCatalogComponent {
         .save(this.editing, { name, starts_on, ends_on })
         .subscribe(() => this.done('Ciclo guardado.'));
     } else if (this.kind === 'subjects') {
-      const { name, cycle_id, teacher_id } = this.form.getRawValue();
+      const { name, code, plan_id, teacher_id } = this.form.getRawValue();
       this.subjectsApi
         .save(this.editing, {
           name,
-          cycle_id,
+          code,
+          plan_id: plan_id || null,
           teacher_id,
           ...(this.editing ? { status: this.form.getRawValue().status } : {}),
         })
         .subscribe(() => this.done('Materia guardada.'));
     } else {
-      const { name, subject_ids } = this.form.getRawValue();
+      const { name, cycle_id, subject_ids, teacher_id } = this.form.getRawValue();
       this.groupsApi
-        .save(this.editing, { name, subject_ids })
+        .save(this.editing, {
+          name,
+          cycle_id,
+          subject_ids: subject_ids.map(Number),
+          teacher_id: teacher_id ? Number(teacher_id) : null,
+        })
         .subscribe(() => this.done('Grupo guardado.'));
     }
   }
@@ -184,12 +211,109 @@ export class AdminCatalogComponent {
     this.cyclesApi.finish(id).subscribe(() => this.done('Ciclo finalizado.'));
   }
   viewStudents(id: number): void {
-    this.subjectsApi.students(id).subscribe((r) => this.selectedStudents.set(r));
+    this.selectedStudentSubjectId.set(id);
+    this.subjectCycleId.set(
+      this.activeCycles().length === 1 ? Number(this.activeCycles()[0].id) : null,
+    );
+    if (this.activeCycles().length > 1) this.selectedStudents.set([]);
+    else this.loadSubjectStudents();
+  }
+  loadSubjectStudents(): void {
+    if (this.selectedStudentSubjectId() === null || !this.subjectCycleId()) return;
+    this.subjectsApi
+      .students(this.selectedStudentSubjectId()!, this.subjectCycleId() ?? undefined)
+      .subscribe((rows) => this.selectedStudents.set(rows));
+  }
+  closeStudents(): void {
+    this.selectedStudents.set(null);
+    this.selectedStudentSubjectId.set(null);
+  }
+  canAddSubjectStudents(subject: any): boolean {
+    return this.activeCycles().length > 0;
+  }
+  subjectCycleId = signal<number | null>(null);
+  hasEnrolledStudents(subject: any): boolean {
+    return Number(subject.students_count ?? 0) > 0;
+  }
+  hasCandidateGroups(): boolean {
+    return this.subjectCandidates().some((student) => student.group_name);
+  }
+  openAddStudents(subject: any): void {
+    this.subjectEnrollment.set(subject);
+    this.subjectCycleId.set(
+      this.activeCycles().length === 1 ? Number(this.activeCycles()[0].id) : null,
+    );
+    this.selectedSubjectStudentIds.set([]);
+    this.loadSubjectCandidates();
+  }
+  loadSubjectCandidates(): void {
+    const subject = this.subjectEnrollment();
+    const cycleId = this.subjectCycleId();
+    if (!subject || !cycleId) {
+      this.subjectCandidates.set([]);
+      return;
+    }
+    this.loadingSubjectCandidates.set(true);
+    forkJoin({
+      inscriptions: this.inscriptionsApi.list({ cycle_id: cycleId }),
+      enrolled: this.subjectsApi.students(Number(subject.id), cycleId),
+    })
+      .pipe(finalize(() => this.loadingSubjectCandidates.set(false)))
+      .subscribe(({ inscriptions, enrolled }) => {
+        const enrolledIds = new Set(enrolled.map((student) => Number(student.id)));
+        this.subjectCandidates.set(
+          inscriptions
+            .filter((row) => !enrolledIds.has(Number(row.student_id)))
+            .sort((a, b) =>
+              `${a.student_last_name} ${a.student_first_name}`.localeCompare(
+                `${b.student_last_name} ${b.student_first_name}`,
+              ),
+            ),
+        );
+      });
+  }
+  closeAddStudents(): void {
+    this.subjectEnrollment.set(null);
+    this.subjectCycleId.set(null);
+    this.subjectCandidates.set([]);
+    this.selectedSubjectStudentIds.set([]);
+  }
+  toggleSubjectStudents(checked: boolean): void {
+    this.selectedSubjectStudentIds.set(
+      checked ? this.subjectCandidates().map((row) => Number(row.student_id)) : [],
+    );
+  }
+  toggleSubjectStudent(id: number | string, checked: boolean): void {
+    const value = Number(id);
+    this.selectedSubjectStudentIds.update((ids) =>
+      checked ? [...new Set([...ids, value])] : ids.filter((item) => item !== value),
+    );
+  }
+  isSubjectStudentSelected(id: number | string): boolean {
+    return this.selectedSubjectStudentIds().includes(Number(id));
+  }
+  addSelectedStudents(): void {
+    const subject = this.subjectEnrollment();
+    const studentIds = this.selectedSubjectStudentIds();
+    if (!subject || !studentIds.length) return;
+    this.subjectsApi
+      .enrollBulk(Number(subject.id), this.subjectCycleId()!, studentIds)
+      .subscribe(() => {
+        this.toast.show('Estudiantes agregados a la materia.');
+        this.closeAddStudents();
+        this.reload();
+        this.viewStudents(Number(subject.id));
+      });
   }
   view(row: any): void {
     this.selectedRecord.set(row);
   }
   detail(row: any): string {
+    if (this.kind === 'students')
+      return row.enrollment
+        ? `${row.enrollment.group_name} · ${row.enrollment.cycle_name}`
+        : 'Sin inscripción';
+    if (this.kind === 'groups') return row.cycle_name || '—';
     return (
       row.email ||
       row.enrollment_number ||
@@ -210,13 +334,6 @@ export class AdminCatalogComponent {
         .reset(id, password)
         .subscribe(() => this.toast.show('Contraseña restablecida.'));
   }
-  enroll(id: number, studentId: number): void {
-    const action =
-      this.kind === 'groups'
-        ? this.groupsApi.enroll(id, studentId)
-        : this.subjectsApi.enroll(id, studentId);
-    action.subscribe(() => this.toast.show('Estudiante inscrito.'));
-  }
   private done(message: string): void {
     this.toast.show(message);
     this.closeForm();
@@ -227,7 +344,6 @@ export class AdminCatalogComponent {
       status: 'active',
       cycle_id: 0,
       teacher_id: 0,
-      student_id: 0,
       subject_ids: [],
     });
   }
@@ -240,15 +356,19 @@ export class AdminCatalogComponent {
       ['first_name', 'last_name', 'email'].forEach(required);
       this.form.controls.email.addValidators(Validators.email);
       this.form.controls.password.addValidators(Validators.minLength(8));
-      if (this.kind === 'students') ['enrollment_number', 'birth_date'].forEach(required);
+      if (this.kind === 'students') required('birth_date');
+      if (this.kind === 'students') required('enrollment_number');
       if (!this.editing) this.form.controls.password.addValidators(Validators.required);
     }
     if (this.kind === 'cycles') ['name', 'starts_on', 'ends_on'].forEach(required);
     if (this.kind === 'subjects') {
-      ['name', 'cycle_id', 'teacher_id'].forEach(required);
-      this.form.controls.cycle_id.addValidators(Validators.min(1));
+      ['name', 'code', 'teacher_id'].forEach(required);
       this.form.controls.teacher_id.addValidators(Validators.min(1));
     }
-    if (this.kind === 'groups') required('name');
+    if (this.kind === 'groups') {
+      required('name');
+      required('cycle_id');
+      this.form.controls.cycle_id.addValidators(Validators.min(1));
+    }
   }
 }

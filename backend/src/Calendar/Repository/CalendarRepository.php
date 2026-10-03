@@ -17,8 +17,7 @@ class CalendarRepository
     {
         return $this->db->createCommand(<<<'SQL'
             SELECT subjects.id FROM subjects
-            INNER JOIN academic_cycles ON academic_cycles.id = subjects.cycle_id
-            WHERE subjects.id = :subject_id AND academic_cycles.school_id = :school_id
+            WHERE subjects.id = :subject_id AND subjects.school_id = :school_id
             SQL, [':subject_id' => $subjectId, ':school_id' => $schoolId])->queryOne() !== null;
     }
 
@@ -86,19 +85,26 @@ class CalendarRepository
     public function view(CurrentUser $user, string $from, string $to, int $offset, int $limit): array
     {
         $eventVisibility = match ($user->role) {
-            'admin' => '(calendar_events.subject_id IS NULL OR event_cycles.school_id = :subject_school_id)',
+            'admin' => '(calendar_events.subject_id IS NULL OR subjects.school_id = :subject_school_id)',
             'teacher' => <<<'SQL'
                 (calendar_events.subject_id IS NULL OR (
-                    event_cycles.school_id = :subject_school_id
+                    subjects.school_id = :subject_school_id
                     AND subjects.teacher_id = :event_user_id
                 ))
                 SQL,
             'student' => <<<'SQL'
                 (calendar_events.subject_id IS NULL OR (
-                    event_cycles.school_id = :subject_school_id AND EXISTS (
-                        SELECT 1 FROM enrollments
-                        WHERE enrollments.subject_id = subjects.id
+                    subjects.school_id = :subject_school_id AND EXISTS (
+                        SELECT 1 FROM enrollment_subject_bindings
+                        INNER JOIN enrollments ON enrollments.id = enrollment_subject_bindings.enrollment_id
+                        WHERE enrollment_subject_bindings.subject_id = subjects.id
                           AND enrollments.student_id = :event_user_id
+                          AND EXISTS (
+                              SELECT 1 FROM academic_cycles
+                              WHERE academic_cycles.id = enrollments.cycle_id
+                                AND academic_cycles.status = 'active'
+                                AND academic_cycles.school_id = subjects.school_id
+                          )
                     )
                 ))
                 SQL,
@@ -137,7 +143,6 @@ class CalendarRepository
                    calendar_events.starts_at, calendar_events.ends_at, calendar_events.subject_id, NULL AS task_id
             FROM calendar_events
             LEFT JOIN subjects ON subjects.id = calendar_events.subject_id
-            LEFT JOIN academic_cycles AS event_cycles ON event_cycles.id = subjects.cycle_id
             WHERE calendar_events.school_id = :event_school_id AND calendar_events.starts_at >= :event_from
               AND calendar_events.starts_at <= :event_to AND {$eventVisibility}
             UNION ALL
@@ -145,7 +150,7 @@ class CalendarRepository
                    tasks.due_at AS starts_at, tasks.due_at AS ends_at, subjects.id AS subject_id, tasks.id AS task_id
             FROM tasks
             INNER JOIN subjects ON subjects.id = tasks.subject_id
-            INNER JOIN academic_cycles AS task_cycles ON task_cycles.id = subjects.cycle_id
+            INNER JOIN academic_cycles AS task_cycles ON task_cycles.id = tasks.cycle_id
             WHERE task_cycles.school_id = :task_school_id AND tasks.status = 'active'
               AND tasks.due_at >= :task_from AND tasks.due_at <= :task_to AND {$taskVisibility}
             SQL;

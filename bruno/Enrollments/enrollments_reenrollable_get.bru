@@ -1,0 +1,19 @@
+meta {
+  name: /enrollments/reenrollable (GET)
+  type: http
+  seq: 68
+}
+
+get {
+  url: {{baseUrl}}/enrollments/reenrollable
+  auth: inherit
+}
+
+docs {
+  GET `/enrollments/reenrollable` Roles: Admin. Response: 200 bare JSON array of re-enrollable students; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}

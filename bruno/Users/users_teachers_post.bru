@@ -6,14 +6,16 @@ meta {
 
 post {
   url: {{baseUrl}}/users/teachers
+  auth: inherit
+  body: json
 }
 
 body:json {
   {
-    "first_name": "Jamie",
-    "last_name": "Teacher",
-    "email": "jamie.teacher@example.test",
-    "password": "ChangeMe123!"
+    "first_name": "{{teacherFirstName}}",
+    "last_name": "{{teacherLastName}}",
+    "email": "{{teacherEmail}}",
+    "password": "{{teacherPassword}}"
   }
 }
 
@@ -24,6 +26,6 @@ docs {
 assert {
 
   res.status: eq 201
-  res.body: isObject
+  res.body: isJson
 
 }

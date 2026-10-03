@@ -1,0 +1,74 @@
+<section class="card p-4">
+  <header class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Planes de estudio</h1>
+    <button type="button" class="btn btn-primary" (click)="open()">Nuevo</button>
+  </header>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Clave</th>
+          <th>Nombre</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr>
+            <td>{{ row.code }}</td>
+            <td>{{ row.name }}</td>
+            <td>{{ row.status === 'active' ? 'Activo' : 'Inactivo' }}</td>
+            <td>
+              <app-icon-button icon="pencil" label="Editar" (click)="open(row)" />
+              <app-icon-button
+                icon="trash"
+                label="Eliminar"
+                variant="danger"
+                [disabled]="hasSubjects(row)"
+                (click)="remove(row)"
+              />
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">No hay planes.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (formOpen()) {
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal d-block" role="dialog" aria-modal="true" aria-labelledby="plan-title">
+      <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" [formGroup]="form" (ngSubmit)="save()">
+          <div class="modal-header">
+            <h2 id="plan-title" class="modal-title fs-5">
+              {{ editing ? 'Editar plan' : 'Nuevo plan' }}
+            </h2>
+            <button type="button" class="btn-close" aria-label="Cerrar" (click)="close()"></button>
+          </div>
+          <div class="modal-body">
+            <label class="form-label" for="plan-key">Clave</label
+            ><input id="plan-key" class="form-control mb-3" formControlName="code" required />
+            <label class="form-label" for="plan-name">Nombre</label
+            ><input id="plan-name" class="form-control mb-3" formControlName="name" required />
+            @if (editing) {
+              <label class="form-label" for="plan-status">Estado</label
+              ><select id="plan-status" class="form-select" formControlName="status">
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
+              </select>
+            }
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" (click)="close()">
+              Cancelar</button
+            ><button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</section>

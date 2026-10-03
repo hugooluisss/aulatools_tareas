@@ -6,6 +6,7 @@ namespace App\Groups\Controller;
 
 use App\Auth\CurrentUser;
 use App\Groups\Service\GroupService;
+use App\Groups\Service\GroupException;
 use DomainException;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -89,6 +90,8 @@ final class GroupController
             return \App\Shared\JsonResponse::error($this->responseFactory, 404, $exception->getMessage());
         } catch (\InvalidArgumentException $exception) {
             return \App\Shared\JsonResponse::error($this->responseFactory, 400, $exception->getMessage());
+        } catch (GroupException $exception) {
+            return \App\Shared\JsonResponse::error($this->responseFactory, $exception->status, $exception->getMessage());
         } catch (\Throwable) {
             return \App\Shared\JsonResponse::error($this->responseFactory, 500, 'Unexpected server error.');
         }

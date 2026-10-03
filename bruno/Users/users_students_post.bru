@@ -6,6 +6,8 @@ meta {
 
 post {
   url: {{baseUrl}}/users/students
+  body: json
+  auth: inherit
 }
 
 body:json {
@@ -14,19 +16,18 @@ body:json {
     "last_name": "Student",
     "email": "riley.student@example.test",
     "password": "ChangeMe123!",
-    "enrollment_number": "STU-2026-001",
     "birth_date": "2012-05-14",
     "status": "active"
   }
 }
 
 docs {
-  POST `/users/students` Roles: Admin. JSON body: first_name, last_name, email, password, enrollment_number, birth_date, status; use valid IDs and dates accepted by the API. Response: 200 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  POST `/users/students` Roles: Admin. JSON body: first_name, last_name, email, password, birth_date, status; use valid IDs and dates accepted by the API. Response: 201 bare resource object; Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {
 
   res.status: eq 201
-  res.body: isObject
+  res.body: isJson
 
 }
