@@ -19,6 +19,7 @@ export class ShellComponent {
   schoolName = signal('');
   controlEscolarOpen = signal(false);
   catalogosOpen = signal(false);
+  reportesOpen = signal(false);
   constructor() {
     this.school.get().subscribe((r) => this.schoolName.set(r.name));
   }
@@ -27,6 +28,7 @@ export class ShellComponent {
     { label: 'Materias', path: '/subjects', roles: ['student'] },
     { label: 'Mis materias', path: '/my-subjects', roles: ['teacher'] },
     { label: 'Tareas', path: '/tasks', roles: ['teacher'] },
+    { label: 'Tareas', path: '/admin/tasks', roles: ['admin'] },
     { label: 'Calendario', path: '/calendar', roles: ['admin', 'teacher', 'student'] },
     { label: 'Avisos', path: '/announcements', roles: ['admin', 'teacher', 'student'] },
     { label: 'Escuela', path: '/school', roles: ['admin'] },
@@ -43,6 +45,7 @@ export class ShellComponent {
     { label: 'Materias', path: '/admin/subjects' },
     { label: 'Planes de estudio', path: '/study-plans' },
   ];
+  reportes = [{ label: 'Lista de asistencia', path: '/reports/attendance' }];
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -57,6 +60,9 @@ export class ShellComponent {
   );
   catalogosActive = computed(() =>
     this.catalogos.some((item) => this.currentUrl().startsWith(item.path)),
+  );
+  reportesActive = computed(() =>
+    this.reportes.some((item) => this.currentUrl().startsWith(item.path)),
   );
   get visibleMenu() {
     const role = this.tokens.getRole();

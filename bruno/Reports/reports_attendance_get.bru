@@ -1,0 +1,19 @@
+meta {
+  name: /reports/attendance (GET)
+  type: http
+  seq: 57
+}
+
+get {
+  url: {{baseUrl}}/reports/attendance?group_id=1&start_date=2026-10-05&days=5
+  auth: inherit
+}
+
+docs {
+  GET `/reports/attendance?group_id={id}&subject_id={id?}&start_date=YYYY-MM-DD&days=1..14` Roles: Admin. `subject_id` is optional; omitting it returns the general group list. Weekends are skipped. Response: 200 `application/pdf` attachment named `attendance-{group_id}-{start_date}.pdf`. Errors: JSON `{error:{code,message}}` with HTTP 400 for invalid parameters, 401 unauthenticated, 403 non-admin, 404 group or subject outside the school.
+}
+
+assert {
+  res.status: eq 200
+  res.headers["Content-Type"][0]: contains application/pdf
+}

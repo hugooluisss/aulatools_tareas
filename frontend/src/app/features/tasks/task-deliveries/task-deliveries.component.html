@@ -23,23 +23,32 @@
           <td>{{ row.delivery.grade ?? '—' }}</td>
           <td class="row-actions">
             @if (row.delivery.status === 'pending') {
-              <app-icon-button
-                icon="check2"
-                label="Marcar entregada"
-                (click)="markDelivered(row.delivery.id)"
-              />
+              @if (!isAdmin) {
+                <app-icon-button
+                  icon="check2"
+                  label="Marcar entregada"
+                  (click)="markDelivered(row.delivery.id)"
+                />
+              }
             }
             @if (row.delivery.status === 'delivered') {
-              <app-icon-button
-                icon="pencil-square"
-                label="Calificar"
-                (click)="grade(row.delivery.id)"
-              />
+              @if (!isAdmin) {
+                <app-icon-button
+                  icon="pencil-square"
+                  label="Calificar"
+                  (click)="grade(row.delivery.id)"
+                />
+              }
             }
             <app-icon-button
               icon="chat-left-text"
-              label="Ver comentarios"
+              label="Comentarios"
               [routerLink]="['/deliveries', row.delivery.id, 'comments']"
+            />
+            <app-icon-button
+              icon="journal-text"
+              label="Notas del estudiante"
+              (click)="notesStudentId.set(row.student.id)"
             />
           </td>
         </tr>
@@ -51,3 +60,6 @@
     </tbody>
   </table>
 </div>
+@if (notesStudentId(); as studentId) {
+  <app-student-notes-modal [studentId]="studentId" (closed)="notesStudentId.set(null)" />
+}

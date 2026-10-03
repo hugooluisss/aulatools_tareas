@@ -20,6 +20,7 @@ describe('ShellComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Inicio');
     expect(fixture.nativeElement.textContent).not.toContain('Control escolar');
     expect(fixture.nativeElement.textContent).not.toContain('Catálogos');
+    expect(fixture.nativeElement.textContent).not.toContain('Reportes');
   });
 
   it('shows collapsible admin groups and opens the active group', () => {
@@ -34,7 +35,8 @@ describe('ShellComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Control escolar');
     expect(fixture.nativeElement.textContent).toContain('Catálogos');
-    expect(fixture.nativeElement.querySelectorAll('details').length).toBe(2);
+    expect(fixture.nativeElement.textContent).toContain('Reportes');
+    expect(fixture.nativeElement.querySelectorAll('details').length).toBe(3);
     expect(fixture.nativeElement.textContent).not.toContain('Inicio');
   });
 });

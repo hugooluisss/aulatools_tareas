@@ -1,0 +1,19 @@
+meta {
+  name: /school/logo (POST)
+  type: http
+  seq: 32
+}
+
+post {
+  url: {{baseUrl}}/school/logo
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  logo: @file(./school-logo.png)
+}
+
+docs {
+  POST `/school/logo` Roles: Admin. Multipart field: `logo` (JPEG, PNG, WebP; max 2 MB). Response: 200 school object with `logo_url`.
+}

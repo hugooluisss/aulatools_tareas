@@ -1,0 +1,22 @@
+meta {
+  name: /users/students/{id}/notes (GET)
+  type: http
+  seq: 41
+}
+
+get {
+  url: {{baseUrl}}/users/students/{{studentId}}/notes?page=1&per_page=20
+  auth: inherit
+}
+
+docs {
+  GET `/users/students/id/notes?page&per_page` Roles: same-school admin and teachers assigned through the student's subject binding or subject. Returns `{data:[{id,student_id,author:{id,first_name,last_name,role},body,created_at}],meta:{page,per_page,total}}`. Students receive 404; unrelated teachers receive 403.
+}
+
+assert {
+  res.status: eq 200
+  res.body.data: isArray
+  res.body.meta.page: isDefined
+  res.body.meta.per_page: isDefined
+  res.body.meta.total: isDefined
+}

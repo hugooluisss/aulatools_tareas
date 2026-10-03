@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { TasksService } from '../tasks.service';
 import { CyclesService } from '../../admin/cycles.service';
 import { TeacherSubjectDetailComponent } from './teacher-subject-detail.component';
+import { TokenStorageService } from '../../../core/auth/token-storage.service';
 
 describe('TeacherSubjectDetailComponent', () => {
   it('shows students and task management actions', () => {
@@ -11,6 +12,7 @@ describe('TeacherSubjectDetailComponent', () => {
       imports: [TeacherSubjectDetailComponent],
       providers: [
         provideRouter([]),
+        { provide: TokenStorageService, useValue: { getRole: () => 'teacher' } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '2' } } } },
         {
           provide: TasksService,
@@ -31,5 +33,6 @@ describe('TeacherSubjectDetailComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Leo Ruiz');
     expect(fixture.nativeElement.textContent).toContain('Proyecto');
     expect(fixture.nativeElement.querySelector('[aria-label="Agregar tarea"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Ver entregas"]')).not.toBeNull();
   });
 });

@@ -107,4 +107,71 @@ final class UserServiceTest extends TestCase
         self::assertNull($result['data'][1]['enrollment']);
         self::assertArrayNotHasKey('enrollment_id', $result['data'][0]);
     }
+
+    public function testPhotoRejectsInvalidTypeAndOversizeThenReplacesOldPhoto(): void
+    {
+        $oldFile = null;
+        $newFile = null;
+        $repository = $this->createMock(UserRepository::class);
+        $row = [
+            'id' => 12, 'school_id' => 88, 'role' => 'teacher', 'email' => 'test@example.com',
+            'first_name' => 'Test', 'last_name' => 'Teacher',
+            'photo_path' => null,
+        ];
+        $repository->method('find')->willReturnCallback(static function () use (&$row): array {
+            return $row;
+        });
+        $repository->method('photoPath')->willReturn('/uploads/teachers/old-test-photo.png');
+        $repository->method('setPhotoPath')->willReturnCallback(static function (int $schoolId, int $id, ?string $path) use (&$row): void {
+            $row['photo_path'] = $path;
+        });
+        $service = new UserService(
+            $repository,
+            new TransactionRunner($this->createMock(ConnectionInterface::class)),
+            new PasswordHasher(),
+        );
+        $user = new CurrentUser(1, 'admin', 88);
+        $invalid = tempnam(sys_get_temp_dir(), 'photo-invalid-');
+        file_put_contents($invalid, 'not an image');
+        try {
+            $service->savePhoto($user, 12, $invalid, filesize($invalid));
+            self::fail('Expected invalid photo type to be rejected.');
+        } catch (UserException $exception) {
+            self::assertSame(400, $exception->status);
+        } finally {
+            unlink($invalid);
+        }
+        try {
+            $service->savePhoto($user, 12, __FILE__, 2 * 1024 * 1024 + 1);
+            self::fail('Expected oversized photo to be rejected.');
+        } catch (UserException $exception) {
+            self::assertSame(413, $exception->status);
+        }
+
+        $directory = dirname(__DIR__) . '/public/uploads/teachers';
+        if (!is_dir($directory)) {
+            mkdir($directory, 0775, true);
+        }
+        $oldFile = $directory . '/old-test-photo.png';
+        $newFile = null;
+        file_put_contents($oldFile, 'old photo');
+        $repository->expects(self::once())->method('setPhotoPath')->with(88, 12, self::callback(static fn (?string $path): bool => is_string($path) && preg_match('#^/uploads/teachers/12-[a-f0-9]{16}\.png$#', $path) === 1));
+        $png = tempnam(sys_get_temp_dir(), 'photo-png-');
+        file_put_contents($png, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX5sAAAAASUVORK5CYII=', true));
+        try {
+            $result = $service->savePhoto($user, 12, $png, filesize($png));
+            $newFile = dirname(__DIR__) . '/public' . $result['photo_url'];
+            self::assertMatchesRegularExpression('#^/uploads/teachers/12-[a-f0-9]{16}\.png$#', $result['photo_url']);
+            self::assertFileDoesNotExist($oldFile);
+            self::assertFileExists($newFile);
+        } finally {
+            unlink($png);
+            if ($newFile !== null) {
+                @unlink($newFile);
+            }
+            if ($oldFile !== null) {
+                @unlink($oldFile);
+            }
+        }
+    }
 }

@@ -7,8 +7,9 @@ namespace App\Users\Service;
 use App\Auth\CurrentUser;
 use App\Auth\Service\PasswordHasherInterface;
 use App\Shared\TransactionRunner;
+use App\Shared\PhoneNumber;
+use App\Shared\ImageUpload;
 use App\Users\Repository\UserRepository;
-use DomainException;
 
 final class UserService
 {
@@ -33,7 +34,7 @@ final class UserService
         $result = $this->repository->list($user->schoolId, $role, ($page - 1) * $perPage, $perPage, $status);
         $data = $result['data'];
         if ($role === 'student') {
-            $data = array_map(static function (array $student): array {
+            $data = array_map(function (array $student): array {
                 $student['enrollment'] = $student['enrollment_id'] === null ? null : [
                     'id' => (int) $student['enrollment_id'],
                     'cycle_id' => (int) $student['enrollment_cycle_id'],
@@ -48,8 +49,10 @@ final class UserService
                     $student['enrollment_group_id'],
                     $student['enrollment_group_name'],
                 );
-                return $student;
+                return $this->formatPhoto($student);
             }, $data);
+        } else {
+            $data = array_map($this->formatPhoto(...), $data);
         }
         return [
             'data' => $data,
@@ -60,7 +63,8 @@ final class UserService
     public function find(CurrentUser $user, string $role, int $id): array
     {
         $this->admin($user);
-        return $this->repository->find($user->schoolId, $role, $id) ?? throw new UserException('User not found.', 404);
+        $row = $this->repository->find($user->schoolId, $role, $id) ?? throw new UserException('User not found.', 404);
+        return $this->formatPhoto($row);
     }
 
     public function create(CurrentUser $user, string $role, array $data): array
@@ -87,6 +91,14 @@ final class UserService
         if ($role === 'student') {
             $data['status'] ??= $existing['status'];
         }
+        $fields = $role === 'student'
+            ? ['address', 'contact_phone', 'guardian_name', 'guardian_phone']
+            : ['address', 'phone'];
+        foreach ($fields as $field) {
+            if (!array_key_exists($field, $data)) {
+                $data[$field] = $existing[$field] ?? null;
+            }
+        }
         $this->validate($role, $data, false);
         if ($this->repository->emailExists($data['email'], $id)) {
             throw new UserException('Email already registered.', 400);
@@ -110,7 +122,41 @@ final class UserService
     {
         $this->admin($user);
         $this->find($user, $role, $id);
-        $this->repository->delete($user->schoolId, $role, $id);
+        $photo = $this->repository->delete($user->schoolId, $role, $id);
+        if ($photo !== null) {
+            $this->deletePhotoFile($photo);
+        }
+    }
+
+    public function savePhoto(CurrentUser $user, int $id, string $temporaryPath, int $size): array
+    {
+        $this->admin($user);
+        $this->find($user, 'teacher', $id);
+        try {
+            $path = ImageUpload::store($temporaryPath, $size, dirname(__DIR__, 3) . '/public/uploads/teachers', '/uploads/teachers/', $id . '-');
+        } catch (\InvalidArgumentException $exception) {
+            throw new UserException($exception->getMessage(), str_contains($exception->getMessage(), '2 MB') ? 413 : 400);
+        } catch (\Throwable $exception) {
+            throw new UserException('Could not store photo.', 500);
+        }
+        $oldPath = $this->repository->photoPath($user->schoolId, $id);
+        $this->repository->setPhotoPath($user->schoolId, $id, $path);
+        if ($oldPath !== null) {
+            $this->deletePhotoFile($oldPath);
+        }
+        return $this->find($user, 'teacher', $id);
+    }
+
+    public function removePhoto(CurrentUser $user, int $id): array
+    {
+        $this->admin($user);
+        $this->find($user, 'teacher', $id);
+        $photo = $this->repository->photoPath($user->schoolId, $id);
+        $this->repository->setPhotoPath($user->schoolId, $id, null);
+        if ($photo !== null) {
+            $this->deletePhotoFile($photo);
+        }
+        return $this->find($user, 'teacher', $id);
     }
 
     public function resetPassword(CurrentUser $user, int $id, string $password): void
@@ -152,6 +198,53 @@ final class UserService
             if (isset($data['status']) && !in_array($data['status'], ['active', 'inactive'], true)) {
                 throw new UserException('Invalid student status.', 400);
             }
+        }
+        $fields = $role === 'student'
+            ? ['address', 'contact_phone', 'guardian_name', 'guardian_phone']
+            : ['address', 'phone'];
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $data)) {
+                if ($data[$field] !== null && !is_string($data[$field])) {
+                    throw new UserException("Invalid {$field}.", 400);
+                }
+                $data[$field] = $this->text($data[$field]);
+                if ($data[$field] !== null
+                    && mb_strlen($data[$field]) > (str_contains($field, 'phone') ? 20 : ($field === 'guardian_name' ? 180 : 255))
+                ) {
+                    throw new UserException("Invalid {$field}.", 400);
+                }
+                if (str_contains($field, 'phone')) {
+                    $value = $data[$field];
+                    $data[$field] = $value === null ? null : PhoneNumber::normalize($value);
+                    if ($value !== null && $data[$field] === null) {
+                        throw new UserException('Invalid phone number.', 400);
+                    }
+                }
+            } else {
+                $data[$field] = null;
+            }
+        }
+    }
+
+    private function text(?string $value): ?string
+    {
+        $value = trim($value ?? '');
+        return $value === '' ? null : $value;
+    }
+
+    private function formatPhoto(array $row): array
+    {
+        if (($row['role'] ?? null) === 'teacher') {
+            $row['photo_url'] = $row['photo_path'] ?? null;
+            unset($row['photo_path']);
+        }
+        return $row;
+    }
+
+    private function deletePhotoFile(string $path): void
+    {
+        if (preg_match('#^/uploads/teachers/[a-zA-Z0-9._-]+$#D', $path)) {
+            ImageUpload::delete($path, '/uploads/teachers/', dirname(__DIR__, 3) . '/public');
         }
     }
 

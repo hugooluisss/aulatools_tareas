@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { TasksService } from '../tasks.service';
 import { TeacherSubjectsComponent } from './teacher-subjects.component';
 import { CyclesService } from '../../admin/cycles.service';
+import { TokenStorageService } from '../../../core/auth/token-storage.service';
 
 describe('TeacherSubjectsComponent', () => {
   it('renders assigned subjects', () => {
@@ -11,6 +12,7 @@ describe('TeacherSubjectsComponent', () => {
       imports: [TeacherSubjectsComponent],
       providers: [
         provideRouter([]),
+        { provide: TokenStorageService, useValue: { getRole: () => 'teacher' } },
         { provide: CyclesService, useValue: { list: () => of([{ id: '14', status: 'active' }]) } },
         {
           provide: TasksService,

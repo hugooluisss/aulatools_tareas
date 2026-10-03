@@ -1,0 +1,14 @@
+meta {
+  name: /school/logo (DELETE)
+  type: http
+  seq: 33
+}
+
+delete {
+  url: {{baseUrl}}/school/logo
+  auth: inherit
+}
+
+docs {
+  DELETE `/school/logo` Roles: Admin. Response: 200 school object with `logo_url: null`.
+}

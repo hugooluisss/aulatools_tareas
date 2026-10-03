@@ -1,0 +1,19 @@
+meta {
+  name: /users/teachers/{id}/photo (DELETE)
+  type: http
+  seq: 64
+}
+
+delete {
+  url: {{baseUrl}}/users/teachers/{{teacherId}}/photo
+  auth: inherit
+}
+
+docs {
+  DELETE `/users/teachers/{id}/photo` Roles: Admin. Response: 200 teacher object with photo_url null.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isJson
+}

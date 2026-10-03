@@ -10,7 +10,7 @@ get {
 }
 
 docs {
-  GET `/school` Roles: Any authenticated role. Parameters: none. Response: 200 bare school object with id and name. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  GET `/school` Roles: Any authenticated role. Parameters: none. Response: 200 bare school object with id, name, address, phone, email, and `logo_url` (null or `/uploads/school/<file>`). Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
 }
 
 assert {

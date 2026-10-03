@@ -46,9 +46,27 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/tasks',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./features/tasks/teacher-tasks/teacher-subjects.component').then(
+            (m) => m.TeacherSubjectsComponent,
+          ),
+      },
+      {
+        path: 'admin/tasks/:subjectId',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./features/tasks/teacher-tasks/teacher-subject-detail.component').then(
+            (m) => m.TeacherSubjectDetailComponent,
+          ),
+      },
+      {
         path: 'my-subjects/:subjectId',
         canActivate: [roleGuard],
-        data: { roles: ['teacher'] },
+        data: { roles: ['admin', 'teacher'] },
         loadComponent: () =>
           import('./features/tasks/teacher-tasks/teacher-subject-detail.component').then(
             (m) => m.TeacherSubjectDetailComponent,
@@ -58,7 +76,7 @@ export const routes: Routes = [
       {
         path: 'tasks/:taskId/deliveries',
         canActivate: [roleGuard],
-        data: { roles: ['teacher'] },
+        data: { roles: ['admin', 'teacher'] },
         loadComponent: () =>
           import('./features/tasks/task-deliveries/task-deliveries.component').then(
             (m) => m.TaskDeliveriesComponent,
@@ -95,6 +113,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/study-plans/study-plans.component').then(
             (m) => m.StudyPlansComponent,
+          ),
+      },
+      {
+        path: 'reports/attendance',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./features/admin/attendance-report/attendance-report.component').then(
+            (m) => m.AttendanceReportComponent,
           ),
       },
       ...[

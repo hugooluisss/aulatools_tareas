@@ -13,6 +13,14 @@ export class TeachersService {
   save(id: number | null, data: unknown): Observable<any> {
     return id ? this.http.put(`${this.url}/${id}`, data) : this.http.post(this.url, data);
   }
+  photo(id: number, photo: Blob): Observable<any> {
+    const body = new FormData();
+    body.append('photo', photo, 'teacher.jpg');
+    return this.http.post(`${this.url}/${id}/photo`, body);
+  }
+  removePhoto(id: number): Observable<any> {
+    return this.http.delete(`${this.url}/${id}/photo`);
+  }
   remove(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`);
   }

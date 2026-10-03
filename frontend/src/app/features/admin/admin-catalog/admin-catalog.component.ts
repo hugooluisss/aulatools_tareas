@@ -12,11 +12,19 @@ import { StudyPlansService, StudyPlan } from '../study-plans.service';
 import { InscriptionsService, Inscription } from '../inscriptions.service';
 import { forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { ImageCroppedEvent, ImageCropperComponent } from 'ngx-image-cropper';
+import { environment } from '../../../../environments/environment';
+import { StudentNotesModalComponent } from '../../tasks/student-notes-modal/student-notes-modal.component';
 
 @Component({
   selector: 'app-admin-catalog',
   standalone: true,
-  imports: [ReactiveFormsModule, IconButtonComponent],
+  imports: [
+    ReactiveFormsModule,
+    IconButtonComponent,
+    ImageCropperComponent,
+    StudentNotesModalComponent,
+  ],
   templateUrl: './admin-catalog.component.html',
   styleUrl: './admin-catalog.component.scss',
 })
@@ -63,9 +71,17 @@ export class AdminCatalogComponent {
   selectedStudents = signal<any[] | null>(null);
   selectedStudentSubjectId = signal<number | null>(null);
   selectedRecord = signal<any | null>(null);
+  notesStudentId = signal<number | null>(null);
   error = signal('');
   editing: number | null = null;
   showForm = signal(false);
+  cropImage = signal<string | null>(null);
+  cropResult = signal<Blob | null>(null);
+  croppedPhoto = signal<Blob | null>(null);
+  photoUrl = computed(() => {
+    const path = this.form.controls.photo_url.value;
+    return path ? `${environment.apiUrl}${path}` : null;
+  });
   form = this.fb.nonNullable.group({
     first_name: [''],
     last_name: [''],
@@ -83,6 +99,12 @@ export class AdminCatalogComponent {
     code: [''],
     plan_id: [null as number | null],
     new_password: [''],
+    address: [''],
+    phone: [''],
+    contact_phone: [''],
+    guardian_name: [''],
+    guardian_phone: [''],
+    photo_url: [''],
   });
   constructor() {
     this.configureForm();
@@ -161,9 +183,27 @@ export class AdminCatalogComponent {
               ...(password ? { password } : {}),
               birth_date,
               status,
+              address: this.form.controls.address.value,
+              contact_phone: this.form.controls.contact_phone.value,
+              guardian_name: this.form.controls.guardian_name.value,
+              guardian_phone: this.form.controls.guardian_phone.value,
             }
-          : { first_name, last_name, email, ...(password ? { password } : {}) };
-      api.save(this.editing, data).subscribe(() => this.done('Usuario guardado.'));
+          : {
+              first_name,
+              last_name,
+              email,
+              ...(password ? { password } : {}),
+              address: this.form.controls.address.value,
+              phone: this.form.controls.phone.value,
+            };
+      api.save(this.editing, data).subscribe((saved: any) => {
+        const photo = this.croppedPhoto();
+        if (this.kind === 'teachers' && photo)
+          this.teachersApi
+            .photo(this.editing ?? Number(saved.id), photo)
+            .subscribe(() => this.done('Usuario guardado.'));
+        else this.done('Usuario guardado.');
+      });
     } else if (this.kind === 'cycles') {
       const { name, starts_on, ends_on } = this.form.getRawValue();
       this.cyclesApi
@@ -340,12 +380,42 @@ export class AdminCatalogComponent {
     this.reload();
   }
   private resetForm(): void {
+    this.croppedPhoto.set(null);
+    this.cropResult.set(null);
+    this.cropImage.set(null);
     this.form.reset({
       status: 'active',
       cycle_id: 0,
       teacher_id: 0,
       subject_ids: [],
     });
+  }
+  selectPhoto(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.cropImage.set('');
+    const reader = new FileReader();
+    reader.onload = () => this.cropImage.set(String(reader.result));
+    reader.readAsDataURL(file);
+  }
+  crop(event: ImageCroppedEvent): void {
+    if (event.blob) this.cropResult.set(event.blob);
+  }
+  confirmCrop(): void {
+    if (this.cropResult()) this.croppedPhoto.set(this.cropResult());
+    this.cropImage.set(null);
+  }
+  removePhoto(): void {
+    this.croppedPhoto.set(null);
+    if (!this.editing) return;
+    this.teachersApi.removePhoto(this.editing).subscribe((teacher) => {
+      this.form.patchValue({ photo_url: teacher.photo_url });
+      this.toast.show('Fotografía eliminada.');
+    });
+  }
+  cancelCrop(): void {
+    this.cropResult.set(null);
+    this.cropImage.set(null);
   }
   private configureForm(): void {
     const required = (name: string) =>

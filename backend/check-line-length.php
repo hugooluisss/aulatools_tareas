@@ -11,10 +11,11 @@ $roots = [
     __DIR__ . '/src/Calendar',
     __DIR__ . '/src/Announcements',
     __DIR__ . '/src/TaskComments',
+    __DIR__ . '/src/StudentNotes',
     __DIR__ . '/src/Shared',
     __DIR__ . '/tests',
 ];
-$testModules = ['Auth', 'Users', 'Cycles', 'Subjects', 'Groups', 'Enrollments', 'Tasks', 'Calendar', 'Announcements', 'TaskComments'];
+$testModules = ['Auth', 'Users', 'Cycles', 'Subjects', 'Groups', 'Enrollments', 'Tasks', 'Calendar', 'Announcements', 'TaskComments', 'StudentNotes'];
 $failed = false;
 
 foreach ($roots as $root) {

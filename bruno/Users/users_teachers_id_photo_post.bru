@@ -1,0 +1,24 @@
+meta {
+  name: /users/teachers/{id}/photo (POST)
+  type: http
+  seq: 63
+}
+
+post {
+  url: {{baseUrl}}/users/teachers/{{teacherId}}/photo
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  photo: @file(./teacher-photo.jpg)
+}
+
+docs {
+  POST `/users/teachers/{id}/photo` Roles: Admin. Multipart field: photo. Response: 200 teacher object.
+}
+
+assert {
+  res.status: eq 200
+  res.body: isJson
+}

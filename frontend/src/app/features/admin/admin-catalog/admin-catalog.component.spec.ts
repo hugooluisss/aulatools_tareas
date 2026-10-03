@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { AdminCatalogComponent } from './admin-catalog.component';
 import { StudentsService } from '../students.service';
+import { StudentNotesService } from '../../tasks/student-notes.service';
 import { TeachersService } from '../teachers.service';
 import { CyclesService } from '../cycles.service';
 import { SubjectsService } from '../subjects.service';
@@ -10,6 +11,7 @@ import { GroupsService } from '../groups.service';
 import { InscriptionsService } from '../inscriptions.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { StudyPlansService } from '../study-plans.service';
+import { environment } from '../../../../environments/environment';
 
 describe('AdminCatalogComponent', () => {
   let fixture: ComponentFixture<AdminCatalogComponent>;
@@ -61,7 +63,22 @@ describe('AdminCatalogComponent', () => {
     TestBed.configureTestingModule({
       imports: [AdminCatalogComponent],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { data: { get kind() { return kind; } } } } },
+        {
+          provide: StudentNotesService,
+          useValue: { list: () => of({ data: [], meta: {} }), add: () => of({}) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              data: {
+                get kind() {
+                  return kind;
+                },
+              },
+            },
+          },
+        },
         { provide: StudentsService, useValue: api },
         { provide: TeachersService, useValue: api },
         { provide: CyclesService, useValue: api },
@@ -149,6 +166,46 @@ describe('AdminCatalogComponent', () => {
     component.openNew();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('Inscripción');
+  });
+
+  it('saves student contact fields and renders teacher contact and WhatsApp controls', () => {
+    const component = fixture.componentInstance;
+    Object.defineProperty(component, 'kind', { value: 'students' });
+    component.form.patchValue({
+      first_name: 'Ana',
+      last_name: 'Luz',
+      email: 'ana@example.com',
+      enrollment_number: 'A1',
+      birth_date: '2010-01-01',
+      address: 'Centro',
+      contact_phone: '525512345678',
+      guardian_name: 'María',
+      guardian_phone: '525598765432',
+    });
+    component.form.controls.password.setValue('password1');
+    component.save();
+    expect(api.save).toHaveBeenCalledWith(
+      null,
+      expect.objectContaining({
+        address: 'Centro',
+        contact_phone: '525512345678',
+        guardian_name: 'María',
+        guardian_phone: '525598765432',
+      }),
+    );
+
+    Object.defineProperty(component, 'kind', { value: 'teachers' });
+    component.openNew();
+    component.form.controls.photo_url.setValue('/uploads/teachers/3.jpg');
+    fixture.detectChanges();
+    expect(component.photoUrl()).toBe(`${environment.apiUrl}/uploads/teachers/3.jpg`);
+    expect(fixture.nativeElement.querySelector('#teacher-address')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#teacher-photo')).not.toBeNull();
+    component.rows.set([{ id: 3, first_name: 'Luis', last_name: 'Sol', phone: '525512345678' }]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('tbody a').getAttribute('href')).toBe(
+      'https://wa.me/525512345678',
+    );
   });
 
   it('adds only not-yet-enrolled cycle students through the bulk endpoint', () => {

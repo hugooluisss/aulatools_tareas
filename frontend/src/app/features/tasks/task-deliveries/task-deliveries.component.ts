@@ -4,11 +4,13 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TasksService, DeliveryRow } from '../tasks.service';
 import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
 import { ToastService } from '../../../core/services/toast.service';
+import { TokenStorageService } from '../../../core/auth/token-storage.service';
+import { StudentNotesModalComponent } from '../student-notes-modal/student-notes-modal.component';
 
 @Component({
   selector: 'app-task-deliveries',
   standalone: true,
-  imports: [DatePipe, RouterLink, IconButtonComponent],
+  imports: [DatePipe, RouterLink, IconButtonComponent, StudentNotesModalComponent],
   templateUrl: './task-deliveries.component.html',
   styleUrl: './task-deliveries.component.scss',
 })
@@ -16,8 +18,10 @@ export class TaskDeliveriesComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly tasks = inject(TasksService);
   private readonly toast = inject(ToastService);
+  readonly isAdmin = inject(TokenStorageService).getRole() === 'admin';
   readonly taskId = Number(this.route.snapshot.paramMap.get('taskId'));
   deliveries = signal<DeliveryRow[]>([]);
+  notesStudentId = signal<number | null>(null);
 
   statusLabel(status: string): string {
     return (

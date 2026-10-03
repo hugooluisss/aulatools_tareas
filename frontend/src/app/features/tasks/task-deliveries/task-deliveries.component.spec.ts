@@ -3,6 +3,7 @@ import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { TasksService } from '../tasks.service';
 import { TaskDeliveriesComponent } from './task-deliveries.component';
+import { TokenStorageService } from '../../../core/auth/token-storage.service';
 
 describe('TaskDeliveriesComponent', () => {
   it('renders delivery rows and action labels', () => {
@@ -10,6 +11,7 @@ describe('TaskDeliveriesComponent', () => {
       imports: [TaskDeliveriesComponent],
       providers: [
         provideRouter([]),
+        { provide: TokenStorageService, useValue: { getRole: () => 'teacher' } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '2' } } } },
         {
           provide: TasksService,
@@ -34,5 +36,9 @@ describe('TaskDeliveriesComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Eva Solís');
     expect(fixture.nativeElement.querySelector('[aria-label="Marcar entregada"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Comentarios"]')).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Notas del estudiante"]'),
+    ).not.toBeNull();
   });
 });

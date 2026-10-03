@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TasksService, Subject } from '../tasks.service';
 import { CyclesService } from '../../admin/cycles.service';
+import { TokenStorageService } from '../../../core/auth/token-storage.service';
 
 @Component({
   selector: 'app-teacher-subjects',
@@ -13,6 +14,7 @@ import { CyclesService } from '../../admin/cycles.service';
 export class TeacherSubjectsComponent {
   private readonly tasks = inject(TasksService);
   private readonly cyclesApi = inject(CyclesService);
+  readonly isAdmin = inject(TokenStorageService).getRole() === 'admin';
   subjects = signal<Subject[]>([]);
   cycles = signal<any[]>([]);
   cycleId = signal<number | null>(null);

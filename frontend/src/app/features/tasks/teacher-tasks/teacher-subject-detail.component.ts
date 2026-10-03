@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TasksService, Student, Task } from '../tasks.service';
 import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
 import { CyclesService } from '../../admin/cycles.service';
+import { TokenStorageService } from '../../../core/auth/token-storage.service';
 
 @Component({
   selector: 'app-teacher-subject-detail',
@@ -16,6 +17,7 @@ export class TeacherSubjectDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly tasks = inject(TasksService);
   private readonly cyclesApi = inject(CyclesService);
+  readonly isAdmin = inject(TokenStorageService).getRole() === 'admin';
   readonly subjectId = Number(this.route.snapshot.paramMap.get('subjectId'));
   students = signal<Student[]>([]);
   tasksList = signal<Task[]>([]);

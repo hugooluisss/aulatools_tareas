@@ -85,23 +85,28 @@ class UserRepository
     {
         $this->db->createCommand(
             <<<'SQL'
-                INSERT INTO users (school_id, role, email, password_hash, first_name, last_name)
-                VALUES (:school_id, :role, :email, :password_hash, :first_name, :last_name)
+                INSERT INTO users (school_id, role, email, password_hash, first_name, last_name, address, phone)
+                VALUES (:school_id, :role, :email, :password_hash, :first_name, :last_name, :address, :phone)
                 SQL,
             [':school_id' => $schoolId, ':role' => $role, ':email' => $data['email'], ':password_hash' => $hash,
-                ':first_name' => $data['first_name'], ':last_name' => $data['last_name']],
+                ':first_name' => $data['first_name'], ':last_name' => $data['last_name'],
+                ':address' => $data['address'] ?? null, ':phone' => $data['phone'] ?? $data['contact_phone'] ?? null],
         )->execute();
         $id = (int) $this->db->getLastInsertId();
         if ($role === 'student') {
             $this->db->createCommand(
                 <<<'SQL'
-                    INSERT INTO students (user_id, enrollment_number, birth_date, status)
-                    VALUES (:user_id, :user_id, :birth_date, :status)
+                    INSERT INTO students (user_id, enrollment_number, birth_date, status, address, contact_phone, guardian_name, guardian_phone)
+                    VALUES (:user_id, :user_id, :birth_date, :status, :address, :contact_phone, :guardian_name, :guardian_phone)
                     SQL,
                 [
                     ':user_id' => $id,
                     ':birth_date' => $data['birth_date'],
                     ':status' => $data['status'] ?? 'active',
+                    ':address' => $data['address'] ?? null,
+                    ':contact_phone' => $data['contact_phone'] ?? null,
+                    ':guardian_name' => $data['guardian_name'] ?? null,
+                    ':guardian_phone' => $data['guardian_phone'] ?? null,
                 ],
             )->execute();
         }
@@ -112,23 +117,30 @@ class UserRepository
     {
         $this->db->createCommand(
             <<<'SQL'
-                UPDATE users SET email = :email, first_name = :first_name, last_name = :last_name
+                UPDATE users SET email = :email, first_name = :first_name, last_name = :last_name,
+                    address = :address, phone = :phone
                 WHERE id = :id AND school_id = :school_id AND role = :role
                 SQL,
             [':email' => $data['email'], ':first_name' => $data['first_name'], ':last_name' => $data['last_name'],
+                ':address' => $data['address'] ?? null, ':phone' => $data['phone'] ?? $data['contact_phone'] ?? null,
                 ':id' => $id, ':school_id' => $schoolId, ':role' => $role],
         )->execute();
         if ($role === 'student') {
             $this->db->createCommand(
                 <<<'SQL'
                     UPDATE students
-                    SET birth_date = :birth_date, status = :status
+                    SET birth_date = :birth_date, status = :status, address = :address,
+                        contact_phone = :contact_phone, guardian_name = :guardian_name, guardian_phone = :guardian_phone
                     WHERE user_id = :id
                     SQL,
                 [
                     ':birth_date' => $data['birth_date'],
                     ':status' => $data['status'],
                     ':id' => $id,
+                    ':address' => $data['address'] ?? null,
+                    ':contact_phone' => $data['contact_phone'] ?? null,
+                    ':guardian_name' => $data['guardian_name'] ?? null,
+                    ':guardian_phone' => $data['guardian_phone'] ?? null,
                 ],
             )->execute();
         }
@@ -147,13 +159,31 @@ class UserRepository
         )->execute();
     }
 
-    public function delete(int $schoolId, string $role, int $id): void
+    public function delete(int $schoolId, string $role, int $id): ?string
     {
+        $photo = $role === 'teacher' ? $this->photoPath($schoolId, $id) : null;
         $this->db->createCommand(
             <<<'SQL'
                 DELETE FROM users WHERE id = :id AND school_id = :school_id AND role = :role
                 SQL,
             [':id' => $id, ':school_id' => $schoolId, ':role' => $role],
+        )->execute();
+        return $photo;
+    }
+
+    public function photoPath(int $schoolId, int $id): ?string
+    {
+        return $this->db->createCommand(
+            "SELECT photo_path FROM users WHERE id = :id AND school_id = :school_id AND role = 'teacher'",
+            [':id' => $id, ':school_id' => $schoolId],
+        )->queryScalar() ?: null;
+    }
+
+    public function setPhotoPath(int $schoolId, int $id, ?string $path): void
+    {
+        $this->db->createCommand(
+            "UPDATE users SET photo_path = :path WHERE id = :id AND school_id = :school_id AND role = 'teacher'",
+            [':path' => $path, ':id' => $id, ':school_id' => $schoolId],
         )->execute();
     }
 
@@ -170,7 +200,8 @@ class UserRepository
     private function selectSql(string $role): string
     {
         return <<<SQL
-            SELECT users.id, users.school_id, users.role, users.email, users.first_name, users.last_name
+            SELECT users.id, users.school_id, users.role, users.email, users.first_name, users.last_name,
+                   users.address, users.phone, users.photo_path
                    {$this->studentColumns($role)}
             FROM users {$this->joinSql($role)}
             SQL;
@@ -184,12 +215,14 @@ class UserRepository
 
         return <<<'SQL'
             SELECT users.id, users.school_id, users.role, users.email, users.first_name, users.last_name,
+                   users.address, users.phone, users.photo_path,
                    students.enrollment_number, students.birth_date, students.status,
                    active_enrollments.id AS enrollment_id,
                    active_enrollments.cycle_id AS enrollment_cycle_id,
                    active_enrollments.cycle_name AS enrollment_cycle_name,
                    active_enrollments.group_id AS enrollment_group_id,
-                   active_enrollments.group_name AS enrollment_group_name
+                   active_enrollments.group_name AS enrollment_group_name,
+                   students.address, students.contact_phone, students.guardian_name, students.guardian_phone
             FROM users
             INNER JOIN students ON students.user_id = users.id
             LEFT JOIN (
@@ -218,6 +251,6 @@ class UserRepository
 
     private function studentColumns(string $role): string
     {
-        return $role === 'student' ? ', students.enrollment_number, students.birth_date, students.status' : '';
+        return $role === 'student' ? ', students.enrollment_number, students.birth_date, students.status, students.address, students.contact_phone, students.guardian_name, students.guardian_phone' : '';
     }
 }

@@ -41,7 +41,9 @@
 <section class="card p-4">
   <div class="section-heading">
     <h2>Tareas</h2>
-    <app-icon-button icon="plus-circle" label="Agregar tarea" (click)="createTask()" />
+    @if (!isAdmin) {
+      <app-icon-button icon="plus-circle" label="Agregar tarea" (click)="createTask()" />
+    }
   </div>
   <div class="table-responsive">
     <table class="table align-middle mb-0">
@@ -65,8 +67,14 @@
                 label="Ver entregas"
                 [routerLink]="['/tasks', task.id, 'deliveries']"
               />
-              <app-icon-button icon="pencil" label="Editar tarea" (click)="editTask(task)" />
-              <app-icon-button icon="x-circle" label="Cancelar tarea" (click)="cancelTask(task)" />
+              @if (!isAdmin) {
+                <app-icon-button icon="pencil" label="Editar tarea" (click)="editTask(task)" />
+                <app-icon-button
+                  icon="x-circle"
+                  label="Cancelar tarea"
+                  (click)="cancelTask(task)"
+                />
+              }
             </td>
           </tr>
         } @empty {

@@ -14,15 +14,19 @@ use App\Users\Controller\UserController;
 use App\Cycles\Controller\CycleController;
 use App\Schools\SchoolController;
 use App\StudyPlans\Controller\StudyPlanController;
+use App\Reports\Controller\ReportController;
 use Yiisoft\Router\Route;
 
 return [
     Route::get('/health')->action(HealthController::class),
+    Route::get('/reports/attendance')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([ReportController::class, 'attendance']),
     Route::post('/auth/register-school')->action([AuthController::class, 'registerSchool']),
     Route::post('/auth/login')->action([AuthController::class, 'login']),
     Route::post('/auth/change-password')->middleware(AuthenticationMiddleware::class)->action([AuthController::class, 'changePassword']),
     Route::get('/school')->middleware(AuthenticationMiddleware::class)->action([SchoolController::class, 'view']),
     Route::put('/school')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SchoolController::class, 'update']),
+    Route::post('/school/logo')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SchoolController::class, 'uploadLogo']),
+    Route::delete('/school/logo')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([SchoolController::class, 'deleteLogo']),
     Route::get('/subjects')->middleware(AuthenticationMiddleware::class)->action([SubjectController::class, 'index']),
     Route::get('/study-plans')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([StudyPlanController::class, 'index']),
     Route::post('/study-plans')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([StudyPlanController::class, 'create']),
@@ -55,6 +59,8 @@ return [
     Route::post('/users/teachers')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'createTeacher']),
     Route::get('/users/teachers/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'getTeacher']),
     Route::put('/users/teachers/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'updateTeacher']),
+    Route::post('/users/teachers/{id}/photo')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'uploadTeacherPhoto']),
+    Route::delete('/users/teachers/{id}/photo')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'deleteTeacherPhoto']),
     Route::delete('/users/teachers/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'deleteTeacher']),
     Route::get('/users/students')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'listStudents']),
     Route::post('/users/students')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'createStudent']),
@@ -62,6 +68,8 @@ return [
     Route::put('/users/students/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'updateStudent']),
     Route::patch('/users/students/{id}/status')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'studentStatus']),
     Route::delete('/users/students/{id}')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'deleteStudent']),
+    Route::get('/users/students/{id}/notes')->middleware(AuthenticationMiddleware::class)->action([\App\StudentNotes\Controller\StudentNoteController::class, 'index']),
+    Route::post('/users/students/{id}/notes')->middleware(AuthenticationMiddleware::class)->action([\App\StudentNotes\Controller\StudentNoteController::class, 'create']),
     Route::put('/users/{id}/password')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([UserController::class, 'resetPassword']),
     Route::get('/cycles')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'list']),
     Route::post('/cycles')->middleware(AuthenticationMiddleware::class)->middleware(RoleRestrictionMiddleware::class)->action([CycleController::class, 'create']),

@@ -52,6 +52,25 @@
           }
         </details>
       }
+      @if (isAdmin()) {
+        <details
+          class="app-sidebar__group"
+          [open]="reportesActive() || reportesOpen()"
+          (toggle)="reportesOpen.set($any($event.target).open)"
+        >
+          <summary class="app-sidebar__nav-link">Reportes</summary>
+          @for (item of reportes; track item.path) {
+            <a
+              class="app-sidebar__nav-link app-sidebar__nav-link--nested"
+              [routerLink]="item.path"
+              routerLinkActive="app-sidebar__link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              {{ item.label }}
+            </a>
+          }
+        </details>
+      }
       @for (item of visibleMenu; track trackMenuItem(item)) {
         <a
           class="app-sidebar__nav-link"

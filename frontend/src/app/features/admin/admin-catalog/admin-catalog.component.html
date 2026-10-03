@@ -67,6 +67,65 @@
                     />
                   </div>
                 }
+                @if (kind === 'teachers') {
+                  <div class="col-12">
+                    <label class="form-label" for="teacher-address">Dirección</label>
+                    <input id="teacher-address" class="form-control" formControlName="address" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="teacher-phone">Celular</label>
+                    <input
+                      id="teacher-phone"
+                      class="form-control"
+                      type="tel"
+                      formControlName="phone"
+                    />
+                    @if (form.controls.phone.value) {
+                      <a
+                        [href]="
+                          'https://wa.me/' +
+                          form.controls.phone.value
+                            .replaceAll('+', '')
+                            .replaceAll(' ', '')
+                            .replaceAll('-', '')
+                            .replaceAll('(', '')
+                            .replaceAll(')', '')
+                        "
+                        target="_blank"
+                        rel="noopener"
+                        >Abrir WhatsApp</a
+                      >
+                    }
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="teacher-photo">Fotografía</label>
+                    <input
+                      id="teacher-photo"
+                      class="form-control"
+                      type="file"
+                      accept="image/*"
+                      (change)="selectPhoto($event)"
+                    />
+                    @if (photoUrl()) {
+                      <img
+                        class="mt-2 rounded"
+                        width="80"
+                        height="80"
+                        [src]="photoUrl()"
+                        alt="Fotografía del profesor"
+                      />
+                    }
+                    @if (photoUrl() || croppedPhoto()) {
+                      <button
+                        class="btn btn-sm btn-outline-danger mt-2"
+                        type="button"
+                        (click)="removePhoto()"
+                      >
+                        Quitar fotografía
+                      </button>
+                    }
+                  </div>
+                }
                 @if (kind === 'students') {
                   <div class="col-md-6">
                     <label class="form-label" for="enrollment-number">Matrícula</label>
@@ -75,6 +134,36 @@
                       class="form-control"
                       formControlName="enrollment_number"
                       required
+                    />
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="student-address">Dirección</label>
+                    <input id="student-address" class="form-control" formControlName="address" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="contact-phone">Teléfono de contacto</label>
+                    <input
+                      id="contact-phone"
+                      class="form-control"
+                      type="tel"
+                      formControlName="contact_phone"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="guardian-name">Nombre del tutor</label>
+                    <input
+                      id="guardian-name"
+                      class="form-control"
+                      formControlName="guardian_name"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="guardian-phone">Teléfono del tutor</label>
+                    <input
+                      id="guardian-phone"
+                      class="form-control"
+                      type="tel"
+                      formControlName="guardian_phone"
                     />
                   </div>
                   <div class="col-md-6">
@@ -364,7 +453,15 @@
             @if (kind !== 'subjects') {
               <td>{{ row.name || row.first_name + ' ' + row.last_name }}</td>
             }
-            <td>{{ detail(row) }}</td>
+            <td>
+              @if (kind === 'teachers' && row.phone) {
+                <a [href]="'https://wa.me/' + row.phone" target="_blank" rel="noopener">{{
+                  row.phone
+                }}</a>
+              } @else {
+                {{ detail(row) }}
+              }
+            </td>
             @if (kind !== 'subjects') {
               <td>{{ row.status ? (statusLabels[row.status] ?? row.status) : '—' }}</td>
             }
@@ -398,6 +495,11 @@
                 />
               }
               @if (kind === 'students') {
+                <app-icon-button
+                  icon="journal-text"
+                  label="Notas del estudiante"
+                  (click)="notesStudentId.set(row.id)"
+                />
                 <app-icon-button
                   [icon]="row.status === 'active' ? 'person-dash' : 'person-check'"
                   label="Cambiar estado"
@@ -436,6 +538,9 @@
       <p>{{ record.first_name }} {{ record.last_name }} {{ record.name }}</p>
       <p>{{ detail(record) }}</p>
     </section>
+  }
+  @if (notesStudentId(); as studentId) {
+    <app-student-notes-modal [studentId]="studentId" (closed)="notesStudentId.set(null)" />
   }
   @if (selectedStudents(); as enrolledStudents) {
     <div class="modal-backdrop fade show"></div>
@@ -498,6 +603,44 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  @if (cropImage()) {
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal d-block" role="dialog" aria-modal="true" aria-labelledby="crop-title">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="crop-title">Recortar fotografía</h2>
+            <button
+              type="button"
+              class="btn-close"
+              aria-label="Cerrar"
+              (click)="cancelCrop()"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <image-cropper
+              [imageBase64]="cropImage()!"
+              [maintainAspectRatio]="true"
+              [aspectRatio]="1"
+              [resizeToWidth]="400"
+              [resizeToHeight]="400"
+              [format]="'jpeg'"
+              [imageQuality]="85"
+              (imageCropped)="crop($event)"
+            />
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" type="button" (click)="cancelCrop()">
+              Cancelar
+            </button>
+            <button class="btn btn-primary" type="button" (click)="confirmCrop()">
+              Usar fotografía
+            </button>
           </div>
         </div>
       </div>

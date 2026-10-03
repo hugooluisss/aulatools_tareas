@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { TasksService } from '../tasks.service';
 import { DeliveryCommentsComponent } from './delivery-comments.component';
+import { TokenStorageService } from '../../../core/auth/token-storage.service';
 
 describe('DeliveryCommentsComponent', () => {
   it('renders the private thread and reply form', () => {
@@ -10,6 +11,7 @@ describe('DeliveryCommentsComponent', () => {
       imports: [DeliveryCommentsComponent],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '5' } } } },
+        { provide: TokenStorageService, useValue: { getRole: () => 'admin' } },
         {
           provide: TasksService,
           useValue: {
@@ -30,5 +32,6 @@ describe('DeliveryCommentsComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Buen trabajo');
     expect(fixture.nativeElement.textContent).toContain('Enviar');
+    expect(fixture.nativeElement.querySelector('form')).not.toBeNull();
   });
 });

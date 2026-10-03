@@ -10,6 +10,7 @@ use App\Users\Service\UserService;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
 
 final class UserController
 {
@@ -66,6 +67,31 @@ final class UserController
     public function updateStudent(ServerRequestInterface $request, int $id): ResponseInterface
     {
         return $this->run(fn () => $this->service->update($this->user($request), 'student', $id, $this->body($request)));
+    }
+
+    public function uploadTeacherPhoto(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(function () use ($request, $id): array {
+            $photo = $request->getUploadedFiles()['photo'] ?? null;
+            if (!$photo instanceof UploadedFileInterface || $photo->getError() !== UPLOAD_ERR_OK || $photo->getSize() === null) {
+                throw new UserException('A photo upload is required.', 400);
+            }
+            $path = tempnam(sys_get_temp_dir(), 'teacher-photo-');
+            if ($path === false) {
+                throw new UserException('Could not read photo upload.', 400);
+            }
+            try {
+                $photo->moveTo($path);
+                return $this->service->savePhoto($this->user($request), $id, $path, (int) $photo->getSize());
+            } finally {
+                @unlink($path);
+            }
+        });
+    }
+
+    public function deleteTeacherPhoto(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->removePhoto($this->user($request), $id));
     }
 
     public function studentStatus(ServerRequestInterface $request, int $id): ResponseInterface
