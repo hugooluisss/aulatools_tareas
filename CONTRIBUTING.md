@@ -34,6 +34,8 @@ Los cambios triviales (typos, ajustes de estilo) no necesitan OpenSpec.
 - Formato: `<tipo>(<alcance>): <descripción>`; el alcance es opcional.
 - El cuerpo tiene una o dos frases que explican el **porqué**, no un resumen del diff.
 - No agregues atribución a herramientas de IA, ni `Co-Authored-By`, ni notas de «generado por» en commits ni en Pull Requests.
+- **Firma obligatoria:** todos los commits deben ir firmados (GPG o SSH) y mostrarse como verificados en GitHub. Configúralo con `git config commit.gpgsign true` y verifica con `git log --show-signature -1`. Un PR con commits sin firmar no se acepta.
+- Sube cambios solo a tu fork, nunca directamente al repositorio principal. No uses `--no-verify` ni reescribas con `push --force` ramas que otras personas ya revisaron.
 
 ## Estilo de código
 
