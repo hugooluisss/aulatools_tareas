@@ -28,6 +28,8 @@ Cada funcionalidad o corrección relevante se describe primero con OpenSpec en `
 
 Los cambios triviales (typos, ajustes de estilo) no necesitan OpenSpec.
 
+Las carpetas `.claude/` y `.agents/` (skills y comandos de OpenSpec para asistentes de código) no se versionan. Si usas un asistente, genéralas con `openspec init` o actualízalas con `openspec update`; las reglas del proyecto viven en `openspec/config.yaml`.
+
 ## Commits
 
 - Usa Conventional Commits: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
