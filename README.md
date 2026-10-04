@@ -74,7 +74,7 @@ El E2E usa emails únicos y conserva sus datos en la base; puede ejecutarse de n
 ```text
 backend/      API Yii3, migraciones, scripts de datos de prueba y pruebas PHPUnit
 bruno/        colección de requests de la API
-docs/         contrato de la API, páginas por rol y publicación con Caddy
+docs/         contrato de la API y páginas por rol
 frontend/     aplicación Angular
 openspec/     cambios (propuesta, diseño, especificaciones y tareas) y especificaciones vigentes
 scripts/      verificación E2E y datos de prueba
