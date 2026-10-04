@@ -1,3 +1,14 @@
 :host {
   display: inline-block;
 }
+
+button {
+  position: relative;
+}
+
+.icon-button__badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+}

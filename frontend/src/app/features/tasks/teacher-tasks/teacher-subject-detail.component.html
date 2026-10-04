@@ -1,4 +1,10 @@
-<h1>Materia</h1>
+<app-breadcrumbs
+  [items]="[
+    { label: isAdmin ? 'Tareas' : 'Mis materias', url: isAdmin ? '/admin/tasks' : '/my-subjects' },
+    { label: subjectName() },
+  ]"
+/>
+<h1>{{ subjectName() }}</h1>
 @if (cycles().length > 1) {
   <label for="task-cycle">Ciclo</label>
   <select
@@ -99,7 +105,9 @@
         <app-icon-button
           icon="eye"
           label="Ver entregas"
+          [badge]="task.unread_deliveries ?? 0"
           [routerLink]="['/tasks', task.id, 'deliveries']"
+          [queryParams]="{ subjectId, subjectName: subjectName(), taskName: task.name }"
         />
         @if (!isAdmin) {
           <app-icon-button icon="pencil" label="Editar tarea" (click)="editTask(task)" />

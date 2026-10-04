@@ -59,4 +59,19 @@ class CommentRepository
             WHERE task_comments.id = :id
             SQL, [':id' => $commentId])->queryOne() ?: null;
     }
+
+    public function markRead(int $userId, int $deliveryId): void
+    {
+        $this->db->createCommand(<<<'SQL'
+            INSERT INTO delivery_comment_reads (user_id, delivery_id, last_read_comment_id)
+            SELECT :user_id, :delivery_id, MAX(id)
+            FROM task_comments
+            WHERE delivery_id = :delivery_id AND author_id IN (
+                SELECT id FROM users WHERE role = 'student'
+            )
+            ON DUPLICATE KEY UPDATE last_read_comment_id = GREATEST(
+                COALESCE(last_read_comment_id, 0), COALESCE(VALUES(last_read_comment_id), 0)
+            )
+            SQL, [':user_id' => $userId, ':delivery_id' => $deliveryId])->execute();
+    }
 }

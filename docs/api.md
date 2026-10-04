@@ -90,8 +90,9 @@ Task object: `{id,subject_id,name,description,due_at,status}` (`due_at` uses `YY
 | GET `/tasks/{id}` | Admin, task's teacher, enrolled student | — | `200` bare `{task,delivery?,teacher}` object |
 | PUT `/tasks/{id}` | Admin, task's teacher | `{name,description,due_at}` (`due_at`: `YYYY-MM-DD`) | `200 task object` |
 | POST `/tasks/{id}/cancel` | Admin, task's teacher | `{}` | `200 task object`; all deliveries become `cancelled` |
-| GET `/tasks/{id}/deliveries` | Admin, task's teacher | Query pagination; optional `status` | `200` {items:[...],page,per_page,total,total_pages}; rows contain `{delivery,student}` |
+| GET `/tasks/{id}/deliveries` | Admin, task's teacher | Query pagination; optional `search` (student first name, last name, enrollment number) and comma-separated `status` (`pending,delivered,graded,cancelled`; invalid values return `400`) | `200` {items:[...],page,per_page,total,total_pages}; rows contain `{delivery,student}` |
 | PUT `/deliveries/{id}/delivered` | Admin, task's teacher | `{}` | `200 delivery object`; sets `delivered_at` to current time |
+| PUT `/deliveries/{id}/undelivered` | Admin, task's teacher | `{}` | `200 delivery object`; returns a delivered or graded delivery to `pending`, clearing `delivered_at` and `grade` |
 | PUT `/deliveries/{id}/grade` | Admin, task's teacher | `{grade}` | `200 delivery object`; only a delivered delivery can be graded |
 | GET `/me/tasks` | Student | Query pagination; `status` optional, defaults `pending` | `200` {items:[...],page,per_page,total,total_pages}; rows contain `{task,subject,delivery} |
 | GET `/me/tasks/{delivery_id}` | Student (own delivery) | — | `200` bare `{task,subject,teacher,delivery}` object |

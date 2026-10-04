@@ -1,0 +1,18 @@
+meta {
+  name: /deliveries/{id}/comments/read (POST)
+  type: http
+  seq: 41
+}
+
+post {
+  url: {{baseUrl}}/deliveries/{{deliveryId}}/comments/read
+  auth: inherit
+}
+
+docs {
+  POST `/deliveries/id/comments/read` Roles: Admin or delivery's assigned teacher. Path id: delivery id. Marks the viewer's student comments through the latest existing student comment as read; an empty thread succeeds. Response: 204 No Content. Errors: {error:{code,message}} with HTTP 401/403/404/500 as applicable.
+}
+
+assert {
+  res.status: eq 204
+}

@@ -4,12 +4,21 @@ import { FormsModule } from '@angular/forms';
 import { Page } from '../../../core/models/page';
 import { DataTableComponent } from '../../../shared/data-table/data-table.component';
 import { ColumnComponent } from '../../../shared/data-table/column.component';
+import { StatusBadgeComponent } from '../../../shared/status-badge/status-badge.component';
+import { StatusFilterComponent } from '../../../shared/status-filter/status-filter.component';
 import { TaskDeliveryStatus, TaskOverviewRow, TasksService } from '../tasks.service';
 
 @Component({
   selector: 'app-admin-task-overview',
   standalone: true,
-  imports: [DatePipe, FormsModule, DataTableComponent, ColumnComponent],
+  imports: [
+    DatePipe,
+    FormsModule,
+    DataTableComponent,
+    ColumnComponent,
+    StatusBadgeComponent,
+    StatusFilterComponent,
+  ],
   templateUrl: './admin-task-overview.component.html',
   styleUrl: './admin-task-overview.component.scss',
 })

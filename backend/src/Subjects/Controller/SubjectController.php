@@ -59,7 +59,7 @@ final class SubjectController
             $this->user($request),
             $id,
             $this->page($query, 'page', 1),
-            $this->page($query, 'per_page', 20),
+            min(100, $this->page($query, 'per_page', 20)),
             isset($query['cycle_id']) && filter_var($query['cycle_id'], FILTER_VALIDATE_INT) !== false ? (int) $query['cycle_id'] : null,
         ));
     }

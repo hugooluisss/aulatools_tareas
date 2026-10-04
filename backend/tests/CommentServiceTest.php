@@ -105,4 +105,67 @@ final class CommentServiceTest extends TestCase
             }
         }
     }
+
+    public function testAssignedTeacherAndAdminCanMarkReadButStudentCannot(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends CommentRepository {
+            public array $reads = [];
+
+            public function delivery(int $schoolId, int $deliveryId): ?array
+            {
+                return ['id' => $deliveryId, 'student_id' => 3, 'teacher_id' => 4];
+            }
+
+            public function markRead(int $userId, int $deliveryId): void
+            {
+                $this->reads[] = [$userId, $deliveryId];
+            }
+        };
+        $service = new CommentService($repository);
+
+        $service->markRead(new CurrentUser(4, 'teacher', 2), 6);
+        $service->markRead(new CurrentUser(8, 'admin', 2), 6);
+
+        self::assertSame([[4, 6], [8, 6]], $repository->reads);
+        try {
+            $service->markRead(new CurrentUser(3, 'student', 2), 6);
+            self::fail('Student was allowed to update a teacher read cursor.');
+        } catch (CommentException $exception) {
+            self::assertSame(403, $exception->status);
+        }
+    }
+
+    public function testMarkReadControllerReturnsNoContent(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends CommentRepository {
+            public function delivery(int $schoolId, int $deliveryId): ?array
+            {
+                return ['id' => $deliveryId, 'student_id' => 3, 'teacher_id' => 4];
+            }
+
+            public function markRead(int $userId, int $deliveryId): void
+            {
+            }
+        };
+        $controller = new CommentController(new CommentService($repository), new ResponseFactory());
+        $request = (new ServerRequest())->withAttribute(CurrentUser::class, new CurrentUser(4, 'teacher', 2));
+
+        $response = $controller->markRead($request, 6);
+
+        self::assertSame(204, $response->getStatusCode());
+    }
+
+    public function testMarkReadRejectsUnassignedTeacher(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends CommentRepository {
+            public function delivery(int $schoolId, int $deliveryId): ?array
+            {
+                return ['id' => $deliveryId, 'student_id' => 3, 'teacher_id' => 4];
+            }
+        };
+        $controller = new CommentController(new CommentService($repository), new ResponseFactory());
+        $request = (new ServerRequest())->withAttribute(CurrentUser::class, new CurrentUser(20, 'teacher', 2));
+
+        self::assertSame(403, $controller->markRead($request, 6)->getStatusCode());
+    }
 }

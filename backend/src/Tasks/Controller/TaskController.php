@@ -70,10 +70,16 @@ final class TaskController
         return $this->run(fn () => $this->service->deliveries(
             $this->user($request),
             $id,
+            isset($query['search']) ? (string) $query['search'] : null,
             isset($query['status']) ? (string) $query['status'] : null,
             $this->number($query, 'page', 1),
             $this->number($query, 'per_page', 20),
         ));
+    }
+
+    public function undelivered(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->markUndelivered($this->user($request), $id));
     }
 
     public function delivered(ServerRequestInterface $request, int $id): ResponseInterface

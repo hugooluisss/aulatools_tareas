@@ -1,4 +1,7 @@
 @if (detail(); as taskDetail) {
+  <app-breadcrumbs
+    [items]="[{ label: 'Mis tareas', url: '/my-tasks' }, { label: taskDetail.task.name }]"
+  />
   <article class="card p-4 task-detail">
     <h1>{{ taskDetail.task.name }}</h1>
     <p>{{ taskDetail.task.description }}</p>
@@ -22,6 +25,14 @@
       <dt>Estado</dt>
       <dd>{{ statusLabel(taskDetail.delivery.status) }}</dd>
     </dl>
-    <a [routerLink]="['/deliveries', taskDetail.delivery.id, 'comments']">Ver comentarios</a>
+    <button class="btn btn-link p-0" type="button" (click)="commentsOpen.set(true)">
+      Ver comentarios
+    </button>
   </article>
+  @if (commentsOpen()) {
+    <app-delivery-comments
+      [deliveryId]="taskDetail.delivery.id"
+      (closed)="commentsOpen.set(false)"
+    />
+  }
 }

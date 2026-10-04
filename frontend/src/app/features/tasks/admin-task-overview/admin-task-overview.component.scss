@@ -6,31 +6,3 @@
   grid-template-columns: 1fr;
   margin-bottom: v.$spacing-lg;
 }
-
-.task-overview__status-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: v.$spacing-sm;
-}
-
-.task-overview__status-button,
-.task-overview__status-badge {
-  background-color: var(--status-color);
-  border: 1px solid var(--status-text-color);
-  border-radius: v.$spacing-xs;
-  color: var(--status-text-color);
-}
-
-.task-overview__status-button {
-  padding: v.$spacing-xs v.$spacing-sm;
-}
-
-.task-overview__status-button--selected {
-  outline: 2px solid var(--status-text-color);
-  outline-offset: 2px;
-}
-
-.task-overview__status-badge {
-  display: inline-block;
-  padding: v.$spacing-xs v.$spacing-sm;
-}

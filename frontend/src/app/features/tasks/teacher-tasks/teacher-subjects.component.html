@@ -1,3 +1,5 @@
+<app-breadcrumbs [items]="[{ label: isAdmin ? 'Tareas' : 'Mis materias' }]" />
+<app-breadcrumbs [items]="[{ label: isAdmin ? 'Tareas' : 'Mis materias' }]" />
 <h1>{{ isAdmin ? 'Materias' : 'Mis materias' }}</h1>
 @if (cycles().length > 1) {
   <label for="teacher-cycle">Ciclo</label>
@@ -15,11 +17,20 @@
 }
 @if (isAdmin) {
   <app-data-table [page]="subjects()" (pageChange)="loadPage($event)">
-    <app-column header="Nombre"><ng-template let-row>{{ row.name }}</ng-template></app-column>
-    <app-column header="Estado"><ng-template let-row>{{ row.status }}</ng-template></app-column>
-    <app-column header="Acciones"><ng-template let-row>
-      <app-icon-button icon="eye" label="Ver estudiantes y tareas" [routerLink]="['/admin/tasks', row.id]" />
-    </ng-template></app-column>
+    <app-column header="Nombre"
+      ><ng-template let-row>{{ row.name }}</ng-template></app-column
+    >
+    <app-column header="Estado"
+      ><ng-template let-row>{{ row.status }}</ng-template></app-column
+    >
+    <app-column header="Acciones"
+      ><ng-template let-row>
+        <app-icon-button
+          icon="eye"
+          label="Ver estudiantes y tareas"
+          [routerLink]="['/admin/tasks', row.id]"
+        /> </ng-template
+    ></app-column>
   </app-data-table>
 } @else {
   <div class="subject-list">
@@ -33,7 +44,12 @@
       <p>No hay materias asignadas.</p>
     }
     @if (subjects().total_pages > 1) {
-      <app-paginator [page]="page()" [totalPages]="subjects().total_pages" [total]="subjects().total" (pageChange)="loadPage($event)" />
+      <app-paginator
+        [page]="page()"
+        [totalPages]="subjects().total_pages"
+        [total]="subjects().total"
+        (pageChange)="loadPage($event)"
+      />
     }
   </div>
 }

@@ -154,6 +154,61 @@ final class TaskServiceTest extends TestCase
         self::assertSame('pending', $repository->status);
     }
 
+    public function testDeliveriesAcceptsSearchAndMultipleStatuses(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends TaskRepository {
+            public array $arguments = [];
+
+            public function find(int $schoolId, int $taskId): ?array
+            {
+                return ['id' => $taskId, 'teacher_id' => 8];
+            }
+
+            public function deliveries(int $taskId, ?string $search, array $statuses, int $offset, int $limit, int $userId): array
+            {
+                $this->arguments = [$taskId, $search, $statuses, $offset, $limit, $userId];
+                return ['data' => [], 'total' => 0];
+            }
+        };
+        $controller = new TaskController(
+            new TaskService($repository, new TransactionRunner($this->createMock(ConnectionInterface::class))),
+            new ResponseFactory(),
+        );
+        $request = (new ServerRequest())->withAttribute(CurrentUser::class, new CurrentUser(8, 'teacher', 2));
+        $request = $request->withQueryParams(['search' => ' Ana ', 'status' => 'pending,graded', 'page' => '2']);
+
+        $response = $controller->deliveries($request, 17);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame([17, 'Ana', ['pending', 'graded'], 20, 20, 8], $repository->arguments);
+        self::assertStringContainsString('"total_pages":1', (string) $response->getBody());
+    }
+
+    public function testDeliveriesRejectsUnsupportedStatus(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends TaskRepository {
+            public function find(int $schoolId, int $taskId): ?array
+            {
+                return ['id' => $taskId, 'teacher_id' => 8];
+            }
+
+            public function deliveries(int $taskId, ?string $search, array $statuses, int $offset, int $limit, int $userId): array
+            {
+                self::fail('Repository should not be called for an unsupported status.');
+            }
+        };
+        $controller = new TaskController(
+            new TaskService($repository, new TransactionRunner($this->createMock(ConnectionInterface::class))),
+            new ResponseFactory(),
+        );
+        $request = (new ServerRequest())->withAttribute(CurrentUser::class, new CurrentUser(8, 'teacher', 2));
+        $request = $request->withQueryParams(['status' => 'pending,unknown']);
+
+        $response = $controller->deliveries($request, 17);
+
+        self::assertSame(400, $response->getStatusCode());
+    }
+
     public function testOverviewUsesSchoolScopeFiltersAndReturnsAllRows(): void
     {
         $repository = new class ($this->createMock(ConnectionInterface::class)) extends TaskRepository {
@@ -319,6 +374,12 @@ final class TaskServiceTest extends TestCase
                 $this->status = 'delivered';
             }
 
+            public function markUndelivered(int $deliveryId): void
+            {
+                $this->status = 'pending';
+                $this->grade = null;
+            }
+
             public function grade(int $deliveryId, int|float $grade): void
             {
                 $this->status = 'graded';
@@ -351,5 +412,12 @@ final class TaskServiceTest extends TestCase
         self::assertSame('delivered', $delivered['status']);
         self::assertSame('graded', $graded['status']);
         self::assertSame(90.0, $graded['grade']);
+
+        $undelivered = $service->markUndelivered($teacher, 5);
+
+        self::assertSame('pending', $undelivered['status']);
+        self::assertNull($undelivered['grade']);
+        $this->expectException(TaskException::class);
+        $service->markUndelivered($teacher, 5);
     }
 }

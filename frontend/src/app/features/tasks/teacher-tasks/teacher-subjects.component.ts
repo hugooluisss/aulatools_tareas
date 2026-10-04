@@ -8,11 +8,19 @@ import { PaginatorComponent } from '../../../shared/paginator/paginator.componen
 import { DataTableComponent } from '../../../shared/data-table/data-table.component';
 import { ColumnComponent } from '../../../shared/data-table/column.component';
 import { IconButtonComponent } from '../../../shared/icon-button/icon-button.component';
+import { BreadcrumbsComponent } from '../../../shared/breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'app-teacher-subjects',
   standalone: true,
-  imports: [RouterLink, PaginatorComponent, DataTableComponent, ColumnComponent, IconButtonComponent],
+  imports: [
+    RouterLink,
+    PaginatorComponent,
+    DataTableComponent,
+    ColumnComponent,
+    IconButtonComponent,
+    BreadcrumbsComponent,
+  ],
   templateUrl: './teacher-subjects.component.html',
   styleUrl: './teacher-subjects.component.scss',
 })
@@ -34,9 +42,17 @@ export class TeacherSubjectsComponent {
   }
   load(): void {
     if (this.cycles().length > 1 && !this.cycleId()) return;
-    this.tasks.subjects(this.cycleId() ?? undefined, this.page()).subscribe((rows) => this.subjects.set(rows));
+    this.tasks
+      .subjects(this.cycleId() ?? undefined, this.page())
+      .subscribe((rows) => this.subjects.set(rows));
   }
 
-  loadPage(page: number): void { this.page.set(page); this.load(); }
-  filterChanged(): void { this.page.set(1); this.load(); }
+  loadPage(page: number): void {
+    this.page.set(page);
+    this.load();
+  }
+  filterChanged(): void {
+    this.page.set(1);
+    this.load();
+  }
 }

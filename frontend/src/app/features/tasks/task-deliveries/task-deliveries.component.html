@@ -1,41 +1,154 @@
+<app-breadcrumbs
+  [items]="[
+    { label: isAdmin ? 'Tareas' : 'Mis materias', url: isAdmin ? '/admin/tasks' : '/my-subjects' },
+    {
+      label: subjectName,
+      url: isAdmin ? ['/admin/tasks', subjectId] : ['/my-subjects', subjectId],
+    },
+    { label: taskName },
+    { label: 'Entregas de la tarea' },
+  ]"
+/>
 <h1>Entregas</h1>
+<div class="task-deliveries__filters">
+  <input
+    id="task-deliveries-search"
+    class="form-control"
+    type="search"
+    aria-label="Buscar estudiante"
+    placeholder="Buscar estudiante"
+    [(ngModel)]="search"
+    (ngModelChange)="filtersChanged()"
+  />
+  <app-status-filter
+    [statuses]="statuses()"
+    [selected]="selectedStatuses"
+    (toggle)="toggleStatus($event)"
+  />
+</div>
 <app-data-table [page]="deliveries()" (pageChange)="load($event)">
-  <app-column header="Matrícula"><ng-template let-row>{{ row.student.enrollment_number }}</ng-template></app-column>
-  <app-column header="Estudiante"><ng-template let-row>{{ row.student.first_name }} {{ row.student.last_name }}</ng-template></app-column>
-  <app-column header="Estado"><ng-template let-row>{{ statusLabel(row.delivery.status) }}</ng-template></app-column>
-  <app-column header="Entregada"><ng-template let-row>{{ row.delivery.delivered_at ? (row.delivery.delivered_at | date: 'medium') : '—' }}</ng-template></app-column>
-  <app-column header="Calificación"><ng-template let-row>{{ row.delivery.grade ?? '—' }}</ng-template></app-column>
-  <app-column header="Acciones"><ng-template let-row>
-            @if (row.delivery.status === 'pending') {
-              @if (!isAdmin) {
-                <app-icon-button
-                  icon="check2"
-                  label="Marcar entregada"
-                  (click)="markDelivered(row.delivery.id)"
-                />
-              }
-            }
-            @if (row.delivery.status === 'delivered') {
-              @if (!isAdmin) {
-                <app-icon-button
-                  icon="pencil-square"
-                  label="Calificar"
-                  (click)="grade(row.delivery.id)"
-                />
-              }
-            }
-            <app-icon-button
-              icon="chat-left-text"
-              label="Comentarios"
-              [routerLink]="['/deliveries', row.delivery.id, 'comments']"
-            />
-            <app-icon-button
-              icon="journal-text"
-              label="Notas del estudiante"
-              (click)="notesStudentId.set(row.student.id)"
-            />
-  </ng-template></app-column>
+  <app-column header="Matrícula"
+    ><ng-template let-row>{{ row.student.enrollment_number }}</ng-template></app-column
+  >
+  <app-column header="Estudiante"
+    ><ng-template let-row
+      >{{ row.student.first_name }} {{ row.student.last_name }}</ng-template
+    ></app-column
+  >
+  <app-column header="Estado"
+    ><ng-template let-row
+      ><app-status-badge [status]="statusByCode.get(row.delivery.status)" /></ng-template
+  ></app-column>
+  <app-column header="Entregada"
+    ><ng-template let-row>{{
+      row.delivery.delivered_at ? (row.delivery.delivered_at | date: 'medium') : '—'
+    }}</ng-template></app-column
+  >
+  <app-column header="Calificación"
+    ><ng-template let-row>{{ row.delivery.grade ?? '—' }}</ng-template></app-column
+  >
+  <app-column header="Acciones"
+    ><ng-template let-row>
+      @if (row.delivery.status === 'pending') {
+        @if (!isAdmin) {
+          <app-icon-button
+            icon="check2"
+            label="Marcar entregada"
+            (click)="markDelivered(row.delivery.id)"
+          />
+        }
+      }
+      @if (row.delivery.status === 'delivered' || row.delivery.status === 'graded') {
+        @if (!isAdmin) {
+          <app-icon-button
+            icon="arrow-counterclockwise"
+            label="Desentregar"
+            (click)="markUndelivered(row.delivery.id)"
+          />
+        }
+      }
+      @if (row.delivery.status === 'delivered') {
+        @if (!isAdmin) {
+          <app-icon-button
+            icon="pencil-square"
+            label="Calificar"
+            (click)="openGrade(row.delivery.id)"
+          />
+        }
+      }
+      <app-icon-button
+        icon="chat-left-text"
+        label="Comentarios"
+        [badge]="row.delivery.unread_comments ?? 0"
+        (click)="commentsDeliveryId.set(row.delivery.id)"
+      />
+      <app-icon-button
+        icon="journal-text"
+        label="Notas del estudiante"
+        (click)="notesStudentId.set(row.student.id)"
+      /> </ng-template
+  ></app-column>
 </app-data-table>
 @if (notesStudentId(); as studentId) {
   <app-student-notes-modal [studentId]="studentId" (closed)="notesStudentId.set(null)" />
+}
+@if (commentsDeliveryId(); as deliveryId) {
+  <app-delivery-comments [deliveryId]="deliveryId" (closed)="refreshAfterComments()" />
+}
+@if (gradingDeliveryId() !== null) {
+  <div class="modal-backdrop fade show"></div>
+  <div
+    class="modal d-block"
+    tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="grade-title"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" (ngSubmit)="saveGrade()">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="grade-title">Calificar entrega</h2>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Cerrar"
+            (click)="gradingDeliveryId.set(null)"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label" for="delivery-grade">Calificación</label>
+          <input
+            id="delivery-grade"
+            class="form-control"
+            type="number"
+            min="0"
+            max="100"
+            step="any"
+            name="grade"
+            [(ngModel)]="gradeValue"
+            required
+          />
+          @if (gradeError()) {
+            <p class="text-danger" role="alert">{{ gradeError() }}</p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="gradingDeliveryId.set(null)"
+          >
+            Cancelar
+          </button>
+          <button
+            class="btn btn-primary"
+            type="submit"
+            [disabled]="gradeValue === null || grading()"
+          >
+            {{ grading() ? 'Guardando…' : 'Guardar calificación' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 }

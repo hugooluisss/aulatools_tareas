@@ -1,4 +1,5 @@
 <header class="page-header">
+  <app-breadcrumbs [items]="[{ label: 'Mis tareas' }]" />
   <h1>Mis tareas</h1>
   <label for="task-status">Filtrar por estado</label>
   <select id="task-status" class="form-select" [(ngModel)]="status" (change)="filterChanged()">

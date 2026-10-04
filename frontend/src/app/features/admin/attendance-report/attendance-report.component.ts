@@ -1,7 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { GroupsService, GroupRow } from '../groups.service';
-import { ReportsService } from '../reports.service';
+import { ReportGroup, ReportsService } from '../reports.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
@@ -11,19 +10,20 @@ import { ToastService } from '../../../core/services/toast.service';
   templateUrl: './attendance-report.component.html',
 })
 export class AttendanceReportComponent {
-  private readonly groupsApi = inject(GroupsService);
   private readonly reportsApi = inject(ReportsService);
   private readonly toast = inject(ToastService);
-  groups = signal<GroupRow[]>([]);
+  groups = signal<ReportGroup[]>([]);
   groupId = signal('');
   subjectId = signal('');
   startDate = signal(new Date().toLocaleDateString('en-CA'));
   days = signal(5);
   loading = signal(false);
-  selectedGroup = computed(() => this.groups().find((group) => group.id === this.groupId()));
+  selectedGroup = computed(() =>
+    this.groups().find((group) => group.id === Number(this.groupId())),
+  );
 
   constructor() {
-    this.groupsApi.all().subscribe((groups) => this.groups.set(groups));
+    this.reportsApi.options().subscribe((options) => this.groups.set(options.groups));
   }
 
   download(): void {

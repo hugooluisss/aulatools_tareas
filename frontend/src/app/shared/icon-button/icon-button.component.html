@@ -7,4 +7,7 @@
   (click)="clicked.emit()"
 >
   <i [class]="iconClass" aria-hidden="true"></i>
+  @if (badge > 0) {
+    <span class="icon-button__badge badge rounded-pill text-bg-danger">{{ badge }}</span>
+  }
 </button>

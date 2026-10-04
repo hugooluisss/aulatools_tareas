@@ -30,6 +30,15 @@ final class CycleServiceTest extends TestCase
         }
     }
 
+    public function testTeacherCanListCycles(): void
+    {
+        $repository = $this->createMock(CycleRepository::class);
+        $repository->method('list')->with(12, 0, 100)->willReturn(['data' => [['id' => 5]], 'total' => 1]);
+        $service = new CycleService($repository, new TransactionRunner($this->createMock(ConnectionInterface::class)));
+
+        self::assertSame(1, $service->list(new CurrentUser(2, 'teacher', 12), 1, 100)['total']);
+    }
+
     public function testCycleFinishRunsRepositoryUpdateInTransaction(): void
     {
         $repository = $this->createMock(CycleRepository::class);

@@ -33,6 +33,21 @@ final class CommentController
         return $this->run(fn () => $this->service->create($this->user($request), $id, $this->body($request)), 201);
     }
 
+    public function markRead(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        try {
+            $this->service->markRead($this->user($request), $id);
+            return $this->responses->createResponse(204);
+        } catch (CommentException $exception) {
+            $code = match ($exception->status) {
+                403 => 'FORBIDDEN', 404 => 'NOT_FOUND', default => 'INTERNAL_ERROR'
+            };
+            return \App\Shared\JsonResponse::error($this->responses, $exception->status, $exception->getMessage(), $code);
+        } catch (\Throwable) {
+            return \App\Shared\JsonResponse::error($this->responses, 500, 'Unexpected server error.');
+        }
+    }
+
     private function user(ServerRequestInterface $request): CurrentUser
     {
         return $request->getAttribute(CurrentUser::class);

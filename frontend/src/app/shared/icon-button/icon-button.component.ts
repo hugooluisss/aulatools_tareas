@@ -14,6 +14,7 @@ export class IconButtonComponent {
   @Input({ required: true }) label = '';
   @Input() variant = 'secondary';
   @Input() disabled = false;
+  @Input() badge = 0;
 
   get buttonClass(): string {
     return `btn btn-${this.variant}`;

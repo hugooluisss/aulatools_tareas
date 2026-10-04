@@ -9,6 +9,7 @@ import { TokenStorageService } from '../../../core/auth/token-storage.service';
 import { Page } from '../../../core/models/page';
 import { DataTableComponent } from '../../../shared/data-table/data-table.component';
 import { ColumnComponent } from '../../../shared/data-table/column.component';
+import { BreadcrumbsComponent } from '../../../shared/breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'app-teacher-subject-detail',
@@ -20,6 +21,7 @@ import { ColumnComponent } from '../../../shared/data-table/column.component';
     FormsModule,
     DataTableComponent,
     ColumnComponent,
+    BreadcrumbsComponent,
   ],
   templateUrl: './teacher-subject-detail.component.html',
   styleUrl: './teacher-subject-detail.component.scss',
@@ -30,6 +32,7 @@ export class TeacherSubjectDetailComponent {
   private readonly cyclesApi = inject(CyclesService);
   readonly isAdmin = inject(TokenStorageService).getRole() === 'admin';
   readonly subjectId = Number(this.route.snapshot.paramMap.get('subjectId'));
+  subjectName = signal('Materia');
   students = signal<Page<Student>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
   tasksList = signal<Page<Task>>({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
   studentPage = signal(1);
@@ -46,6 +49,11 @@ export class TeacherSubjectDetailComponent {
   }
 
   constructor() {
+    this.tasks.subjects(undefined, 1).subscribe((rows) => {
+      this.subjectName.set(
+        rows.items.find((subject) => Number(subject.id) === this.subjectId)?.name ?? 'Materia',
+      );
+    });
     this.cyclesApi.all().subscribe((rows) => {
       this.cycles.set(rows.filter((row) => row.status === 'active'));
       if (this.cycles().length === 1) this.cycleId.set(Number(this.cycles()[0].id));

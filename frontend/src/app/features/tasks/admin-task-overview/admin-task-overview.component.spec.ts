@@ -50,13 +50,11 @@ describe('AdminTaskOverviewComponent', () => {
     expect(deliveryStatuses).toHaveBeenCalledOnce();
     expect(fixture.nativeElement.textContent).toContain('Calificada');
     expect(
-      fixture.nativeElement
-        .querySelector('.task-overview__status-badge')
-        .style.getPropertyValue('--status-color'),
+      fixture.nativeElement.querySelector('.status-badge').style.getPropertyValue('--status-color'),
     ).toBe('#CFE2FF');
     expect(
       fixture.nativeElement
-        .querySelector('.task-overview__status-badge')
+        .querySelector('.status-badge')
         .style.getPropertyValue('--status-text-color'),
     ).toBe('#084298');
 

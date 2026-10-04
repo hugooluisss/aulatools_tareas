@@ -86,7 +86,6 @@ export const routes: Routes = [
             (m) => m.TeacherSubjectDetailComponent,
           ),
       },
-      { path: 'tasks', pathMatch: 'full', redirectTo: 'my-subjects' },
       {
         path: 'tasks/:taskId/deliveries',
         canActivate: [roleGuard],
@@ -94,15 +93,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/tasks/task-deliveries/task-deliveries.component').then(
             (m) => m.TaskDeliveriesComponent,
-          ),
-      },
-      {
-        path: 'deliveries/:deliveryId/comments',
-        canActivate: [roleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] },
-        loadComponent: () =>
-          import('./features/tasks/delivery-comments/delivery-comments.component').then(
-            (m) => m.DeliveryCommentsComponent,
           ),
       },
       ...[
@@ -133,10 +123,19 @@ export const routes: Routes = [
       {
         path: 'reports/attendance',
         canActivate: [roleGuard],
-        data: { roles: ['admin'] },
+        data: { roles: ['admin', 'teacher'] },
         loadComponent: () =>
           import('./features/admin/attendance-report/attendance-report.component').then(
             (m) => m.AttendanceReportComponent,
+          ),
+      },
+      {
+        path: 'reports/task-report-card',
+        canActivate: [roleGuard],
+        data: { roles: ['admin', 'teacher'] },
+        loadComponent: () =>
+          import('./features/admin/task-report-card/task-report-card.component').then(
+            (m) => m.TaskReportCardComponent,
           ),
       },
       ...[
@@ -185,21 +184,15 @@ export const routes: Routes = [
             (m) => m.AnnouncementsComponent,
           ),
       },
-      ...[
-        'my-tasks',
-        'subjects',
-        'my-subjects',
-        'tasks',
-        'students',
-        'teachers',
-        'cycles',
-        'groups',
-      ].map((path) => ({
-        path,
-        canActivate: [roleGuard],
-        data: { roles: rolesFor(path) },
-        loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
-      })),
+      ...['my-tasks', 'subjects', 'my-subjects', 'students', 'teachers', 'cycles', 'groups'].map(
+        (path) => ({
+          path,
+          canActivate: [roleGuard],
+          data: { roles: rolesFor(path) },
+          loadComponent: () =>
+            import('./features/home/home.component').then((m) => m.HomeComponent),
+        }),
+      ),
     ],
   },
   { path: '**', redirectTo: 'home' },
@@ -207,7 +200,7 @@ export const routes: Routes = [
 
 function rolesFor(path: string): string[] {
   if (path === 'my-tasks') return ['student'];
-  if (path === 'my-subjects' || path === 'tasks') return ['teacher'];
+  if (path === 'my-subjects') return ['teacher'];
   if (['students', 'teachers', 'cycles', 'groups'].includes(path)) return ['admin'];
   return ['admin', 'teacher', 'student'];
 }

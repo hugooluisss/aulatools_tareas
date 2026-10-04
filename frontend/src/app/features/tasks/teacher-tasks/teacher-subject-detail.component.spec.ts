@@ -17,6 +17,14 @@ describe('TeacherSubjectDetailComponent', () => {
         {
           provide: TasksService,
           useValue: {
+            subjects: () =>
+              of({
+                items: [{ id: 2, name: 'Ciencias' }],
+                page: 1,
+                per_page: 20,
+                total: 1,
+                total_pages: 1,
+              }),
             students: () =>
               of({
                 items: [{ id: 1, first_name: 'Leo', last_name: 'Ruiz', enrollment_number: '1' }],
@@ -35,6 +43,7 @@ describe('TeacherSubjectDetailComponent', () => {
                     description: '',
                     due_at: '2026-10-08',
                     status: 'active',
+                    unread_deliveries: 2,
                   },
                 ],
                 page: 1,
@@ -54,6 +63,10 @@ describe('TeacherSubjectDetailComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Leo Ruiz');
     expect(fixture.nativeElement.textContent).toContain('Proyecto');
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Ver entregas"] .icon-button__badge')
+        .textContent,
+    ).toContain('2');
     const studentHeaders = fixture.nativeElement.querySelectorAll('app-data-table th');
     expect(studentHeaders[0].textContent).toContain('Matrícula');
     expect(studentHeaders[1].textContent).toContain('Estudiante');

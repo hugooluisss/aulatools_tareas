@@ -52,7 +52,7 @@
           }
         </details>
       }
-      @if (isAdmin()) {
+      @if (isAdmin() || tokens.getRole() === 'teacher') {
         <details
           class="app-sidebar__group"
           [open]="reportesActive() || reportesOpen()"

@@ -9,8 +9,15 @@ get {
   auth: inherit
 }
 
+params:query {
+  search: {{studentSearch}}
+  status: {{deliveryStatuses}}
+  page: 1
+  per_page: 20
+}
+
 docs {
-  GET `/tasks/id/deliveries` Roles: Admin, task's teacher, enrolled student. Path ids: id. Response: 200 {items:[...],page,per_page,total,total_pages}. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  GET `/tasks/id/deliveries` Roles: Admin, task's teacher, enrolled student. Query: optional search (student first name, last name, or enrollment number), optional comma-separated status (pending,delivered,graded,cancelled), page, per_page. Response: 200 {items:[...],page,per_page,total,total_pages}. Errors: {error:{code,message}} with HTTP 400 for an invalid status and HTTP 401/403/404/409/422/500 as applicable.
 }
 
 assert {

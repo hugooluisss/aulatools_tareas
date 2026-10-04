@@ -9,21 +9,11 @@
     [(ngModel)]="search"
     (ngModelChange)="filtersChanged()"
   />
-  <div class="task-overview__status-filters" role="group" aria-label="Filtrar por estado">
-    @for (value of statuses(); track value.code) {
-      <button
-        type="button"
-        class="task-overview__status-button"
-        [class.task-overview__status-button--selected]="selectedStatuses.includes(value.code)"
-        [style.--status-color]="value.color"
-        [style.--status-text-color]="value.text_color"
-        [attr.aria-pressed]="selectedStatuses.includes(value.code)"
-        (click)="toggleStatus(value.code)"
-      >
-        {{ value.label }}
-      </button>
-    }
-  </div>
+  <app-status-filter
+    [statuses]="statuses()"
+    [selected]="selectedStatuses"
+    (toggle)="toggleStatus($event)"
+  />
 </div>
 <app-data-table [page]="tablePage()" [loading]="loading()" (pageChange)="loadPage($event)">
   <app-column header="Materia"
@@ -55,14 +45,8 @@
   >
   <app-column header="Entrega"
     ><ng-template let-row
-      ><span
-        class="task-overview__status-badge"
-        [style.--status-color]="statusByCode().get(row.status)?.color"
-        [style.--status-text-color]="statusByCode().get(row.status)?.text_color"
-        >{{ statusByCode().get(row.status)?.label }}</span
-      ></ng-template
-    ></app-column
-  >
+      ><app-status-badge [status]="statusByCode().get(row.status)" /></ng-template
+  ></app-column>
   <app-column header="Fecha límite"
     ><ng-template let-row>{{
       row.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy'
@@ -98,12 +82,7 @@
             <dd>{{ row.student.first_name }} {{ row.student.last_name }}</dd>
             <dt>Entrega</dt>
             <dd>
-              <span
-                class="task-overview__status-badge"
-                [style.--status-color]="statusByCode().get(row.status)?.color"
-                [style.--status-text-color]="statusByCode().get(row.status)?.text_color"
-                >{{ statusByCode().get(row.status)?.label }}</span
-              >
+              <app-status-badge [status]="statusByCode().get(row.status)" />
             </dd>
             <dt>Fecha límite</dt>
             <dd>{{ row.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy' }}</dd>

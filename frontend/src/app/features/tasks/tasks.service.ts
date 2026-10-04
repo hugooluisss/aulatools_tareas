@@ -51,10 +51,11 @@ export interface Task {
   description: string;
   due_at: string;
   status: string;
+  unread_deliveries?: number;
 }
 
 export interface DeliveryRow {
-  delivery: TaskRow['delivery'] & { id: number; student_id: number };
+  delivery: TaskRow['delivery'] & { id: number; student_id: number; unread_comments?: number };
   student: Student;
 }
 
@@ -94,6 +95,10 @@ export class TasksService {
     return this.http.get<Page<Comment>>(`${this.api}/deliveries/${deliveryId}/comments`, {
       params: { page, per_page: 20 },
     });
+  }
+
+  markCommentsRead(deliveryId: number): Observable<unknown> {
+    return this.http.post(`${this.api}/deliveries/${deliveryId}/comments/read`, {});
   }
 
   addComment(deliveryId: number, body: string): Observable<Comment> {
@@ -144,9 +149,17 @@ export class TasksService {
     return this.http.post<Task>(`${this.api}/tasks/${taskId}/cancel`, {});
   }
 
-  deliveries(taskId: number, page = 1): Observable<Page<DeliveryRow>> {
+  deliveries(
+    taskId: number,
+    page = 1,
+    search = '',
+    statuses: string[] = [],
+  ): Observable<Page<DeliveryRow>> {
+    let params = new HttpParams().set('page', page).set('per_page', 20);
+    if (search.trim()) params = params.set('search', search.trim());
+    if (statuses.length) params = params.set('status', statuses.join(','));
     return this.http.get<Page<DeliveryRow>>(`${this.api}/tasks/${taskId}/deliveries`, {
-      params: { page, per_page: 20 },
+      params,
     });
   }
 
@@ -163,6 +176,10 @@ export class TasksService {
 
   markDelivered(deliveryId: number): Observable<unknown> {
     return this.http.put(`${this.api}/deliveries/${deliveryId}/delivered`, {});
+  }
+
+  markUndelivered(deliveryId: number): Observable<unknown> {
+    return this.http.put(`${this.api}/deliveries/${deliveryId}/undelivered`, {});
   }
 
   grade(deliveryId: number, grade: number): Observable<unknown> {

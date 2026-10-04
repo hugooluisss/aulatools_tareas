@@ -1,0 +1,62 @@
+<section class="card p-4">
+  <h1>Boleta de tareas</h1>
+  <p>Selecciona una asignatura y los estudiantes para generar sus boletas.</p>
+  <div class="mb-3">
+    <label class="form-label" for="task-report-subject">Asignatura</label>
+    <select
+      id="task-report-subject"
+      class="form-select"
+      [value]="subjectId()"
+      (change)="loadStudents($any($event.target).value)"
+      required
+    >
+      <option value="">Selecciona una asignatura</option>
+      @for (group of groups(); track group.id) {
+        <optgroup [label]="group.name">
+          @for (subject of group.subjects; track subject.id) {
+            <option [value]="subject.id">{{ subject.code }} — {{ subject.name }}</option>
+          }
+        </optgroup>
+      }
+    </select>
+  </div>
+  @if (subjectId()) {
+    <fieldset class="mb-3">
+      <legend class="form-label">Estudiantes</legend>
+      <label class="form-check mb-2">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          [checked]="selectedStudentIds().length === students().length && students().length > 0"
+          (change)="selectAll($any($event.target).checked)"
+        />
+        <span class="form-check-label">Seleccionar todos</span>
+      </label>
+      @for (student of students(); track student.id) {
+        <label class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            [checked]="isSelected(student.id)"
+            (change)="toggleStudent(student.id, $any($event.target).checked)"
+          />
+          <span class="form-check-label"
+            >{{ student.last_name }}, {{ student.first_name }} ({{
+              student.enrollment_number
+            }})</span
+          >
+        </label>
+      }
+    </fieldset>
+  }
+  <div>
+    <button
+      class="btn btn-primary"
+      type="button"
+      (click)="download()"
+      [disabled]="loading() || !subjectId() || selectedStudentIds().length === 0"
+    >
+      {{ loading() ? 'Generando…' : 'Descargar PDF' }}
+    </button>
+  </div>
+</section>

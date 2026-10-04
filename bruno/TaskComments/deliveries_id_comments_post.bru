@@ -26,3 +26,7 @@ assert {
   res.body: isJson
 
 }
+
+docs {
+  POST `/deliveries/id/comments` Roles: Admin, delivery's teacher, owning student. Path ids: id. JSON body: body; use valid IDs and dates accepted by the API. Response: 201 bare comment object with id, delivery_id, author, body, created_at. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+}

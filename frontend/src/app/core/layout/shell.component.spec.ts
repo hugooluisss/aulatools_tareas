@@ -41,12 +41,28 @@ describe('ShellComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Generales');
     expect(fixture.nativeElement.querySelectorAll('a[href="/calendar"]')).toHaveLength(1);
     expect(fixture.nativeElement.textContent).not.toContain('Inicio');
+    expect(fixture.nativeElement.textContent).toContain('Lista de asistencia');
+    expect(fixture.nativeElement.textContent).toContain('Boleta de tareas');
     const nav = fixture.nativeElement.querySelector('.app-sidebar__nav');
     expect(
       Array.from(nav.children).map(
         (item: any) => item.querySelector('summary')?.textContent.trim() ?? item.textContent.trim(),
       ),
     ).toEqual(['Control escolar', 'Catálogos', 'Reportes', 'Tareas', 'Escuela']);
+  });
+
+  it('shows reports for teachers', () => {
+    TestBed.configureTestingModule({
+      imports: [ShellComponent],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
+    const token = TestBed.inject(TokenStorageService);
+    token.setToken(`e30.${btoa(JSON.stringify({ role: 'teacher' }))}.x`);
+    const fixture = TestBed.createComponent(ShellComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Reportes');
+    expect(fixture.nativeElement.textContent).toContain('Lista de asistencia');
+    expect(fixture.nativeElement.textContent).toContain('Boleta de tareas');
   });
 
   it('clears the session and goes to login when logging out', () => {

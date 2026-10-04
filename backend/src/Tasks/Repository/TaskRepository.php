@@ -183,33 +183,72 @@ class TaskRepository
             . 'WHERE subjects.school_id = :school_id AND subjects.id = :subject_id '
             . 'AND tasks.cycle_id IN (' . implode(', ', $cycleNames) . ')' . $visibility;
         $data = $this->db->createCommand(<<<SQL
-            SELECT tasks.id, tasks.subject_id, tasks.name, tasks.description, tasks.due_at, tasks.status
+            SELECT tasks.id, tasks.subject_id, tasks.name, tasks.description, tasks.due_at, tasks.status,
+                   CASE WHEN :is_student = 1 THEN 0 ELSE (
+                       SELECT COUNT(DISTINCT task_deliveries.id)
+                       FROM task_deliveries
+                       INNER JOIN task_comments ON task_comments.delivery_id = task_deliveries.id
+                       INNER JOIN users AS comment_authors ON comment_authors.id = task_comments.author_id
+                       LEFT JOIN delivery_comment_reads ON delivery_comment_reads.delivery_id = task_deliveries.id
+                           AND delivery_comment_reads.user_id = :task_reader_id
+                       WHERE task_deliveries.task_id = tasks.id AND comment_authors.role = 'student'
+                         AND task_comments.author_id <> :comment_reader_id
+                         AND (delivery_comment_reads.last_read_comment_id IS NULL
+                              OR task_comments.id > delivery_comment_reads.last_read_comment_id)
+                   ) END AS unread_deliveries
             {$sql}
             ORDER BY tasks.due_at LIMIT :limit OFFSET :offset
-            SQL, $params)->queryAll();
+            SQL, $params + [
+                ':is_student' => (int) ($role === 'student'),
+                ':task_reader_id' => $userId,
+                ':comment_reader_id' => $userId,
+            ])->queryAll();
         $total = (int) $this->db->createCommand(<<<SQL
             SELECT COUNT(*) {$sql}
             SQL, array_diff_key($params, [':limit' => true, ':offset' => true]))->queryScalar();
         return ['data' => $data, 'total' => $total];
     }
 
-    public function deliveries(int $taskId, ?string $status, int $offset, int $limit): array
+    public function deliveries(int $taskId, ?string $search, array $statuses, int $offset, int $limit, int $userId): array
     {
-        $statusClause = $status === null ? '' : ' AND task_deliveries.status = :status';
+        $filters = '';
         $params = [':task_id' => $taskId, ':limit' => $limit, ':offset' => $offset];
-        if ($status !== null) {
-            $params[':status'] = $status;
+        if ($statuses !== []) {
+            $names = [];
+            foreach ($statuses as $index => $status) {
+                $name = ':status' . $index;
+                $names[] = $name;
+                $params[$name] = $status;
+            }
+            $filters .= ' AND task_deliveries.status IN (' . implode(', ', $names) . ')';
+        }
+        if ($search !== null && trim($search) !== '') {
+            $filters .= ' AND (students.first_name LIKE :first_name_search OR students.last_name LIKE :last_name_search OR student_profiles.enrollment_number LIKE :enrollment_search)';
+            $searchTerm = '%' . trim($search) . '%';
+            $params[':first_name_search'] = $searchTerm;
+            $params[':last_name_search'] = $searchTerm;
+            $params[':enrollment_search'] = $searchTerm;
         }
         $sql = <<<SQL
             FROM task_deliveries
             INNER JOIN tasks ON tasks.id = task_deliveries.task_id
             INNER JOIN users AS students ON students.id = task_deliveries.student_id
             INNER JOIN students AS student_profiles ON student_profiles.user_id = students.id
-            WHERE task_deliveries.task_id = :task_id{$statusClause}
+            WHERE task_deliveries.task_id = :task_id{$filters}
             SQL;
         $data = $this->db->createCommand(<<<SQL
             SELECT task_deliveries.id, task_deliveries.task_id, task_deliveries.student_id, task_deliveries.status,
                    task_deliveries.delivered_at, task_deliveries.grade,
+                   (SELECT COUNT(*)
+                    FROM task_comments
+                    INNER JOIN users AS comment_authors ON comment_authors.id = task_comments.author_id
+                    LEFT JOIN delivery_comment_reads ON delivery_comment_reads.delivery_id = task_deliveries.id
+                        AND delivery_comment_reads.user_id = :read_user_id
+                    WHERE task_comments.delivery_id = task_deliveries.id AND comment_authors.role = 'student'
+                      AND task_comments.author_id <> :author_user_id
+                      AND (delivery_comment_reads.last_read_comment_id IS NULL
+                           OR task_comments.id > delivery_comment_reads.last_read_comment_id)
+                   ) AS unread_comments,
                    (task_deliveries.status = 'pending' AND tasks.due_at < UTC_DATE()) AS overdue,
                    (
                        task_deliveries.delivered_at IS NOT NULL
@@ -219,7 +258,7 @@ class TaskRepository
             {$sql}
             ORDER BY students.last_name, students.first_name
             LIMIT :limit OFFSET :offset
-            SQL, $params)->queryAll();
+            SQL, $params + [':read_user_id' => $userId, ':author_user_id' => $userId])->queryAll();
         $total = (int) $this->db->createCommand(<<<SQL
             SELECT COUNT(*) {$sql}
             SQL, array_diff_key($params, [':limit' => true, ':offset' => true]))->queryScalar();
@@ -322,6 +361,15 @@ class TaskRepository
         $this->db->createCommand(<<<'SQL'
             UPDATE task_deliveries
             SET status = 'delivered', delivered_at = UTC_TIMESTAMP(), grade = NULL
+            WHERE id = :id
+            SQL, [':id' => $deliveryId])->execute();
+    }
+
+    public function markUndelivered(int $deliveryId): void
+    {
+        $this->db->createCommand(<<<'SQL'
+            UPDATE task_deliveries
+            SET status = 'pending', delivered_at = NULL, grade = NULL
             WHERE id = :id
             SQL, [':id' => $deliveryId])->execute();
     }

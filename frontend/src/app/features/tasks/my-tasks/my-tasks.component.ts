@@ -7,11 +7,19 @@ import { CyclesService } from '../../admin/cycles.service';
 import { Page } from '../../../core/models/page';
 import { DataTableComponent } from '../../../shared/data-table/data-table.component';
 import { ColumnComponent } from '../../../shared/data-table/column.component';
+import { BreadcrumbsComponent } from '../../../shared/breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'app-my-tasks',
   standalone: true,
-  imports: [RouterLink, DatePipe, FormsModule, DataTableComponent, ColumnComponent],
+  imports: [
+    RouterLink,
+    DatePipe,
+    FormsModule,
+    DataTableComponent,
+    ColumnComponent,
+    BreadcrumbsComponent,
+  ],
   templateUrl: './my-tasks.component.html',
   styleUrl: './my-tasks.component.scss',
 })
@@ -62,5 +70,7 @@ export class MyTasksComponent {
     });
   }
 
-  filterChanged(): void { this.load(1); }
+  filterChanged(): void {
+    this.load(1);
+  }
 }

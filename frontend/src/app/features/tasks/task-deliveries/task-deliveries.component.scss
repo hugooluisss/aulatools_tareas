@@ -1,5 +1,12 @@
 @use '../../../../styles/variables' as v;
 
+.task-deliveries__filters {
+  display: grid;
+  gap: v.$spacing-sm;
+  grid-template-columns: 1fr;
+  margin-bottom: v.$spacing-lg;
+}
+
 .row-actions {
   display: flex;
   gap: v.$spacing-sm;

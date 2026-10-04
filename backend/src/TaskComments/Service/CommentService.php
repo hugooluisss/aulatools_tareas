@@ -33,20 +33,34 @@ final class CommentService
         return $this->format($this->repository->find($id));
     }
 
+    public function markRead(CurrentUser $user, int $deliveryId): void
+    {
+        $delivery = $this->delivery($user, $deliveryId);
+        if ($user->role !== 'admin' && !($user->role === 'teacher' && (int) $delivery['teacher_id'] === $user->id)) {
+            throw new CommentException('Forbidden.', 403);
+        }
+        $this->repository->markRead($user->id, $deliveryId);
+    }
+
     private function access(CurrentUser $user, int $deliveryId): void
+    {
+        $this->delivery($user, $deliveryId);
+    }
+
+    private function delivery(CurrentUser $user, int $deliveryId): array
     {
         $delivery = $this->repository->delivery($user->schoolId, $deliveryId);
         if ($delivery === null) {
             throw new CommentException('Delivery not found.', 404);
         }
         if ($user->role === 'admin') {
-            return;
+            return $delivery;
         }
         if ($user->role === 'teacher' && (int) $delivery['teacher_id'] === $user->id) {
-            return;
+            return $delivery;
         }
         if ($user->role === 'student' && (int) $delivery['student_id'] === $user->id) {
-            return;
+            return $delivery;
         }
         if ($user->role === 'student') {
             throw new CommentException('Delivery not found.', 404);

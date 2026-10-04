@@ -2,10 +2,53 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, from, mergeMap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Page } from '../../core/models/page';
+
+export interface ReportSubject {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface ReportGroup {
+  id: number;
+  name: string;
+  subjects: ReportSubject[];
+}
+
+export interface ReportOptions {
+  groups: ReportGroup[];
+}
+
+export interface ReportStudent {
+  id: number;
+  first_name: string;
+  last_name: string;
+  enrollment_number: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ReportsService {
   private readonly http = inject(HttpClient);
+
+  options(): Observable<ReportOptions> {
+    return this.http.get<ReportOptions>(`${environment.apiUrl}/reports/options`);
+  }
+
+  students(subjectId: number): Observable<Page<ReportStudent>> {
+    return this.http.get<Page<ReportStudent>>(
+      `${environment.apiUrl}/subjects/${subjectId}/students`,
+      { params: { per_page: 100 } },
+    );
+  }
+
+  taskReportCard(subjectId: number, studentIds: number[]): Observable<Blob> {
+    return this.http.post(
+      `${environment.apiUrl}/reports/task-report-card`,
+      { subject_id: subjectId, student_ids: studentIds },
+      { responseType: 'blob' },
+    );
+  }
 
   attendance(params: {
     group_id: number;
@@ -22,14 +65,15 @@ export class ReportsService {
       .get(`${environment.apiUrl}/reports/attendance`, { params: query, responseType: 'blob' })
       .pipe(
         catchError((error: HttpErrorResponse) =>
-          from(error.error instanceof Blob ? error.error.text() : Promise.resolve(''))
-            .pipe(mergeMap((body) => {
+          from(error.error instanceof Blob ? error.error.text() : Promise.resolve('')).pipe(
+            mergeMap((body) => {
               let message = error.message;
               try {
                 message = JSON.parse(body).error?.message ?? message;
               } catch {}
               return throwError(() => new Error(message));
-            })),
+            }),
+          ),
         ),
       );
   }

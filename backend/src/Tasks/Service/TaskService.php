@@ -49,6 +49,7 @@ final class TaskService
         $result['data'] = array_map(fn (array $task): array => [
             ...$task,
             'due_at' => $task['due_at'],
+            'unread_deliveries' => (int) $task['unread_deliveries'],
         ], $result['data']);
         return $this->paginated($result, $page, $perPage);
     }
@@ -183,15 +184,19 @@ final class TaskService
         return $this->find($user, $id);
     }
 
-    public function deliveries(CurrentUser $user, int $id, ?string $status, int $page, int $perPage): array
+    public function deliveries(CurrentUser $user, int $id, ?string $search, ?string $status, int $page, int $perPage): array
     {
         $task = $this->taskRow($user, $id);
         $this->manage($user, $task);
         $this->pagination($page, $perPage);
-        if ($status !== null && !in_array($status, ['pending', 'delivered', 'graded', 'cancelled'], true)) {
-            throw new TaskException('Invalid delivery status.', 400);
+        $statuses = $status === null || $status === '' ? [] : explode(',', $status);
+        foreach ($statuses as $value) {
+            if (!in_array($value, ['pending', 'delivered', 'graded', 'cancelled'], true)) {
+                throw new TaskException('Invalid delivery status.', 400);
+            }
         }
-        $result = $this->repository->deliveries($id, $status, ($page - 1) * $perPage, $perPage);
+        $search = $search === null ? null : trim($search);
+        $result = $this->repository->deliveries($id, $search, $statuses, ($page - 1) * $perPage, $perPage, $user->id);
         $result['data'] = array_map(fn (array $row): array => [
             'delivery' => [
                 'id' => (int) $row['id'],
@@ -202,6 +207,7 @@ final class TaskService
                 'grade' => $row['grade'],
                 'overdue' => (bool) $row['overdue'],
                 'on_time' => (bool) $row['on_time'],
+                'unread_comments' => (int) $row['unread_comments'],
             ],
             'student' => [
                 'id' => (int) $row['student_id'],
@@ -221,6 +227,17 @@ final class TaskService
             throw new TaskException('Delivery cannot be marked delivered in its current state.', 422);
         }
         $this->repository->markDelivered($deliveryId);
+        return $this->delivery($user, $deliveryId);
+    }
+
+    public function markUndelivered(CurrentUser $user, int $deliveryId): array
+    {
+        $delivery = $this->deliveryRow($user, $deliveryId);
+        $this->manage($user, $delivery);
+        if (!in_array($delivery['status'], ['delivered', 'graded'], true)) {
+            throw new TaskException('Only delivered or graded deliveries can be undelivered.', 422);
+        }
+        $this->repository->markUndelivered($deliveryId);
         return $this->delivery($user, $deliveryId);
     }
 

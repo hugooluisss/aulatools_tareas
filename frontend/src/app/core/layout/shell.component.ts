@@ -31,7 +31,6 @@ export class ShellComponent {
     { label: 'Mis tareas', path: '/my-tasks', roles: ['student'] },
     { label: 'Materias', path: '/subjects', roles: ['student'] },
     { label: 'Mis materias', path: '/my-subjects', roles: ['teacher'] },
-    { label: 'Tareas', path: '/tasks', roles: ['teacher'] },
     { label: 'Tareas', path: '/admin/tasks', roles: ['admin'] },
     { label: 'Calendario', path: '/calendar', roles: ['teacher', 'student'] },
     { label: 'Avisos', path: '/announcements', roles: ['teacher', 'student'] },
@@ -47,7 +46,10 @@ export class ShellComponent {
     { label: 'Materias', path: '/admin/subjects' },
     { label: 'Planes de estudio', path: '/study-plans' },
   ];
-  reportes = [{ label: 'Lista de asistencia', path: '/reports/attendance' }];
+  reportes = [
+    { label: 'Lista de asistencia', path: '/reports/attendance' },
+    { label: 'Boleta de tareas', path: '/reports/task-report-card' },
+  ];
   escuela = [
     { label: 'Calendario', path: '/calendar' },
     { label: 'Avisos', path: '/announcements' },
