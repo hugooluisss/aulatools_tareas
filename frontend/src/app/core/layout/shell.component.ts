@@ -28,12 +28,12 @@ export class ShellComponent {
     this.school.get().subscribe((r) => this.schoolName.set(r.name));
   }
   menu = [
-    { label: 'Mis tareas', path: '/my-tasks', roles: ['student'] },
-    { label: 'Materias', path: '/subjects', roles: ['student'] },
-    { label: 'Mis materias', path: '/my-subjects', roles: ['teacher'] },
-    { label: 'Tareas', path: '/admin/tasks', roles: ['admin'] },
-    { label: 'Calendario', path: '/calendar', roles: ['teacher', 'student'] },
-    { label: 'Avisos', path: '/announcements', roles: ['teacher', 'student'] },
+    { label: 'Mis tareas', path: '/my-tasks', icon: 'check2-square', roles: ['student'] },
+    { label: 'Materias', path: '/subjects', icon: 'book', roles: ['student'] },
+    { label: 'Mis materias', path: '/my-subjects', icon: 'journal-bookmark', roles: ['teacher'] },
+    { label: 'Tareas', path: '/admin/tasks', icon: 'check2-square', roles: ['admin'] },
+    { label: 'Calendario', path: '/calendar', icon: 'calendar3', roles: ['teacher', 'student'] },
+    { label: 'Avisos', path: '/announcements', icon: 'megaphone', roles: ['teacher', 'student'] },
   ];
   controlEscolar = [
     { label: 'Estudiantes', path: '/students' },
@@ -81,6 +81,14 @@ export class ShellComponent {
   get visibleMenu() {
     const role = this.tokens.getRole();
     return this.menu.filter((item) => item.roles.includes(role ?? ''));
+  }
+
+  get mobileMenu() {
+    return this.visibleMenu.slice(0, 5);
+  }
+
+  get mobileMoreMenu() {
+    return this.visibleMenu.slice(5);
   }
 
   changePassword(): void {

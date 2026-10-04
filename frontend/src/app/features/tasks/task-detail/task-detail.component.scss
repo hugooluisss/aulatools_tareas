@@ -1,7 +1,22 @@
 @use '../../../../styles/variables' as v;
 
-.task-detail {
+.task-detail,
+.task-history {
   max-width: 52rem;
+  margin-bottom: v.$spacing-xl;
+}
+
+:host ::ng-deep .comment-panel {
+  max-width: 52rem;
+  margin-bottom: v.$spacing-xl;
+  padding: v.$spacing-lg;
+  border-radius: v.$card-radius;
+  background: v.$pastel-lilac;
+}
+
+:host ::ng-deep .comment-thread .card {
+  border: 1px solid v.$border-color;
+  background: v.$surface;
 }
 
 .task-detail__fields {
@@ -12,4 +27,70 @@
 
 .task-detail__fields dd {
   margin: 0;
+}
+
+.task-history__list {
+  position: relative;
+  display: grid;
+  gap: v.$spacing-md;
+  margin: 0;
+  padding: 0 0 0 v.$spacing-xl;
+  list-style: none;
+}
+
+.task-history__event {
+  position: relative;
+  padding: v.$spacing-md;
+  border: 1px solid v.$border-color;
+  border-radius: v.$card-radius;
+  background: v.$surface;
+}
+
+.task-history__event::before {
+  position: absolute;
+  top: v.$spacing-lg;
+  left: calc(-1 * v.$spacing-xl - 0.3rem);
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 2px solid v.$surface;
+  border-radius: 50%;
+  background: v.$primary;
+  box-shadow: 0 0 0 2px v.$primary;
+  content: '';
+}
+
+.task-history__list::before {
+  position: absolute;
+  top: v.$spacing-md;
+  bottom: v.$spacing-md;
+  left: 0.35rem;
+  width: 2px;
+  background: v.$border-color;
+  content: '';
+}
+
+.task-history__event p {
+  margin-bottom: v.$spacing-xs;
+}
+
+.task-history__actor-role {
+  color: v.$body-text;
+  font-size: 0.875rem;
+}
+
+.task-history__event time {
+  color: v.$body-text;
+  font-size: 0.875rem;
+  opacity: 0.78;
+}
+
+@media (max-width: 40rem) {
+  .task-detail__fields {
+    grid-template-columns: 1fr;
+    gap: v.$spacing-xs;
+  }
+
+  .task-detail__fields dd {
+    margin-bottom: v.$spacing-sm;
+  }
 }

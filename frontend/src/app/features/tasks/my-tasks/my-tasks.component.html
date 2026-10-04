@@ -1,51 +1,86 @@
 <header class="page-header">
   <app-breadcrumbs [items]="[{ label: 'Mis tareas' }]" />
   <h1>Mis tareas</h1>
-  <label for="task-status">Filtrar por estado</label>
-  <select id="task-status" class="form-select" [(ngModel)]="status" (change)="filterChanged()">
-    @for (filter of filters; track filter.value) {
-      <option [value]="filter.value">{{ filter.label }}</option>
-    }
-  </select>
+  <input
+    id="task-search"
+    class="form-control task-search"
+    type="search"
+    aria-label="Buscar tarea o materia"
+    placeholder="Buscar tarea o materia"
+    [(ngModel)]="search"
+    (ngModelChange)="filterChanged()"
+  />
+  <app-status-filter
+    [statuses]="statuses()"
+    [selected]="selectedStatuses"
+    (toggle)="toggleStatus($event)"
+  />
   @if (cycles().length > 1) {
     <label for="student-cycle">Ciclo</label>
     <select
       id="student-cycle"
       class="form-select"
       [value]="cycleId() ?? 0"
-      (change)="cycleId.set(+$any($event.target).value); filterChanged()"
+      (change)="cycleId.set(+$any($event.target).value || null); filterChanged()"
     >
-      <option value="0">Selecciona un ciclo</option>
+      <option value="0">Todos los ciclos</option>
       @for (cycle of cycles(); track cycle.id) {
         <option [value]="cycle.id">{{ cycle.name }}</option>
       }
     </select>
   }
 </header>
-<app-data-table [page]="rows()" [loading]="loading()" (pageChange)="load($event)">
-  <app-column header="Tarea"
-    ><ng-template let-row>{{ row.task.name }}</ng-template></app-column
-  >
-  <app-column header="Materia"
-    ><ng-template let-row>{{ row.subject.name }}</ng-template></app-column
-  >
-  <app-column header="Calificación"
-    ><ng-template let-row>{{ row.delivery.grade ?? '—' }}</ng-template></app-column
-  >
-  <app-column header="Estado"
-    ><ng-template let-row>{{ statusLabel(row.delivery.status) }}</ng-template></app-column
-  >
-  <app-column header="Vencimiento"
-    ><ng-template let-row
-      >{{ row.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy' }}
-      @if (row.delivery.overdue) {
-        <span class="badge text-bg-danger">Vencida</span>
-      }
-    </ng-template></app-column
-  >
-  <app-column header="Detalle"
-    ><ng-template let-row
-      ><a [routerLink]="['/my-tasks', row.delivery.id]">Ver detalle</a></ng-template
-    ></app-column
-  >
-</app-data-table>
+@if (loading()) {
+  <p role="status">Cargando tareas…</p>
+} @else if (rows().items.length === 0) {
+  <p class="task-cards__empty">No hay tareas para mostrar.</p>
+} @else {
+  <section class="task-cards" aria-label="Mis tareas">
+    @for (row of rows().items; track row.delivery.id) {
+      <a
+        class="task-card"
+        [class.task-card--pastel-1]="rows().items.indexOf(row) % 6 === 1"
+        [class.task-card--pastel-2]="rows().items.indexOf(row) % 6 === 2"
+        [class.task-card--pastel-3]="rows().items.indexOf(row) % 6 === 3"
+        [class.task-card--pastel-4]="rows().items.indexOf(row) % 6 === 4"
+        [class.task-card--pastel-5]="rows().items.indexOf(row) % 6 === 5"
+        [routerLink]="['/my-tasks', row.delivery.id]"
+      >
+        <h2 class="task-card__title">{{ row.task.name }}</h2>
+        <p class="task-card__subject">{{ row.subject.name }}</p>
+        <dl class="task-card__details">
+          <dt>Vencimiento</dt>
+          <dd>
+            {{ row.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy' }}
+            @if (row.delivery.overdue) {
+              <span class="badge text-bg-danger">Vencida</span>
+            }
+          </dd>
+          <dt>Calificación</dt>
+          <dd>{{ row.delivery.grade ?? '—' }}</dd>
+          <dt>Estado</dt>
+          <dd>
+            @if (statusByCode().get(row.delivery.status); as status) {
+              <span class="task-card__status">
+                <span
+                  class="task-card__status-dot"
+                  aria-hidden="true"
+                  [style.background-color]="status.color"
+                ></span>
+                {{ status.label }}
+              </span>
+            }
+          </dd>
+        </dl>
+      </a>
+    }
+  </section>
+  @if (rows().total_pages > 1) {
+    <app-paginator
+      [page]="page()"
+      [totalPages]="rows().total_pages"
+      [total]="rows().total"
+      (pageChange)="load($event)"
+    />
+  }
+}

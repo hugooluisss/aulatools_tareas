@@ -18,13 +18,19 @@ describe('TasksService', () => {
 
   afterEach(() => http.verify());
 
-  it('uses the documented student task filter endpoint', () => {
+  it('loads all student tasks by default without status or cycle filters', () => {
     service.myTasks().subscribe();
-    const request = http.expectOne(
-      `${environment.apiUrl}/me/tasks?status=pending&page=1&per_page=20`,
-    );
+    const request = http.expectOne(`${environment.apiUrl}/me/tasks?page=1&per_page=20`);
     expect(request.request.method).toBe('GET');
     request.flush({ items: [], page: 1, per_page: 20, total: 0, total_pages: 1 });
+  });
+
+  it('sends student search, multiple statuses, cycle and page filters', () => {
+    service.myTasks(['pending', 'graded'], ' math ', 14, 2).subscribe();
+    const request = http.expectOne(
+      `${environment.apiUrl}/me/tasks?page=2&per_page=20&status=pending,graded&search=math&cycle_id=14`,
+    );
+    request.flush({ items: [], page: 2, per_page: 20, total: 0, total_pages: 1 });
   });
 
   it('posts comments to the delivery thread', () => {
@@ -33,6 +39,26 @@ describe('TasksService', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ body: 'Hola' });
     request.flush({ id: 1 });
+  });
+
+  it('loads the complete delivery history', () => {
+    service.deliveryHistory(9).subscribe((response) => {
+      expect(response.items[0].type).toBe('comment_added');
+      expect(response.items[0].actor?.name).toBe('Ana Pérez');
+    });
+    const request = http.expectOne(`${environment.apiUrl}/deliveries/9/history`);
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      items: [
+        {
+          id: 2,
+          type: 'comment_added',
+          actor: { id: 4, name: 'Ana Pérez', role: 'teacher' },
+          created_at: '2026-10-04 12:00:00',
+          payload: { comment_id: 3 },
+        },
+      ],
+    });
   });
 
   it('requests the complete task overview with search and multiple status filters', () => {

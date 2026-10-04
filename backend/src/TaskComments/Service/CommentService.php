@@ -6,11 +6,16 @@ namespace App\TaskComments\Service;
 
 use App\Auth\CurrentUser;
 use App\TaskComments\Repository\CommentRepository;
+use App\Shared\TransactionRunner;
+use App\Tasks\Repository\TaskDeliveryEventRepository;
 
 final class CommentService
 {
-    public function __construct(private CommentRepository $repository)
-    {
+    public function __construct(
+        private CommentRepository $repository,
+        private ?TransactionRunner $transactions = null,
+        private ?TaskDeliveryEventRepository $events = null,
+    ) {
     }
 
     public function list(CurrentUser $user, int $deliveryId, int $page, int $perPage): array
@@ -29,7 +34,13 @@ final class CommentService
         if (!is_string($body) || trim($body) === '' || mb_strlen(trim($body), 'UTF-8') > 2000) {
             throw new CommentException('Comment must contain 1 to 2000 characters.', 400);
         }
-        $id = $this->repository->create($deliveryId, $user->id, trim($body));
+        $create = function () use ($user, $deliveryId, $body): int {
+            $id = $this->repository->create($deliveryId, $user->id, trim($body));
+            $delivery = $this->repository->delivery($user->schoolId, $deliveryId);
+            $this->events?->add($deliveryId, (int) $delivery['task_id'], 'comment_added', $user, ['comment_id' => $id]);
+            return $id;
+        };
+        $id = $this->transactions === null ? $create() : $this->transactions->run($create);
         return $this->format($this->repository->find($id));
     }
 

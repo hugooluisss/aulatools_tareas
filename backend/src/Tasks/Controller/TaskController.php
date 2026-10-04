@@ -98,6 +98,8 @@ final class TaskController
         return $this->run(fn () => $this->service->myTasks(
             $this->user($request),
             isset($query['status']) ? (string) $query['status'] : null,
+            isset($query['search']) ? (string) $query['search'] : null,
+            isset($query['cycle_id']) ? $this->number($query, 'cycle_id', 0) : null,
             $this->number($query, 'page', 1),
             $this->number($query, 'per_page', 20),
         ));
@@ -106,6 +108,11 @@ final class TaskController
     public function myTaskDetail(ServerRequestInterface $request, int $delivery_id): ResponseInterface
     {
         return $this->run(fn () => $this->service->myTaskDetail($this->user($request), $delivery_id));
+    }
+
+    public function history(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        return $this->run(fn () => $this->service->history($this->user($request), $id));
     }
 
     private function user(ServerRequestInterface $request): CurrentUser

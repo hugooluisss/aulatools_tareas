@@ -7,11 +7,15 @@ namespace App\Tasks\Service;
 use App\Auth\CurrentUser;
 use App\Shared\TransactionRunner;
 use App\Tasks\Repository\TaskRepository;
+use App\Tasks\Repository\TaskDeliveryEventRepository;
 
 final class TaskService
 {
-    public function __construct(private TaskRepository $repository, private TransactionRunner $transactions)
-    {
+    public function __construct(
+        private TaskRepository $repository,
+        private TransactionRunner $transactions,
+        private ?TaskDeliveryEventRepository $events = null,
+    ) {
     }
 
     public function listSubjectTasks(CurrentUser $user, int $subjectId, ?int $cycleId, int $page, int $perPage): array
@@ -122,7 +126,11 @@ final class TaskService
             throw new TaskException('Cycle is finished.', 422);
         }
         $data = $this->validate($data);
-        $id = $this->transactions->run(fn (): int => $this->repository->create($subjectId, $cycleId, $data));
+        $id = $this->transactions->run(function () use ($user, $subjectId, $cycleId, $data): int {
+            $id = $this->repository->create($subjectId, $cycleId, $data);
+            $this->events?->createdForTask($id, $user);
+            return $id;
+        });
         return $this->find($user, $id);
     }
 
@@ -167,7 +175,16 @@ final class TaskService
         if ($task['status'] !== 'active') {
             throw new TaskException('Cancelled tasks cannot be edited.', 422);
         }
-        $this->repository->update($id, $this->validate($data));
+        $data = $this->validate($data);
+        $this->transactions->run(function () use ($user, $id, $data, $task): void {
+            $this->repository->update($id, $data);
+            foreach ($this->repository->deliveriesForTask($id) as $delivery) {
+                $this->events?->add((int) $delivery['id'], $id, 'task_updated', $user, [
+                    'old' => ['name' => $task['name'], 'description' => $task['description'], 'due_at' => $task['due_at']],
+                    'new' => $data,
+                ]);
+            }
+        });
         return $this->find($user, $id);
     }
 
@@ -178,8 +195,14 @@ final class TaskService
         if ($task['status'] === 'cancelled') {
             throw new TaskException('Task is already cancelled.', 422);
         }
-        $this->transactions->run(function () use ($id): void {
+        $this->transactions->run(function () use ($id, $user, $task): void {
             $this->repository->cancel($id);
+            foreach ($this->repository->deliveriesForTask($id) as $delivery) {
+                $this->events?->add((int) $delivery['id'], $id, 'status_changed', $user, [
+                    'old_status' => $delivery['status'],
+                    'new_status' => 'cancelled',
+                ]);
+            }
         });
         return $this->find($user, $id);
     }
@@ -226,7 +249,17 @@ final class TaskService
         if ($delivery['status'] !== 'pending') {
             throw new TaskException('Delivery cannot be marked delivered in its current state.', 422);
         }
-        $this->repository->markDelivered($deliveryId);
+        $this->transactions->run(function () use ($user, $deliveryId, $delivery): void {
+            $this->repository->markDelivered($deliveryId);
+            $this->events?->add($deliveryId, (int) $delivery['task_id'], 'delivered', $user, [
+                'old_status' => $delivery['status'],
+                'new_status' => 'delivered',
+            ]);
+            $this->events?->add($deliveryId, (int) $delivery['task_id'], 'status_changed', $user, [
+                'old_status' => $delivery['status'],
+                'new_status' => 'delivered',
+            ]);
+        });
         return $this->delivery($user, $deliveryId);
     }
 
@@ -237,7 +270,17 @@ final class TaskService
         if (!in_array($delivery['status'], ['delivered', 'graded'], true)) {
             throw new TaskException('Only delivered or graded deliveries can be undelivered.', 422);
         }
-        $this->repository->markUndelivered($deliveryId);
+        $this->transactions->run(function () use ($user, $deliveryId, $delivery): void {
+            $this->repository->markUndelivered($deliveryId);
+            $this->events?->add($deliveryId, (int) $delivery['task_id'], 'undelivered', $user, [
+                'old_status' => $delivery['status'],
+                'new_status' => 'pending',
+            ]);
+            $this->events?->add($deliveryId, (int) $delivery['task_id'], 'status_changed', $user, [
+                'old_status' => $delivery['status'],
+                'new_status' => 'pending',
+            ]);
+        });
         return $this->delivery($user, $deliveryId);
     }
 
@@ -257,19 +300,43 @@ final class TaskService
             throw new TaskException('Only delivered tasks can be graded.', 422);
         }
         $grade = (float) $data['grade'];
-        $this->repository->grade($deliveryId, $grade);
+        $this->transactions->run(function () use ($user, $deliveryId, $delivery, $grade): void {
+            $this->repository->grade($deliveryId, $grade);
+            $type = $delivery['grade'] === null ? 'graded' : 'regrade';
+            $this->events?->add($deliveryId, (int) $delivery['task_id'], $type, $user, [
+                'old_grade' => $delivery['grade'] === null ? null : (float) $delivery['grade'],
+                'new_grade' => $grade,
+            ]);
+            $this->events?->add($deliveryId, (int) $delivery['task_id'], 'status_changed', $user, [
+                'old_status' => $delivery['status'],
+                'new_status' => 'graded',
+            ]);
+        });
         return $this->delivery($user, $deliveryId);
     }
 
-    public function myTasks(CurrentUser $user, ?string $status, int $page, int $perPage): array
+    public function myTasks(CurrentUser $user, ?string $status, ?string $search, ?int $cycleId, int $page, int $perPage): array
     {
         $this->role($user, 'student');
         $this->pagination($page, $perPage);
-        $status ??= 'pending';
-        if (!in_array($status, ['pending', 'delivered', 'graded', 'cancelled'], true)) {
-            throw new TaskException('Invalid delivery status.', 400);
+        $statuses = $status === null || trim($status) === '' ? [] : array_map('trim', explode(',', $status));
+        foreach ($statuses as $value) {
+            if (!in_array($value, ['pending', 'delivered', 'graded', 'cancelled'], true)) {
+                throw new TaskException('Invalid delivery status.', 400);
+            }
         }
-        $result = $this->repository->myTasks($user->schoolId, $user->id, $status, ($page - 1) * $perPage, $perPage);
+        if ($cycleId !== null && $cycleId < 1) {
+            throw new TaskException('Invalid cycle_id.', 400);
+        }
+        $result = $this->repository->myTasks(
+            $user->schoolId,
+            $user->id,
+            $statuses,
+            $search === null ? null : trim($search),
+            $cycleId,
+            ($page - 1) * $perPage,
+            $perPage,
+        );
         $result['data'] = array_map(fn (array $row): array => [
             'task' => [
                 'id' => (int) $row['task_id'],
@@ -305,8 +372,14 @@ final class TaskService
                 'description' => $row['description'],
                 'due_at' => $row['due_at'],
                 'status' => $row['task_status'],
+                'created_at' => $row['task_created_at'],
+                'updated_at' => $row['task_updated_at'],
             ],
-            'subject' => ['id' => (int) $row['subject_id'], 'name' => $row['subject_name']],
+            'subject' => [
+                'id' => (int) $row['subject_id'],
+                'name' => $row['subject_name'],
+                'teacher_name' => $row['teacher_name'],
+            ],
             'teacher' => [
                 'id' => (int) $row['teacher_id'],
                 'first_name' => $row['teacher_first_name'],
@@ -321,6 +394,38 @@ final class TaskService
                 'on_time' => (bool) $row['on_time'],
             ],
         ];
+    }
+
+    public function history(CurrentUser $user, int $deliveryId): array
+    {
+        if (!in_array($user->role, ['student', 'teacher', 'admin'], true)) {
+            throw new TaskException('Forbidden.', 403);
+        }
+        $result = $this->events?->list($user->schoolId, $deliveryId);
+        if ($result === null) {
+            throw new TaskException('Delivery not found.', 404);
+        }
+        $delivery = $result['delivery'];
+        if ($user->role === 'student' && (int) $delivery['student_id'] !== $user->id) {
+            throw new TaskException('Delivery not found.', 404);
+        }
+        if ($user->role === 'teacher' && (int) $delivery['teacher_id'] !== $user->id) {
+            throw new TaskException('Forbidden.', 403);
+        }
+        return ['items' => array_map(static function (array $item): array {
+            $payload = json_decode($item['payload'], true, 512, JSON_THROW_ON_ERROR);
+            return [
+                'id' => (int) $item['id'],
+                'type' => $item['type'],
+                'actor' => $item['actor_id'] === null ? null : [
+                    'id' => (int) $item['actor_id'],
+                    'name' => $item['actor_name'],
+                    'role' => $item['actor_role'],
+                ],
+                'created_at' => (new \DateTimeImmutable($item['created_at'], new \DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
+                'payload' => (object) $payload,
+            ];
+        }, $result['items'])];
     }
 
     private function delivery(CurrentUser $user, int $id): array

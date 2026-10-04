@@ -143,6 +143,13 @@ class TaskRepository
             SQL, [':task_id' => $taskId])->execute();
     }
 
+    public function deliveriesForTask(int $taskId): array
+    {
+        return $this->db->createCommand(<<<'SQL'
+            SELECT id, status FROM task_deliveries WHERE task_id = :task_id
+            SQL, [':task_id' => $taskId])->queryAll();
+    }
+
     public function listSubjectTasks(
         int $schoolId,
         string $role,
@@ -398,18 +405,38 @@ class TaskRepository
             SQL, [':id' => $deliveryId, ':grade' => $grade])->execute();
     }
 
-    public function myTasks(int $schoolId, int $studentId, string $status, int $offset, int $limit): array
+    public function myTasks(int $schoolId, int $studentId, array $statuses, ?string $search, ?int $cycleId, int $offset, int $limit): array
     {
+        $filters = '';
+        $params = [':student_id' => $studentId, ':school_id' => $schoolId];
+        if ($statuses !== []) {
+            $names = [];
+            foreach ($statuses as $index => $status) {
+                $name = ':status' . $index;
+                $names[] = $name;
+                $params[$name] = $status;
+            }
+            $filters .= ' AND task_deliveries.status IN (' . implode(', ', $names) . ')';
+        }
+        if ($search !== null && $search !== '') {
+            $filters .= ' AND (tasks.name LIKE :task_search OR subjects.name LIKE :subject_search)';
+            $params[':task_search'] = '%' . $search . '%';
+            $params[':subject_search'] = '%' . $search . '%';
+        }
+        if ($cycleId !== null) {
+            $filters .= ' AND tasks.cycle_id = :cycle_id';
+            $params[':cycle_id'] = $cycleId;
+        }
         $sql = <<<'SQL'
             FROM task_deliveries
             INNER JOIN tasks ON tasks.id = task_deliveries.task_id
             INNER JOIN subjects ON subjects.id = tasks.subject_id
             WHERE task_deliveries.student_id = :student_id AND subjects.school_id = :school_id
-              AND task_deliveries.status = :status
             SQL;
-        $params = [':student_id' => $studentId, ':school_id' => $schoolId, ':status' => $status];
+        $sql .= $filters;
         $data = $this->db->createCommand(<<<SQL
             SELECT tasks.id AS task_id, tasks.name, tasks.description, tasks.due_at, tasks.status AS task_status,
+                   NULL AS task_created_at, NULL AS task_updated_at,
                    subjects.id AS subject_id, subjects.name AS subject_name,
                    task_deliveries.id AS delivery_id, task_deliveries.status AS delivery_status,
                    task_deliveries.delivered_at, task_deliveries.grade,
@@ -419,7 +446,7 @@ class TaskRepository
                        AND DATE(task_deliveries.delivered_at) <= tasks.due_at
                    ) AS on_time
             {$sql}
-            ORDER BY tasks.due_at LIMIT :limit OFFSET :offset
+            ORDER BY tasks.due_at ASC, task_deliveries.id ASC LIMIT :limit OFFSET :offset
             SQL, $params + [':limit' => $limit, ':offset' => $offset])->queryAll();
         $total = (int) $this->db->createCommand(<<<SQL
             SELECT COUNT(*) {$sql}
@@ -432,6 +459,8 @@ class TaskRepository
         return $this->db->createCommand(
             <<<'SQL'
             SELECT tasks.id AS task_id, tasks.name, tasks.description, tasks.due_at, tasks.status AS task_status,
+                   (SELECT MIN(created_at) FROM task_delivery_events WHERE delivery_id = task_deliveries.id AND type = 'task_created') AS task_created_at,
+                   (SELECT MAX(created_at) FROM task_delivery_events WHERE delivery_id = task_deliveries.id AND type IN ('task_updated', 'status_changed')) AS task_updated_at,
                    subjects.id AS subject_id, subjects.name AS subject_name,
                    task_deliveries.id AS delivery_id, task_deliveries.status AS delivery_status,
                    task_deliveries.delivered_at, task_deliveries.grade,
@@ -441,7 +470,8 @@ class TaskRepository
                        AND DATE(task_deliveries.delivered_at) <= tasks.due_at
                    ) AS on_time,
                    teachers.id AS teacher_id, teachers.first_name AS teacher_first_name,
-                   teachers.last_name AS teacher_last_name
+                   teachers.last_name AS teacher_last_name,
+                   NULLIF(TRIM(CONCAT_WS(' ', teachers.first_name, teachers.last_name)), '') AS teacher_name
             FROM task_deliveries
             INNER JOIN tasks ON tasks.id = task_deliveries.task_id
             INNER JOIN subjects ON subjects.id = tasks.subject_id

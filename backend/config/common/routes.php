@@ -97,6 +97,7 @@ return [
     Route::put('/deliveries/{id}/delivered')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'delivered']),
     Route::put('/deliveries/{id}/undelivered')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'undelivered']),
     Route::put('/deliveries/{id}/grade')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'grade']),
+    Route::get('/deliveries/{id}/history')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'history']),
     Route::get('/me/tasks')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'myTasks']),
     Route::get('/me/tasks/{delivery_id}')->middleware(AuthenticationMiddleware::class)->action([\App\Tasks\Controller\TaskController::class, 'myTaskDetail']),
     Route::get('/deliveries/{id}/comments')->middleware(AuthenticationMiddleware::class)->action([\App\TaskComments\Controller\CommentController::class, 'index']),

@@ -94,7 +94,7 @@ Task object: `{id,subject_id,name,description,due_at,status}` (`due_at` uses `YY
 | PUT `/deliveries/{id}/delivered` | Admin, task's teacher | `{}` | `200 delivery object`; sets `delivered_at` to current time |
 | PUT `/deliveries/{id}/undelivered` | Admin, task's teacher | `{}` | `200 delivery object`; returns a delivered or graded delivery to `pending`, clearing `delivered_at` and `grade` |
 | PUT `/deliveries/{id}/grade` | Admin, task's teacher | `{grade}` | `200 delivery object`; only a delivered delivery can be graded |
-| GET `/me/tasks` | Student | Query pagination; `status` optional, defaults `pending` | `200` {items:[...],page,per_page,total,total_pages}; rows contain `{task,subject,delivery} |
+| GET `/me/tasks` | Student | Query pagination; optional comma-separated `status` (`pending`,`delivered`,`graded`,`cancelled`), `search` (task or subject name), and `cycle_id`; absent or empty filters return all statuses and cycles | `200` {items:[...],page,per_page,total,total_pages}; rows contain `{task,subject,delivery}` |
 | GET `/me/tasks/{delivery_id}` | Student (own delivery) | — | `200` bare `{task,subject,teacher,delivery}` object |
 
 ## Delivery comments

@@ -9,10 +9,13 @@ use App\TaskComments\Controller\CommentController;
 use App\TaskComments\Repository\CommentRepository;
 use App\TaskComments\Service\CommentException;
 use App\TaskComments\Service\CommentService;
+use App\Shared\TransactionRunner;
+use App\Tasks\Repository\TaskDeliveryEventRepository;
 use HttpSoft\Message\ResponseFactory;
 use HttpSoft\Message\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Yiisoft\Db\Connection\ConnectionInterface;
+use Yiisoft\Db\Transaction\TransactionInterface;
 
 final class CommentServiceTest extends TestCase
 {
@@ -51,6 +54,83 @@ final class CommentServiceTest extends TestCase
 
         self::assertSame('Question', $comment['body']);
         self::assertSame('student', $comment['author']['role']);
+    }
+
+    public function testCommentAddedEventIncludesActorAndCommentId(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends CommentRepository {
+            public function delivery(int $schoolId, int $deliveryId): ?array
+            {
+                return ['id' => $deliveryId, 'task_id' => 12, 'student_id' => 3, 'teacher_id' => 4];
+            }
+
+            public function create(int $deliveryId, int $authorId, string $body): int
+            {
+                return 47;
+            }
+
+            public function find(int $commentId): ?array
+            {
+                return ['id' => $commentId, 'delivery_id' => 6, 'body' => 'Question', 'created_at' => '2026-10-01 10:00:00', 'author_id' => 3, 'first_name' => 'Sam', 'last_name' => 'Student', 'role' => 'student'];
+            }
+        };
+        $events = new class ($this->createMock(ConnectionInterface::class)) extends TaskDeliveryEventRepository {
+            public array $record = [];
+
+            public function add(int $deliveryId, int $taskId, string $type, ?CurrentUser $actor, array $payload): void
+            {
+                $this->record = [$deliveryId, $taskId, $type, $actor?->id, $actor?->role, $payload];
+            }
+        };
+        $transaction = $this->createMock(TransactionInterface::class);
+        $transaction->expects(self::once())->method('commit');
+        $db = $this->createMock(ConnectionInterface::class);
+        $db->method('beginTransaction')->willReturn($transaction);
+        (new CommentService($repository, new TransactionRunner($db), $events))->create(
+            new CurrentUser(3, 'student', 2),
+            6,
+            ['body' => 'Question'],
+        );
+        self::assertSame([6, 12, 'comment_added', 3, 'student', ['comment_id' => 47]], $events->record);
+    }
+
+    public function testCommentEventFailureRollsBackCommentCreation(): void
+    {
+        $repository = new class ($this->createMock(ConnectionInterface::class)) extends CommentRepository {
+            public bool $created = false;
+
+            public function delivery(int $schoolId, int $deliveryId): ?array
+            {
+                return ['id' => $deliveryId, 'task_id' => 12, 'student_id' => 3, 'teacher_id' => 4];
+            }
+
+            public function create(int $deliveryId, int $authorId, string $body): int
+            {
+                $this->created = true;
+                return 47;
+            }
+        };
+        $events = new class ($this->createMock(ConnectionInterface::class)) extends TaskDeliveryEventRepository {
+            public function add(int $deliveryId, int $taskId, string $type, ?CurrentUser $actor, array $payload): void
+            {
+                throw new \RuntimeException('event insert failed');
+            }
+        };
+        $transaction = $this->createMock(TransactionInterface::class);
+        $transaction->expects(self::once())->method('rollBack');
+        $db = $this->createMock(ConnectionInterface::class);
+        $db->method('beginTransaction')->willReturn($transaction);
+        try {
+            (new CommentService($repository, new TransactionRunner($db), $events))->create(
+                new CurrentUser(3, 'student', 2),
+                6,
+                ['body' => 'Question'],
+            );
+            self::fail('Failed event write did not fail comment creation.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame('event insert failed', $exception->getMessage());
+        }
+        self::assertTrue($repository->created);
     }
 
     public function testOtherStudentGets404ForPrivateThread(): void

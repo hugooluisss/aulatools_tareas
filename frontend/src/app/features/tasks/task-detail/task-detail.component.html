@@ -2,37 +2,85 @@
   <app-breadcrumbs
     [items]="[{ label: 'Mis tareas', url: '/my-tasks' }, { label: taskDetail.task.name }]"
   />
-  <article class="card p-4 task-detail">
+  <article class="card p-4 task-detail task-detail__card">
     <h1>{{ taskDetail.task.name }}</h1>
-    <p>{{ taskDetail.task.description }}</p>
+    <p>{{ taskDetail.task.description || 'Sin descripción' }}</p>
     <dl class="task-detail__fields">
       <dt>Materia</dt>
       <dd>{{ taskDetail.subject.name }}</dd>
       <dt>Profesor</dt>
-      <dd>{{ taskDetail.teacher.first_name }} {{ taskDetail.teacher.last_name }}</dd>
+      <dd>
+        {{
+          taskDetail.subject.teacher_name ||
+            taskDetail.teacher.first_name + ' ' + taskDetail.teacher.last_name
+        }}
+      </dd>
       <dt>Fecha de vencimiento</dt>
-      <dd>{{ taskDetail.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy' }}</dd>
+      <dd>
+        {{
+          taskDetail.task.due_at
+            ? (taskDetail.task.due_at + 'T00:00:00' | date: 'dd/MM/yyyy')
+            : 'No disponible'
+        }}
+      </dd>
+      <dt>Estado</dt>
+      <dd>
+        <app-status-badge [status]="statusFor(taskDetail.delivery.status)" />
+      </dd>
       <dt>Calificación</dt>
       <dd>{{ taskDetail.delivery.grade ?? 'Sin calificar' }}</dd>
       <dt>Fecha de entrega</dt>
       <dd>
         {{
           taskDetail.delivery.delivered_at
-            ? (taskDetail.delivery.delivered_at | date: 'medium')
+            ? (taskDetail.delivery.delivered_at | date: 'dd/MM/yyyy HH:mm')
             : 'Sin entregar'
         }}
       </dd>
-      <dt>Estado</dt>
-      <dd>{{ statusLabel(taskDetail.delivery.status) }}</dd>
+      <dt>Creada</dt>
+      <dd>
+        {{
+          taskDetail.task.created_at
+            ? (taskDetail.task.created_at | date: 'dd/MM/yyyy HH:mm')
+            : 'No disponible'
+        }}
+      </dd>
+      <dt>Última actualización</dt>
+      <dd>
+        {{
+          taskDetail.task.updated_at
+            ? (taskDetail.task.updated_at | date: 'dd/MM/yyyy HH:mm')
+            : 'No disponible'
+        }}
+      </dd>
     </dl>
-    <button class="btn btn-link p-0" type="button" (click)="commentsOpen.set(true)">
-      Ver comentarios
-    </button>
   </article>
-  @if (commentsOpen()) {
-    <app-delivery-comments
-      [deliveryId]="taskDetail.delivery.id"
-      (closed)="commentsOpen.set(false)"
-    />
-  }
+  <app-delivery-comments
+    [deliveryId]="taskDetail.delivery.id"
+    [embedded]="true"
+    (historyRefresh)="history.set($event)"
+  />
+  <section class="task-history" aria-labelledby="task-history-title">
+    <h2 id="task-history-title">Bitácora</h2>
+    @if (historyError()) {
+      <p role="alert">No se pudo cargar la bitácora.</p>
+    } @else {
+      <ol
+        class="task-history__list"
+        aria-label="Cambios de la tarea, del más reciente al más antiguo"
+      >
+        @for (event of history(); track event.id) {
+          <li class="task-history__event">
+            <p>{{ eventMessage(event) }}</p>
+            @if (event.actor?.role) {
+              <p class="task-history__actor-role">{{ event.actor?.role }}</p>
+            }
+            <time>{{ event.created_at | date: 'dd/MM/yyyy HH:mm' }} UTC</time>
+          </li>
+        } @empty {
+          <li>Aún no hay eventos en la bitácora.</li>
+        }
+      </ol>
+    }
+  </section>
 }

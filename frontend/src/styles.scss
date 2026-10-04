@@ -3,8 +3,11 @@
   $primary: v.$primary,
   $success: v.$success,
   $warning: v.$warning,
+  $danger: v.$danger,
   $body-bg: v.$body-bg,
   $body-color: v.$body-color,
+  $font-family-base: v.$font-family-base,
+  $border-color: v.$border-color,
   $border-radius: v.$border-radius,
   $border-radius-lg: v.$border-radius-lg
 );
@@ -19,13 +22,82 @@ body {
 body {
   margin: 0;
   background: v.$lavender;
-  font-family: system-ui, sans-serif;
+  color: v.$body-text;
+  font-family: v.$font-family-base;
+}
+:root {
+  --color-primary: #{v.$primary};
+  --color-success: #{v.$success};
+  --color-warning: #{v.$warning};
+  --color-danger: #{v.$danger};
+  --color-sidebar: #{v.$sidebar};
+  --color-sidebar-text: #{v.$sidebar-text};
+  --color-brand-accent: #{v.$brand-accent};
+  --color-body: #{v.$body-text};
+  --color-background: #{v.$lavender};
+  --color-surface: #{v.$surface};
+  --color-surface-muted: #{v.$surface-muted};
+  --color-border: #{v.$border-color};
+  --color-focus: #{v.$focus-color};
+  --color-pastel-blue: #{v.$pastel-blue};
+  --color-pastel-mint: #{v.$pastel-mint};
+  --color-pastel-lilac: #{v.$pastel-lilac};
+  --color-pastel-peach: #{v.$pastel-peach};
+  --color-pastel-pink: #{v.$pastel-pink};
+  --color-pastel-yellow: #{v.$pastel-yellow};
+  --color-pastel-text: #{v.$pastel-text};
+  --font-family-base: #{v.$font-family-base};
+  --radius-card: #{v.$card-radius};
+  --radius-control: #{v.$border-radius};
+  --shadow-soft: 0 6px 24px #{v.$shadow-color};
+  --space-xs: #{v.$spacing-xs};
+  --space-sm: #{v.$spacing-sm};
+  --space-md: #{v.$spacing-md};
+  --space-lg: #{v.$spacing-lg};
+  --space-xl: #{v.$spacing-xl};
 }
 /* Shared card surface */
 .card {
   border: 0;
   border-radius: v.$card-radius;
   box-shadow: 0 6px 24px v.$shadow-soft;
+  background: v.$surface;
+}
+
+:focus-visible {
+  outline: 3px solid v.$focus-color;
+  outline-offset: 3px;
+}
+
+.btn {
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.form-control,
+.form-select {
+  border-color: v.$border-color;
+  border-radius: 0.75rem;
+}
+
+.badge {
+  font-weight: 600;
+}
+
+.modal-content {
+  border: 0;
+  border-radius: v.$card-radius;
+  box-shadow: 0 12px 36px v.$shadow-soft;
+}
+
+.table {
+  --bs-table-striped-bg: #{v.$surface-muted};
+  --bs-table-hover-bg: #{v.$pastel-blue};
+}
+
+.breadcrumb {
+  --bs-breadcrumb-divider-color: #{v.$body-text};
+  font-weight: 500;
 }
 
 button.is-busy {

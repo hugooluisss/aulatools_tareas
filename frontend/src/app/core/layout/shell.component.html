@@ -1,16 +1,5 @@
 <div class="app-shell">
-  <button
-    class="app-shell__menu-toggle btn btn-primary"
-    type="button"
-    data-bs-toggle="collapse"
-    data-bs-target="#app-menu"
-    aria-controls="app-menu"
-    aria-expanded="false"
-    aria-label="Abrir menú"
-  >
-    Menú
-  </button>
-  <aside id="app-menu" class="app-sidebar collapse app-sidebar--collapsed">
+  <aside id="app-menu" class="app-sidebar">
     <div class="app-sidebar__brand">Aula<span class="app-sidebar__brand-accent">Tools</span></div>
     @if (schoolName()) {
       <div class="app-sidebar__school">{{ schoolName() }}</div>
@@ -22,7 +11,9 @@
           [open]="controlEscolarActive() || controlEscolarOpen()"
           (toggle)="controlEscolarOpen.set($any($event.target).open)"
         >
-          <summary class="app-sidebar__nav-link">Control escolar</summary>
+          <summary class="app-sidebar__nav-link">
+            <i class="bi bi-mortarboard" aria-hidden="true"></i><span>Control escolar</span>
+          </summary>
           @for (item of controlEscolar; track item.path) {
             <a
               class="app-sidebar__nav-link app-sidebar__nav-link--nested"
@@ -30,7 +21,7 @@
               routerLinkActive="app-sidebar__link--active"
               [routerLinkActiveOptions]="{ exact: true }"
             >
-              {{ item.label }}
+              <i class="bi bi-dot" aria-hidden="true"></i><span>{{ item.label }}</span>
             </a>
           }
         </details>
@@ -39,7 +30,9 @@
           [open]="catalogosActive() || catalogosOpen()"
           (toggle)="catalogosOpen.set($any($event.target).open)"
         >
-          <summary class="app-sidebar__nav-link">Catálogos</summary>
+          <summary class="app-sidebar__nav-link">
+            <i class="bi bi-collection" aria-hidden="true"></i><span>Catálogos</span>
+          </summary>
           @for (item of catalogos; track item.path) {
             <a
               class="app-sidebar__nav-link app-sidebar__nav-link--nested"
@@ -47,7 +40,7 @@
               routerLinkActive="app-sidebar__link--active"
               [routerLinkActiveOptions]="{ exact: true }"
             >
-              {{ item.label }}
+              <i class="bi bi-dot" aria-hidden="true"></i><span>{{ item.label }}</span>
             </a>
           }
         </details>
@@ -58,7 +51,9 @@
           [open]="reportesActive() || reportesOpen()"
           (toggle)="reportesOpen.set($any($event.target).open)"
         >
-          <summary class="app-sidebar__nav-link">Reportes</summary>
+          <summary class="app-sidebar__nav-link">
+            <i class="bi bi-bar-chart" aria-hidden="true"></i><span>Reportes</span>
+          </summary>
           @for (item of reportes; track item.path) {
             <a
               class="app-sidebar__nav-link app-sidebar__nav-link--nested"
@@ -66,7 +61,7 @@
               routerLinkActive="app-sidebar__link--active"
               [routerLinkActiveOptions]="{ exact: true }"
             >
-              {{ item.label }}
+              <i class="bi bi-dot" aria-hidden="true"></i><span>{{ item.label }}</span>
             </a>
           }
         </details>
@@ -78,7 +73,7 @@
           routerLinkActive="app-sidebar__link--active"
           [routerLinkActiveOptions]="{ exact: true }"
         >
-          {{ item.label }}
+          <i class="bi bi-{{ item.icon }}" aria-hidden="true"></i><span>{{ item.label }}</span>
         </a>
       }
       @if (isAdmin()) {
@@ -87,7 +82,9 @@
           [open]="escuelaActive() || escuelaOpen()"
           (toggle)="escuelaOpen.set($any($event.target).open)"
         >
-          <summary class="app-sidebar__nav-link">Escuela</summary>
+          <summary class="app-sidebar__nav-link">
+            <i class="bi bi-building" aria-hidden="true"></i><span>Escuela</span>
+          </summary>
           @for (item of escuela; track item.path) {
             <a
               class="app-sidebar__nav-link app-sidebar__nav-link--nested"
@@ -95,28 +92,84 @@
               routerLinkActive="app-sidebar__link--active"
               [routerLinkActiveOptions]="{ exact: true }"
             >
-              {{ item.label }}
+              <i class="bi bi-dot" aria-hidden="true"></i><span>{{ item.label }}</span>
             </a>
           }
         </details>
       }
     </nav>
-    <div class="app-sidebar__actions">
+  </aside>
+  <header class="app-topbar">
+    <div class="app-topbar__context">{{ schoolName() || 'AulaTools' }}</div>
+    <div class="app-topbar__actions">
       <app-icon-button
         icon="key"
         label="Cambiar contraseña"
-        variant="outline-light"
+        variant="outline-primary"
         (click)="changePassword()"
       />
       <app-icon-button
         icon="box-arrow-right"
         label="Cerrar sesión"
-        variant="outline-light"
+        variant="outline-primary"
         (click)="logout()"
       />
     </div>
-  </aside>
+  </header>
   <main class="app-content">
     <router-outlet />
   </main>
+  <nav class="app-mobile-nav" aria-label="Navegación principal móvil">
+    @for (item of mobileMenu; track item.path) {
+      <a
+        class="app-mobile-nav__link"
+        [routerLink]="item.path"
+        routerLinkActive="app-mobile-nav__link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.aria-label]="item.label"
+      >
+        <i class="bi bi-{{ item.icon }}" aria-hidden="true"></i><span>{{ item.label }}</span>
+      </a>
+    }
+    @if (mobileMoreMenu.length || isAdmin()) {
+      <details class="app-mobile-nav__more">
+        <summary class="app-mobile-nav__link">
+          <i class="bi bi-three-dots" aria-hidden="true"></i><span>Más</span>
+        </summary>
+        <div class="app-mobile-nav__menu">
+          @for (item of mobileMoreMenu; track item.path) {
+            <a
+              class="app-mobile-nav__menu-link"
+              [routerLink]="item.path"
+              routerLinkActive="app-mobile-nav__link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              >{{ item.label }}</a
+            >
+          }
+          @if (isAdmin()) {
+            @for (item of controlEscolar; track item.path) {
+              <a class="app-mobile-nav__menu-link" [routerLink]="item.path">{{ item.label }}</a>
+            }
+            @for (item of catalogos; track item.path) {
+              <a class="app-mobile-nav__menu-link" [routerLink]="item.path">{{ item.label }}</a>
+            }
+            @for (item of escuela; track item.path) {
+              <a class="app-mobile-nav__menu-link" [routerLink]="item.path">{{ item.label }}</a>
+            }
+          }
+          @if (isAdmin() || tokens.getRole() === 'teacher') {
+            @for (item of reportes; track item.path) {
+              <a class="app-mobile-nav__menu-link" [routerLink]="item.path">{{ item.label }}</a>
+            }
+          }
+          <button class="app-mobile-nav__menu-link" type="button" (click)="changePassword()">
+            Cambiar contraseña
+          </button>
+          <button class="app-mobile-nav__menu-link" type="button" (click)="logout()">
+            Cerrar sesión
+          </button>
+        </div>
+      </details>
+    }
+  </nav>
 </div>

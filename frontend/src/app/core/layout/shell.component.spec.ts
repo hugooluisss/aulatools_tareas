@@ -36,10 +36,12 @@ describe('ShellComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Control escolar');
     expect(fixture.nativeElement.textContent).toContain('Catálogos');
     expect(fixture.nativeElement.textContent).toContain('Reportes');
-    expect(fixture.nativeElement.querySelectorAll('details').length).toBe(4);
+    expect(fixture.nativeElement.querySelectorAll('.app-sidebar__group').length).toBe(4);
     expect(fixture.nativeElement.textContent).toContain('Usuarios');
     expect(fixture.nativeElement.textContent).toContain('Generales');
-    expect(fixture.nativeElement.querySelectorAll('a[href="/calendar"]')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelectorAll('.app-sidebar a[href="/calendar"]')).toHaveLength(
+      1,
+    );
     expect(fixture.nativeElement.textContent).not.toContain('Inicio');
     expect(fixture.nativeElement.textContent).toContain('Lista de asistencia');
     expect(fixture.nativeElement.textContent).toContain('Boleta de tareas');

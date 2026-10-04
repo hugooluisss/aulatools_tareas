@@ -35,7 +35,7 @@
 } @else {
   <div class="subject-list">
     @for (subject of subjects().items; track subject.id) {
-      <article class="card p-4">
+      <article class="card p-4 subject-card">
         <h2>{{ subject.name }}</h2>
         <p>Estado: {{ subject.status }}</p>
         <a [routerLink]="['/my-subjects', subject.id]">Ver estudiantes y tareas</a>

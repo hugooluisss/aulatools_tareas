@@ -5,8 +5,16 @@ import { environment } from '../../../environments/environment';
 import { Page } from '../../core/models/page';
 
 export interface TaskRow {
-  task: { id: number; name: string; description: string; due_at: string; status: string };
-  subject: { id: number; name: string };
+  task: {
+    id: number;
+    name: string;
+    description: string;
+    due_at: string;
+    status: string;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  subject: { id: number; name: string; teacher_name?: string | null };
   delivery: {
     id: number;
     status: 'pending' | 'delivered' | 'graded' | 'cancelled';
@@ -18,9 +26,17 @@ export interface TaskRow {
 
 export interface TaskDetail {
   task: TaskRow['task'];
-  subject: TaskRow['subject'];
+  subject: TaskRow['subject'] & { teacher_name: string | null };
   teacher: { id: number; first_name: string; last_name: string };
   delivery: TaskRow['delivery'];
+}
+
+export interface DeliveryHistoryEvent {
+  id: number;
+  type: string;
+  actor: { id: number; name: string; role: string } | null;
+  created_at: string;
+  payload: Record<string, unknown>;
 }
 
 export interface Comment {
@@ -79,8 +95,15 @@ export class TasksService {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiUrl;
 
-  myTasks(status = 'pending', cycleId?: number, page = 1): Observable<Page<TaskRow>> {
-    let params = new HttpParams().set('status', status).set('page', page).set('per_page', 20);
+  myTasks(
+    statuses: string[] = [],
+    search = '',
+    cycleId?: number,
+    page = 1,
+  ): Observable<Page<TaskRow>> {
+    let params = new HttpParams().set('page', page).set('per_page', 20);
+    if (statuses.length) params = params.set('status', statuses.join(','));
+    if (search.trim()) params = params.set('search', search.trim());
     if (cycleId) params = params.set('cycle_id', cycleId);
     return this.http.get<Page<TaskRow>>(`${this.api}/me/tasks`, {
       params,
@@ -89,6 +112,12 @@ export class TasksService {
 
   myTask(deliveryId: number): Observable<TaskDetail> {
     return this.http.get<TaskDetail>(`${this.api}/me/tasks/${deliveryId}`);
+  }
+
+  deliveryHistory(deliveryId: number): Observable<{ items: DeliveryHistoryEvent[] }> {
+    return this.http.get<{ items: DeliveryHistoryEvent[] }>(
+      `${this.api}/deliveries/${deliveryId}/history`,
+    );
   }
 
   comments(deliveryId: number, page = 1): Observable<Page<Comment>> {

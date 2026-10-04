@@ -1,72 +1,93 @@
-<div class="modal-backdrop fade show"></div>
-<div
-  class="modal d-block"
-  tabindex="-1"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="delivery-comments-title"
->
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title fs-5" id="delivery-comments-title">Comentarios</h2>
-        <button
-          type="button"
-          class="btn-close"
-          aria-label="Cerrar"
-          (click)="closed.emit()"
-        ></button>
-      </div>
-      <div class="modal-body">
-        @if (error()) {
-          <p role="alert" class="text-danger">{{ error() }}</p>
-        }
-        <section class="comment-thread">
-          @for (comment of comments().items; track comment.id) {
-            <article class="card p-3">
-              <p class="comment-thread__author">
-                {{ comment.author.first_name }} {{ comment.author.last_name }} ·
-                {{ comment.author.role }}
-              </p>
-              <p>{{ comment.body }}</p>
-              <time>{{ comment.created_at | date: 'medium' }}</time>
-            </article>
-          } @empty {
-            <p>Aún no hay comentarios.</p>
-          }
-          @if (comments().total_pages > 1) {
-            <app-paginator
-              [page]="page()"
-              [totalPages]="comments().total_pages"
-              [total]="comments().total"
-              (pageChange)="load($event)"
-            />
-          }
-        </section>
-        <form class="card p-3" (ngSubmit)="submit()">
-          <label for="comment-body">Escribe un comentario</label>
-          <textarea
-            id="comment-body"
-            class="form-control"
-            name="body"
-            [(ngModel)]="body"
-            maxlength="2000"
-            required
-          ></textarea>
+@if (embedded()) {
+  <section class="comment-panel" aria-labelledby="delivery-comments-title">
+    <h2 id="delivery-comments-title">Comentarios</h2>
+    @if (error()) {
+      <p role="alert" class="text-danger">{{ error() }}</p>
+    }
+    <ng-container *ngTemplateOutlet="thread" />
+    <button
+      class="btn btn-primary"
+      type="button"
+      [disabled]="busy()"
+      [class.is-busy]="busy()"
+      [attr.data-busy-label]="'Enviando…'"
+      (click)="promptComment()"
+    >
+      Agregar comentario
+    </button>
+  </section>
+} @else {
+  <div class="modal-backdrop fade show"></div>
+  <div
+    class="modal d-block"
+    tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delivery-comments-title"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="delivery-comments-title">Comentarios</h2>
           <button
-            class="btn btn-primary"
-            type="submit"
-            [disabled]="!body.trim() || body.length > 2000"
-          >
-            Enviar
+            type="button"
+            class="btn-close"
+            aria-label="Cerrar"
+            (click)="closed.emit()"
+          ></button>
+        </div>
+        <div class="modal-body">
+          @if (error()) {
+            <p role="alert" class="text-danger">{{ error() }}</p>
+          }
+          <ng-container *ngTemplateOutlet="thread" />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" (click)="closed.emit()">
+            Cerrar
           </button>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline-secondary" type="button" (click)="closed.emit()">
-          Cerrar
-        </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+}
+
+<ng-template #thread>
+  <section class="comment-thread">
+    @for (comment of comments().items; track comment.id) {
+      <article class="card p-3">
+        <p class="comment-thread__author">
+          {{ comment.author.first_name }} {{ comment.author.last_name }} · {{ comment.author.role }}
+        </p>
+        <p>{{ comment.body }}</p>
+        <time>{{ comment.created_at | date: 'medium' }}</time>
+      </article>
+    } @empty {
+      <p>Aún no hay comentarios.</p>
+    }
+    @if (comments().total_pages > 1) {
+      <app-paginator
+        [page]="page()"
+        [totalPages]="comments().total_pages"
+        [total]="comments().total"
+        (pageChange)="load($event)"
+      />
+    }
+  </section>
+  @if (!embedded()) {
+    <form class="card p-3" (ngSubmit)="submit()">
+      <label for="comment-body">Escribe un comentario</label>
+      <textarea
+        id="comment-body"
+        class="form-control"
+        name="body"
+        [(ngModel)]="body"
+        maxlength="2000"
+        required
+      ></textarea>
+      <button class="btn btn-primary" type="submit" [disabled]="!body.trim() || body.length > 2000">
+        Enviar
+      </button>
+    </form>
+  }
+</ng-template>

@@ -10,6 +10,16 @@
   gap: v.$spacing-md;
 }
 
+.calendar-page__header {
+  flex-wrap: wrap;
+  margin-bottom: v.$spacing-lg;
+}
+
+.calendar-page__navigation {
+  flex: 1 1 18rem;
+  justify-content: center;
+}
+
 .calendar-page__event-row {
   flex-wrap: wrap;
 }
@@ -32,19 +42,25 @@
   padding: v.$spacing-lg;
 }
 
+.calendar-page__event-list {
+  background: v.$surface;
+}
+
 .calendar-page__grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   overflow: hidden;
+  margin-bottom: v.$spacing-lg;
 }
 
 .calendar-page__weekday,
 .calendar-page__day {
-  border: 1px solid v.$sidebar-text;
+  border: 1px solid v.$border-color;
   padding: v.$spacing-sm;
 }
 
 .calendar-page__weekday {
+  background: v.$surface-muted;
   font-weight: 700;
   text-align: center;
 }
@@ -52,11 +68,13 @@
 .calendar-page__day {
   min-height: 8rem;
   cursor: pointer;
+  background: v.$surface;
 }
 
 .calendar-page__day--selected {
   outline: 2px solid v.$primary;
   outline-offset: -2px;
+  box-shadow: inset 0 0 0 2px v.$primary;
 }
 
 .calendar-page__day h3 {
@@ -64,7 +82,7 @@
 }
 
 .calendar-page__day--outside {
-  background: v.$lavender;
+  background: v.$surface-muted;
   color: v.$body-text;
 }
 
@@ -74,7 +92,10 @@
   gap: 0.15rem v.$spacing-xs;
   margin-bottom: v.$spacing-xs;
   padding: v.$spacing-xs;
-  border-left: 3px solid v.$primary;
+  border: 1px solid v.$pastel-blue;
+  border-radius: 0.55rem;
+  background: v.$pastel-blue;
+  color: v.$pastel-text;
   cursor: pointer;
 }
 
@@ -95,17 +116,60 @@
 }
 
 .calendar-page__item--task {
-  border-left-color: v.$warning;
+  border-color: v.$pastel-peach;
+  background: v.$pastel-peach;
 }
 
 @media (max-width: 767px) {
+  .calendar-page__header {
+    align-items: flex-start;
+  }
+
+  .calendar-page__navigation {
+    flex-basis: 100%;
+    justify-content: space-between;
+    order: 1;
+  }
+
   .calendar-page__grid {
-    grid-template-columns: repeat(7, minmax(5rem, 1fr));
-    overflow-x: auto;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
   }
 
   .calendar-page__day {
-    min-height: 6rem;
-    padding: v.$spacing-xs;
+    min-height: 4.5rem;
+    padding: 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  .calendar-page__weekday {
+    padding: v.$spacing-xs 0.1rem;
+    font-size: 0.7rem;
+  }
+
+  .calendar-page__item {
+    display: block;
+    overflow: hidden;
+    padding: 0.2rem;
+    font-size: 0.65rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .calendar-page__item small,
+  .calendar-page__item app-icon-button {
+    display: none;
+  }
+
+  .calendar-page__event-list {
+    padding: v.$spacing-md;
+  }
+
+  .calendar-page__event-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+  }
+
+  .calendar-page__event-row > span {
+    grid-column: 1 / -1;
   }
 }

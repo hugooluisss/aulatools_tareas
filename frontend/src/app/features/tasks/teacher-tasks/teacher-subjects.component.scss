@@ -2,6 +2,43 @@
 
 .subject-list {
   display: grid;
-  gap: v.$spacing-lg;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: v.$spacing-md;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+}
+
+.subject-card {
+  background: v.$pastel-mint;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.subject-card:nth-child(6n + 2) {
+  background: v.$pastel-blue;
+}
+
+.subject-card:nth-child(6n + 3) {
+  background: v.$pastel-lilac;
+}
+
+.subject-card:nth-child(6n + 4) {
+  background: v.$pastel-peach;
+}
+
+.subject-card:nth-child(6n + 5) {
+  background: v.$pastel-pink;
+}
+
+.subject-card:nth-child(6n + 6) {
+  background: v.$pastel-yellow;
+}
+
+.subject-card:hover {
+  transform: translateY(-0.2rem);
+  box-shadow: 0 0.5rem 1.5rem v.$shadow-soft;
+}
+
+.subject-card a:focus-visible {
+  outline: 3px solid v.$focus-color;
+  outline-offset: 3px;
 }

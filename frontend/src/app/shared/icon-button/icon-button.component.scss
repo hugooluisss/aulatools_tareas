@@ -6,6 +6,11 @@ button {
   position: relative;
 }
 
+button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
 .icon-button__badge {
   position: absolute;
   top: 0;

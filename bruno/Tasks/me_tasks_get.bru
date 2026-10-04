@@ -10,7 +10,7 @@ get {
 }
 
 docs {
-  GET `/me/tasks` Roles: Student (own delivery). Response: 200 {items:[...],page,per_page,total,total_pages}. Errors: {error:{code,message}} with HTTP 400/401/403/404/409/422/500 as applicable.
+  GET `/me/tasks` Roles: Student. Query parameters: optional comma-separated `status` (`pending`,`delivered`,`graded`,`cancelled`), `search` (task or subject name), `cycle_id`, `page`, `per_page`. Absent or empty status and cycle return all statuses and cycles. Response: 200 `{items:[...],page,per_page,total,total_pages}`. Errors: invalid status/cycle or pagination returns HTTP 400.
 }
 
 assert {
